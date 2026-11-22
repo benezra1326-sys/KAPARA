@@ -74,7 +74,7 @@ def main(name):
 
     # Web app manifest (Android / desktop install; iPhone uses apple-touch-icon.png).
     json.dump({'name': name, 'short_name': name, 'start_url': '/', 'display': 'standalone',
-               'background_color': PORCELAIN, 'theme_color': PORCELAIN,
+               'background_color': '#0D0C12', 'theme_color': '#0D0C12',  # app page colour (identity "Nuit")
                'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
                          {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
                          {'src': '/favicon.svg', 'sizes': 'any', 'type': 'image/svg+xml'}]},
