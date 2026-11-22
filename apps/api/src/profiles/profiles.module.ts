@@ -52,11 +52,17 @@ class ProfilesController {
       id: u.id, email: u.email, locale: u.locale, regionCode: u.regionCode,
       paused: u.paused, shabbatMode: u.shabbatMode, isDemo: u.isDemo, verified: Boolean(u.verifiedAt),
       hasApproximateLocation: Boolean(loc?.has),
-      profile: u.profile ? (await this.profiles.view(me.id, me.id)) ?? null : null,
+      // Self only: birth date and gender so the app can edit the basics without asking again.
+      profile: u.profile ? await this.selfView(me.id, u.profile) : null,
       consents: u.consents.map((c) => ({ field: c.field, grantedAt: c.grantedAt, policyVersion: c.policyVersion })),
       consentPolicyVersion: SENSITIVE_POLICY_VERSION,
       onboarding: { complete: missing.length === 0, missing },
     };
+  }
+
+  private async selfView(id: string, p: { birthDate: Date; gender: string }) {
+    const v = await this.profiles.view(id, id);
+    return v ? { ...v, birthDate: p.birthDate.toISOString().slice(0, 10), gender: p.gender } : null;
   }
 
   /** Creates (end of onboarding) or edits the basic profile. */

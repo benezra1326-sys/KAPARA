@@ -72,3 +72,6 @@ export const IntroductionRequest = z.object({
   note: z.string().min(10).max(400),
 });
 export type IntroductionRequest = z.infer<typeof IntroductionRequest>;
+
+export type Prompt = z.infer<typeof Prompt>;
+export type Photo = z.infer<typeof Photo>;
