@@ -2,7 +2,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { MAX_PROMPTS, PROMPT_KEYS } from '@kapara/shared';
+import { PROMPT_KEYS } from '@kapara/shared';
+import { MAX_PROMPTS } from '../../src/me/fields';
 import { space } from '@kapara/design';
 import { useSaveMe } from '../../src/me/api';
 import { meStore, useMe } from '../../src/me/store';
@@ -26,7 +27,7 @@ export default function EditPrompt() {
 
   const persist = (next: typeof prompts) => {
     meStore.set({ prompts: next });
-    save.mutate({ basics: { prompts: next } }, { onSuccess: () => router.back() });
+    save.mutate({ basics: true }, { onSuccess: () => router.back() });
   };
   const onSave = () => {
     if (!id) return;

@@ -17,7 +17,7 @@ export default function EditBasics() {
     form.touch();
     if (!form.value) return;
     meStore.set(form.value);
-    save.mutate({ basics: form.value }, { onSuccess: () => router.back() });
+    save.mutate({ basics: true }, { onSuccess: () => router.back() });
   };
   return (
     <Screen back="back" title={t('edit.basicsTitle')} footer={

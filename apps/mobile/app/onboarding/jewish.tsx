@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { Visibility } from '@kapara/shared';
 import { space } from '@kapara/design';
 import { answerLabel, fieldMeta, ONBOARDING_FIELDS, type JLKey } from '../../src/me/fields';
-import { emptyField, meStore, type SensitiveField } from '../../src/me/store';
+import { emptyField, meStore, storesData, type SensitiveField } from '../../src/me/store';
 import { Button, ConsentSheet, Progress, Row, Screen, Section, SensitiveQuestion, SwitchRow, Text, VisibilityPicker } from '../../src/ui';
 
 type Phase = { kind: 'intro' } | { kind: 'question'; i: number } | { kind: 'share' };
@@ -24,7 +24,7 @@ export default function OnbJewish() {
   const [matching, setMatching] = useState(false);
   const [asking, setAsking] = useState(false);
 
-  const answeredKeys = ONBOARDING_FIELDS.filter((k) => { const a = answers[k]; return a && !a.preferNotToSay && a.value !== null; });
+  const answeredKeys = ONBOARDING_FIELDS.filter((k) => { const a = answers[k]; return !!a && storesData(a); });
   const finish = (consent: boolean) => {
     for (const k of ONBOARDING_FIELDS) {
       const a = answers[k];
@@ -75,11 +75,13 @@ export default function OnbJewish() {
     );
   }
 
-  // share
-  const widened = visibility !== 'private' || matching;
+  // share: storing any answer needs explicit consent; who sees it is a separate choice.
   return (
     <Screen back="back" title={t('onb.shareTitle')} subtitle={t('onb.step', { n: 2, total: 3 })} footer={
-      <Button label={t('onb.continue')} onPress={() => (answeredKeys.length && widened ? setAsking(true) : finish(false))} />
+      <>
+        <Button label={t('onb.continue')} onPress={() => (answeredKeys.length ? setAsking(true) : finish(false))} />
+        {answeredKeys.length ? <Button kind="ghost" label={t('onb.discard')} onPress={() => finish(false)} /> : null}
+      </>
     }>
       <View style={{ paddingHorizontal: space.xl, marginBottom: space.xl }}>
         <Text tone="textMuted">{answeredKeys.length ? t('onb.shareIntro') : t('onb.shareNone')}</Text>
@@ -100,7 +102,7 @@ export default function OnbJewish() {
       ) : null}
       <ConsentSheet visible={asking} subject={t('onb.theseAnswers')} visibility={visibility} useForMatching={matching}
         onAccept={() => { setAsking(false); finish(true); }}
-        onDecline={() => { setAsking(false); setVisibility('private'); setMatching(false); }} />
+        onDecline={() => setAsking(false)} />
     </Screen>
   );
 }

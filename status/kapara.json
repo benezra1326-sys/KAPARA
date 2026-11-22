@@ -10,20 +10,68 @@
   "prochaine_etape": "Lancer 5 chantiers en parallèle : écrans Pour toi/profil, API profils et auth, Live, Croisés/présentations/messages, données de démo et i18n.",
   "blocages": [],
   "chantiers": [
-    { "nom": "Benchmark des apps de rencontre", "statut": "termine", "avancement": 100, "responsable": "apps-produit" },
-    { "nom": "Squelette monorepo (app, API, base, design system)", "statut": "termine", "avancement": 100, "responsable": "apps-dev" },
-    { "nom": "A. Écrans Pour toi, profil, onboarding", "statut": "a_faire", "avancement": 10, "responsable": "apps-design" },
-    { "nom": "B. API profils, préférences, découverte, auth", "statut": "a_faire", "avancement": 20, "responsable": "apps-dev" },
-    { "nom": "C. Live : présence, invitations, LiveKit, écrans d'appel", "statut": "a_faire", "avancement": 15, "responsable": "apps-dev" },
-    { "nom": "D. Croisés, présentations, conversations, sécurité", "statut": "a_faire", "avancement": 15, "responsable": "apps-dev" },
-    { "nom": "E. Données de démo, i18n, portraits générés", "statut": "a_faire", "avancement": 10, "responsable": "apps-produit" }
+    {
+      "nom": "Benchmark des apps de rencontre",
+      "statut": "termine",
+      "avancement": 100,
+      "responsable": "apps-produit"
+    },
+    {
+      "nom": "Squelette monorepo (app, API, base, design system)",
+      "statut": "termine",
+      "avancement": 100,
+      "responsable": "apps-dev"
+    },
+    {
+      "nom": "A. Écrans Pour toi, profil, onboarding",
+      "statut": "a_faire",
+      "avancement": 10,
+      "responsable": "apps-design"
+    },
+    {
+      "nom": "B. API profils, préférences, découverte, auth",
+      "statut": "en_revue",
+      "avancement": 90,
+      "responsable": "apps-dev"
+    },
+    {
+      "nom": "C. Live : présence, invitations, LiveKit, écrans d'appel",
+      "statut": "a_faire",
+      "avancement": 15,
+      "responsable": "apps-dev"
+    },
+    {
+      "nom": "D. Croisés, présentations, conversations, sécurité",
+      "statut": "a_faire",
+      "avancement": 15,
+      "responsable": "apps-dev"
+    },
+    {
+      "nom": "E. Données de démo, i18n, portraits générés",
+      "statut": "a_faire",
+      "avancement": 10,
+      "responsable": "apps-produit"
+    }
   ],
   "liens": [
-    { "libelle": "Dépôt GitHub", "url": "https://github.com/benezra1326-sys/KAPARA" }
+    {
+      "libelle": "Dépôt GitHub",
+      "url": "https://github.com/benezra1326-sys/KAPARA"
+    }
   ],
   "historique": [
-    { "quand": "2026-11-22T03:20:00Z", "texte": "Projet lancé, benchmark démarré." },
-    { "quand": "2026-11-22T03:30:13Z", "texte": "Squelette monorepo poussé sur main." }
+    {
+      "quand": "2026-11-22T03:20:00Z",
+      "texte": "Projet lancé, benchmark démarré."
+    },
+    {
+      "quand": "2026-11-22T03:30:13Z",
+      "texte": "Squelette monorepo poussé sur main."
+    },
+    {
+      "quand": "2026-11-22T04:30:00Z",
+      "texte": "Chantier B : vraie connexion (code e-mail, Apple, Google), profils et consentements, préférences, sélection « Pour toi » mutuelle et expliquée avec distance PostGIS. PR ouverte."
+    }
   ],
-  "maj_le": "2026-11-22T03:30:13Z"
+  "maj_le": "2026-11-22T04:30:00Z"
 }

@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { MAX_PROMPTS } from '@kapara/shared';
+import { MAX_PROMPTS } from '../../src/me/fields';
 import { space } from '@kapara/design';
 import { useMe } from '../../src/me/store';
 import { Button, Progress, Row, Screen, Section, Text } from '../../src/ui';

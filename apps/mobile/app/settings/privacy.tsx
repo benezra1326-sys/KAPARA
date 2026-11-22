@@ -17,8 +17,19 @@ export default function Privacy() {
 
   const confirm = (title: string, body: string, action: () => void) => Alert.alert(title, body, [
     { text: t('ui.cancel'), style: 'cancel' },
-    { text: t('ui.confirm'), style: 'destructive', onPress: () => { action(); save.mutate({ jewishLife: true }); } },
+    { text: t('ui.confirm'), style: 'destructive', onPress: action },
   ]);
+  const allPrivate = () => {
+    meStore.makeAllPrivate();
+    const jl = meStore.get().jewishLife;
+    save.mutate({ answers: Object.fromEntries(answered.map((f) => [f.key, jl[f.key] ?? null])) });
+  };
+  const deleteAll = () => {
+    const consented = answered.filter((f) => me.consents[f.key]).map((f) => f.key);
+    const others = answered.filter((f) => !me.consents[f.key]).map((f) => f.key);
+    answered.forEach((f) => meStore.withdrawField(f.key));
+    save.mutate({ revoke: consented, answers: Object.fromEntries(others.map((k) => [k, null])) });
+  };
 
   return (
     <Screen back="back" title={t('me.privacy')}>
@@ -43,9 +54,9 @@ export default function Privacy() {
       {answered.length ? (
         <View style={{ paddingHorizontal: space.xl, gap: space.sm }}>
           <Button kind="secondary" label={t('privacy.allPrivate')}
-            onPress={() => confirm(t('privacy.allPrivate'), t('privacy.allPrivateBody'), meStore.makeAllPrivate)} />
+            onPress={() => confirm(t('privacy.allPrivate'), t('privacy.allPrivateBody'), allPrivate)} />
           <Button kind="ghost" label={t('privacy.deleteAll')}
-            onPress={() => confirm(t('privacy.deleteAll'), t('privacy.deleteAllBody'), () => answered.forEach((f) => meStore.withdrawField(f.key)))} />
+            onPress={() => confirm(t('privacy.deleteAll'), t('privacy.deleteAllBody'), deleteAll)} />
         </View>
       ) : null}
     </Screen>

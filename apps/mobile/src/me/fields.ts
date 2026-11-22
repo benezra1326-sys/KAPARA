@@ -60,3 +60,6 @@ export function answerLabel(t: TFunction, meta: FieldMeta, f?: { value: unknown;
   return meta.kind === 'single' ? t(`jl.options.${meta.key}.${String(v)}`) : String(v);
 }
 
+
+/** Prompts shown on a profile (the API accepts up to 4; the benchmark keeps 3). */
+export const MAX_PROMPTS = 3;

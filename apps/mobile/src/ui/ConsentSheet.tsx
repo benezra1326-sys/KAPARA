@@ -15,6 +15,7 @@ export function ConsentSheet({ visible, subject, visibility, useForMatching, onA
 }) {
   const { t } = useTranslation();
   const bullets = [
+    t('consent.stored'),
     visibility !== 'private' ? t('consent.seenBy', { who: t(`vis.${visibility}Long`) }) : t('consent.seenByNobody'),
     useForMatching ? t('consent.usedForMatching') : t('consent.notUsedForMatching'),
     t('consent.neverInferred'),

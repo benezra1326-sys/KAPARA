@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { space } from '@kapara/design';
 import { useSaveMe } from '../../../src/me/api';
 import { fieldMeta } from '../../../src/me/fields';
-import { emptyField, meStore, needsConsent, useMe, type SensitiveField } from '../../../src/me/store';
+import { emptyField, meStore, storesData, useMe, type SensitiveField } from '../../../src/me/store';
 import { useTheme } from '../../../src/theme';
 import { Button, ConsentSheet, EmptyState, Screen, Section, SensitiveQuestion, SwitchRow, Text, VisibilityPicker } from '../../../src/ui';
 
@@ -22,16 +22,16 @@ export default function EditField() {
   const [asking, setAsking] = useState(false);
 
   if (!meta) return <Screen back="back"><EmptyState title={t('profile.notFound')} /></Screen>;
-  const answered = !draft.preferNotToSay && draft.value !== null && !(Array.isArray(draft.value) && !draft.value.length);
+  const answered = storesData(draft);
   const hadConsent = !!me.consents[meta.key];
 
   const commit = (field: SensitiveField, consent: boolean) => {
     meStore.setField(meta.key, field, consent);
-    save.mutate({ jewishLife: true }, { onSuccess: () => router.back() });
+    save.mutate({ grant: consent ? [meta.key] : [], answers: { [meta.key]: meStore.get().jewishLife[meta.key] ?? null } }, { onSuccess: () => router.back() });
   };
   const onSave = () => {
     const field = answered ? draft : { ...draft, visibility: 'private' as const, useForMatching: false };
-    if (needsConsent(field) && !hadConsent) setAsking(true);
+    if (answered && !hadConsent) setAsking(true);
     else commit(field, false);
   };
 
@@ -61,13 +61,16 @@ export default function EditField() {
       {stored ? (
         <View style={{ paddingHorizontal: space.xl }}>
           <Button kind="ghost" label={t('edit.withdraw')} accessibilityHint={t('edit.withdrawHint')}
-            onPress={() => { meStore.withdrawField(meta.key); save.mutate({ jewishLife: true }, { onSuccess: () => router.back() }); }} />
+            onPress={() => {
+              meStore.withdrawField(meta.key);
+              save.mutate(hadConsent ? { revoke: [meta.key] } : { answers: { [meta.key]: null } }, { onSuccess: () => router.back() });
+            }} />
         </View>
       ) : null}
 
       <ConsentSheet visible={asking} subject={t(`jl.short.${meta.key}`)} visibility={draft.visibility} useForMatching={draft.useForMatching}
         onAccept={() => { setAsking(false); commit(draft, true); }}
-        onDecline={() => { setAsking(false); setDraft({ ...draft, visibility: 'private', useForMatching: false }); }} />
+        onDecline={() => setAsking(false)} />
     </Screen>
   );
 }

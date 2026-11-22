@@ -11,7 +11,15 @@
 | 2026-11-22 | Dealbreakers : une réponse absente ou non partagée n’exclut jamais | Pas de déduction, pas de pénalité |
 | 2026-11-22 | Croisés : grille 150 m, rayon 250 m, fenêtre 72 h, jamais lieu/heure | Vie privée |
 | 2026-11-22 | Direction artistique « candlelight editorial » : ivoire, encre, grenade, laiton ; Fraunces + Inter | Chaleureux, élégant, non générique |
+| 2026-11-22 | Auth : OTP e-mail (Resend, HTTP sans SDK) + Apple/Google vérifiés avec `jose` 6 | Pas de mot de passe ; une seule dépendance, maintenue |
+| 2026-11-22 | Accès JWT 15 min + rafraîchissement opaque haché, rotation, détection de réutilisation | Sessions révocables, vol de jeton limité |
+| 2026-11-22 | Liaison Apple/Google à un compte existant seulement par e-mail marqué vérifié | Pas de prise de compte par e-mail non vérifié |
+| 2026-11-22 | Aucune réponse « vie juive » stockée sans consentement explicite du champ ; retrait = effacement | RGPD art. 9 : pas de consentement, pas de stockage |
+| 2026-11-22 | Zone de domicile sur grille 1 km, jamais renvoyée ; distances en tranches | Pas de localisation précise, même pour « Pour toi » |
+| 2026-11-22 | Critères éliminatoires, âge, genre et distance mutuels ; réponse inconnue = neutre | Respect des deux personnes, pas de pénalité au silence |
+| 2026-11-22 | Sélection du jour persistée (`DailyPick`), renouvelée à minuit heure locale | Liste finie et stable, pas de swipe infini |
+| 2026-11-22 | Match = conversation créée automatiquement | Pas de match sans moyen d’écrire |
 | 2026-11-22 | Onboarding en 3 étapes (essentiel, vie juive facultative, questions), consentement groupé explicite en fin d’étape 2, puis réglage champ par champ | Rapide à remplir, privé par défaut, jamais bloquant |
-| 2026-11-22 | Consentement (RGPD art. 9) demandé dès qu’une réponse quitte « moi seul·e » ou sert aux suggestions ; retrait immédiat | Benchmark §6.2 |
+| 2026-11-22 | App : consentement demandé avant d’enregistrer une réponse sensible (règle API), visibilité et usage pour les suggestions réglés à part ; retrait = effacement | Benchmark §6.2, RGPD art. 9 |
 | 2026-11-22 | Aperçu « mon profil vu par un membre / un contact » avec la même règle que l’API (`visibleSensitive` dans shared) | Confiance : voir avant d’exposer |
 | 2026-11-22 | Mode démo : profil personnel en mémoire, réactions simulées et annoncées comme telles | Pas de fausse fonctionnalité |

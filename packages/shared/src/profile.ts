@@ -32,6 +32,8 @@ export const ProfilePublic = z.object({
   jewishLife: JewishLife.partial(),
   verified: z.boolean(),
   isDemo: z.boolean(),
+  /** Rounded distance bucket in km (1, 2, 3, 5, 10, 15…), never precise. Absent for self. */
+  distanceKm: z.number().optional(),
 });
 export type ProfilePublic = z.infer<typeof ProfilePublic>;
 
@@ -51,6 +53,8 @@ export const Recommendation = z.object({
   profile: ProfilePublic,
   score: z.number().min(0).max(1),
   reasons: z.array(z.object({ key: z.string(), params: z.record(z.string(), z.string()).optional() })).max(3),
+  /** What the member already did with this pick today. */
+  state: z.enum(['new', 'liked', 'dismissed']).optional(),
 });
 export type Recommendation = z.infer<typeof Recommendation>;
 
@@ -69,19 +73,5 @@ export const IntroductionRequest = z.object({
 });
 export type IntroductionRequest = z.infer<typeof IntroductionRequest>;
 
-/** Workstream A — editable, non-sensitive profile basics (PUT /profiles/me). Sensitive answers go through JewishLife. */
-export const Gender = z.enum(['woman', 'man', 'nonbinary']);
-export type Gender = z.infer<typeof Gender>;
-export const MAX_PROMPTS = 3;
-export const ProfileUpdate = z.object({
-  firstName: z.string().trim().min(1).max(40),
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // ISO date, age checked against RULES.minAge
-  gender: Gender,
-  headline: z.string().max(140).optional(),
-  languages: z.array(z.string()).max(8),
-  regionCode: z.string(),
-  prompts: z.array(Prompt).max(MAX_PROMPTS),
-}).partial();
-export type ProfileUpdate = z.infer<typeof ProfileUpdate>;
 export type Prompt = z.infer<typeof Prompt>;
 export type Photo = z.infer<typeof Photo>;

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { space } from '@kapara/design';
 import { useSaveMe } from '../../src/me/api';
+import type { JLKey } from '../../src/me/fields';
 import { meStore, useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
 import { Button, Text } from '../../src/ui';
@@ -18,7 +19,7 @@ export default function OnbDone() {
   const go = () => {
     const s = meStore.get();
     save.mutate(
-      { basics: { firstName: s.firstName, birthDate: s.birthDate, gender: s.gender, headline: s.headline, languages: s.languages, regionCode: s.regionCode, prompts: s.prompts }, jewishLife: true },
+      { force: true, basics: true, grant: Object.keys(s.consents) as JLKey[], answers: s.jewishLife },
       { onSuccess: () => { meStore.set({ onboarded: true }); router.replace('/'); } },
     );
   };

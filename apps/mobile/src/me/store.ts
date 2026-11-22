@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { LAUNCH_REGION } from '@kapara/config';
-import type { Gender, JewishLife, Photo, Prompt, Visibility } from '@kapara/shared';
+import type { Gender, JewishLife, Photo, Prompt, ProfileUpdate, Visibility } from '@kapara/shared';
 import type { JLKey } from './fields';
 
 export type SensitiveField = NonNullable<JewishLife[JLKey]>;
@@ -22,8 +22,12 @@ export interface MyProfile {
 
 export const emptyField = (): SensitiveField => ({ value: null, preferNotToSay: false, visibility: 'private', useForMatching: false });
 
-/** A field leaves "private + not used" only after explicit consent. */
-export const needsConsent = (f: Pick<SensitiveField, 'visibility' | 'useForMatching'>) => f.visibility !== 'private' || f.useForMatching;
+/**
+ * An actual answer (value or note) is stored only with explicit consent for
+ * that field (GDPR art. 9, enforced by the API). "Prefer not to say" stores nothing sensitive.
+ */
+export const storesData = (f: Pick<SensitiveField, 'value' | 'preferNotToSay' | 'note'>) =>
+  !f.preferNotToSay && ((f.value !== null && f.value !== undefined && !(Array.isArray(f.value) && !f.value.length)) || !!f.note?.trim());
 
 const demoPhotos: Photo[] = [0, 1].map((n) => ({ id: `me-${n}`, url: `https://picsum.photos/seed/kapara-me-${n}/900/1200`, isDemo: true }));
 
@@ -48,12 +52,14 @@ export const meStore = {
   },
   subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },
 
-  /** Writes one answer. Consent must already be recorded if the field is shared or used. */
+  /** Writes one answer. Without consent for the field, only "prefer not to say" can be kept. */
   setField(key: JLKey, field: SensitiveField, consentGiven = false) {
     meStore.set((s) => {
       const consents = { ...s.consents };
       if (consentGiven) consents[key] = new Date().toISOString();
-      const safe = needsConsent(field) && !consents[key] ? { ...field, visibility: 'private' as Visibility, useForMatching: false } : field;
+      const clean: SensitiveField = field.preferNotToSay ? { ...field, value: null, note: undefined, useForMatching: false } : field;
+      const safe = storesData(clean) && !consents[key]
+        ? { ...emptyField(), preferNotToSay: clean.preferNotToSay } : clean;
       return { jewishLife: { ...s.jewishLife, [key]: safe }, consents };
     });
   },
@@ -65,10 +71,9 @@ export const meStore = {
       return { jewishLife: rest, consents };
     });
   },
-  /** Keeps answers but makes every one private and unused, and withdraws all consents. */
+  /** Keeps answers (and their storage consent) but makes every one private and unused. */
   makeAllPrivate() {
     meStore.set((s) => ({
-      consents: {},
       jewishLife: Object.fromEntries(Object.entries(s.jewishLife).map(([k, f]) => [k, f && { ...f, visibility: 'private', useForMatching: false }])),
     }));
   },
@@ -87,4 +92,10 @@ export function ageFrom(birthDate?: string, now = new Date()): number | null {
   const m = now.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
   return age;
+}
+
+/** Full basics payload for PUT /profiles/me, or null while something required is missing. */
+export function basicsPayload(s: MyProfile): ProfileUpdate | null {
+  if (!s.firstName || !s.birthDate || !s.gender) return null;
+  return { firstName: s.firstName, birthDate: s.birthDate, gender: s.gender, headline: s.headline || undefined, languages: s.languages, prompts: s.prompts as ProfileUpdate['prompts'], regionCode: s.regionCode };
 }

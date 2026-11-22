@@ -1,0 +1,20 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://kapara:kapara@localhost:5432/kapara
+      JWT_SECRET: ci-only-secret-not-used-anywhere
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - run: npm run build -w @kapara/config -w @kapara/shared -w @kapara/design
+      - run: npx prisma generate
+        working-directory: apps/api
+      - run: npm run typecheck
+      - run: npm test -w @kapara/api
