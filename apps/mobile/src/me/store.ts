@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { LAUNCH_REGION } from '@kapara/config';
 import type { Gender, JewishLife, Photo, Prompt, ProfileUpdate, Visibility } from '@kapara/shared';
+import { DEMO_MODE } from '../api/client';
 import { DEMO_VIEWER_KEY, momentUrl, portraitUrl } from '../demo/people';
 import type { JLKey } from './fields';
 
@@ -30,8 +31,10 @@ export const emptyField = (): SensitiveField => ({ value: null, preferNotToSay: 
 export const storesData = (f: Pick<SensitiveField, 'value' | 'preferNotToSay' | 'note'>) =>
   !f.preferNotToSay && ((f.value !== null && f.value !== undefined && !(Array.isArray(f.value) && !f.value.length)) || !!f.note?.trim());
 
-/** Demo: the viewer's generated illustrations (src/demo/art), never a real person's photo. */
-const demoPhotos: Photo[] = [portraitUrl(DEMO_VIEWER_KEY), momentUrl(DEMO_VIEWER_KEY, 0)].map((url, n) => ({ id: `me-${n}`, url, isDemo: true }));
+/** Demo: the viewer's generated illustrations (src/demo/art), never a real person's photo. Connected mode starts with none. */
+const demoPhotos: Photo[] = DEMO_MODE
+  ? [portraitUrl(DEMO_VIEWER_KEY), momentUrl(DEMO_VIEWER_KEY, 0)].map((url, n) => ({ id: `me-${n}`, url, isDemo: true }))
+  : [];
 
 const initial: MyProfile = {
   onboarded: false, firstName: '', headline: '', languages: ['fr'], regionCode: LAUNCH_REGION.code,

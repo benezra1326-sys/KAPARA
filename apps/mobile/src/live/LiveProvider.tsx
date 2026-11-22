@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { AppState } from 'react-native';
-import { DEMO_MODE } from '../api/client';
+import { DEMO_MODE, useSessionStatus } from '../api/client';
 import { DemoTransport } from './demo-transport';
 import { SocketTransport } from './socket-transport';
 import { LiveStore, type LiveState } from './store';
@@ -16,8 +16,11 @@ const Ctx = createContext<LiveStore | null>(null);
 export function LiveProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const store = useMemo(() => new LiveStore(DEMO_MODE ? new DemoTransport() : new SocketTransport()), []);
+  // Connected mode: the socket opens only for a signed-in member and closes at sign-out.
+  const signedIn = useSessionStatus() === 'signedIn';
 
   useEffect(() => {
+    if (!signedIn) return;
     store.setIncomingHandler((call) => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push({ pathname: '/call/[id]', params: { id: call.callId } });
@@ -25,7 +28,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     void store.start();
     const sub = AppState.addEventListener('change', (s) => { if (s === 'active') void store.refresh(); });
     return () => { sub.remove(); store.stop(); };
-  }, [store, router]);
+  }, [store, router, signedIn]);
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
 }

@@ -1,12 +1,12 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { APP } from '@kapara/config';
 import { radius, shadow, space } from '@kapara/design';
-import { DEMO_MODE } from '../../src/api/client';
+import { auth, DEMO_MODE } from '../../src/api/client';
+import { meStore } from '../../src/me/store';
 import { DEMO_ME } from '../../src/demo';
 import { photoSource } from '../../src/demo/images';
 import { useTheme } from '../../src/theme';
@@ -23,9 +23,13 @@ export default function Me() {
   const me = DEMO_MODE ? DEMO_ME.profile : null;
   const photo = me?.photos[0];
 
-  const signOut = async () => {
-    await SecureStore.deleteItemAsync('token').catch(() => {});
-    router.replace('/onboarding');
+  const signOut = () => {
+    if (DEMO_MODE) { meStore.reset(); router.replace('/onboarding'); return; }
+    Alert.alert(t('me.signOutTitle'), t('me.signOutBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      // The tabs layout clears cached data and returns to the welcome screen.
+      { text: t('me.signOut'), style: 'destructive', onPress: () => void auth.signOut() },
+    ]);
   };
 
   return (
@@ -62,7 +66,7 @@ export default function Me() {
       </Section>
 
       <Section>
-        <Row first title={t('me.signOut')} onPress={signOut} trailing={null} />
+        <Row first title={t(DEMO_MODE ? 'me.restartDemo' : 'me.signOut')} onPress={signOut} trailing={null} />
       </Section>
     </Screen>
   );
