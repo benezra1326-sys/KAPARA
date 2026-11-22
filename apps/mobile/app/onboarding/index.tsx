@@ -31,7 +31,7 @@ export default function Welcome() {
         <Animated.View entering={FadeInDown.duration(500)} style={{ gap: space.md }}>
           <BrandMark size={72} />
           <Text variant="overline" tone="highlight" style={{ marginTop: space.md }}>{t('onb.welcomeOverline')}</Text>
-          <Wordmark size={26} header />
+          <Wordmark size={24} header />
           <Text variant="quote" tone="textMuted">{tagline}</Text>
         </Animated.View>
         <View style={{ gap: space.lg }}>
