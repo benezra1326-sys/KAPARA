@@ -46,6 +46,7 @@ export default function Me() {
 
       <Section title={t('profile.about')}>
         <Row first title={t('me.editProfile')} onPress={go('/profile/edit')} />
+        <Row title={t('me.preferences')} onPress={go('/preferences')} />
         <Row title={t('me.introductions')} onPress={go('/introductions')} />
       </Section>
 
