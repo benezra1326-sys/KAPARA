@@ -10,7 +10,7 @@ export default function Me() {
   const { t } = useTranslation();
   const { c } = useTheme();
   const rows: { label: string; href?: Href }[] = [
-    { label: t('me.editProfile') }, { label: t('me.preferences') },
+    { label: t('me.editProfile'), href: '/profile/edit' }, { label: t('me.preferences') },
     { label: t('me.privacy'), href: '/settings/privacy' }, { label: t('me.introductions') },
     { label: t('me.shabbatMode') }, { label: t('me.pause') }, { label: t('me.signOut') },
   ];

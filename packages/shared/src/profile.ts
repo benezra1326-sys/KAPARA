@@ -68,3 +68,20 @@ export const IntroductionRequest = z.object({
   note: z.string().min(10).max(400),
 });
 export type IntroductionRequest = z.infer<typeof IntroductionRequest>;
+
+/** Workstream A — editable, non-sensitive profile basics (PUT /profiles/me). Sensitive answers go through JewishLife. */
+export const Gender = z.enum(['woman', 'man', 'nonbinary']);
+export type Gender = z.infer<typeof Gender>;
+export const MAX_PROMPTS = 3;
+export const ProfileUpdate = z.object({
+  firstName: z.string().trim().min(1).max(40),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // ISO date, age checked against RULES.minAge
+  gender: Gender,
+  headline: z.string().max(140).optional(),
+  languages: z.array(z.string()).max(8),
+  regionCode: z.string(),
+  prompts: z.array(Prompt).max(MAX_PROMPTS),
+}).partial();
+export type ProfileUpdate = z.infer<typeof ProfileUpdate>;
+export type Prompt = z.infer<typeof Prompt>;
+export type Photo = z.infer<typeof Photo>;
