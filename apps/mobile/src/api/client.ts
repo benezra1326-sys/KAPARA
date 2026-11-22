@@ -41,9 +41,9 @@ export const session = new Session(API_BASE, {
 
 if (!DEMO_MODE) void session.init();
 
-/** Session status for screens. In demo mode the member is always "signed in" locally. */
+/** API session status. Screens use useAuthStatus (src/account), which also covers the demo account. */
 export function useSessionStatus(): SessionStatus {
-  return useSyncExternalStore(session.subscribe.bind(session), () => (DEMO_MODE ? 'signedIn' : session.status));
+  return useSyncExternalStore(session.subscribe.bind(session), () => session.status);
 }
 
 const send = (path: string, init: RequestInit, token: string | null) => fetch(`${API_BASE}/v1${path}`, {

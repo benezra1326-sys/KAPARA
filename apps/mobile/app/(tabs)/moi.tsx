@@ -1,12 +1,14 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, shadow, space } from '@kapara/design';
-import { auth, DEMO_MODE } from '../../src/api/client';
+import { demoAccount, signOut as doSignOut, useDemoAccount, useRole } from '../../src/account';
+import { confirm } from '../../src/account/confirm';
+import { DEMO_MODE } from '../../src/api/client';
 import { cityOf, nameAndAge } from '../../src/me/identity';
-import { meStore, useMe } from '../../src/me/store';
+import { useMe } from '../../src/me/store';
 import { photoSource } from '../../src/demo/images';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, Icon, Screen, Text } from '../../src/ui';
@@ -27,14 +29,12 @@ export default function Me() {
   const photo = me.photos[0];
   const title = nameAndAge(me) || t('ux.profileIncomplete');
 
-  const signOut = () => {
-    if (DEMO_MODE) { meStore.reset(); router.replace('/onboarding'); return; }
-    Alert.alert(t('me.signOutTitle'), t('me.signOutBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      // The tabs layout clears cached data and returns to the welcome screen.
-      { text: t('me.signOut'), style: 'destructive', onPress: () => void auth.signOut() },
-    ]);
-  };
+  const account = useDemoAccount();
+  const isAdmin = useRole() === 'admin';
+  // The tabs layout clears cached data and returns to the welcome screen.
+  const signOut = () => confirm(t('me.signOutTitle'), t(DEMO_MODE ? 'signin.signOutDemoBody' : 'me.signOutBody'), t('me.signOut'), t('common.cancel'), () => void doSignOut());
+  const forget = () => confirm(t('signin.forgetTitle'), t('signin.forgetBody'), t('signin.forget'), t('common.cancel'), () => void demoAccount.deleteAccount());
+  const via = account ? t('signin.connectedVia', { provider: t(`signin.provider.${account.provider}`) }) + (account.email ? ` · ${account.email}` : '') : undefined;
 
   return (
     <Screen title={t('me.title')}>
@@ -66,6 +66,12 @@ export default function Me() {
         <Text variant="caption" tone="textSubtle">{t('ux.sameEverywhere')}</Text>
       </View>
 
+      {isAdmin ? (
+        <Section title={t('admin.section')}>
+          <Row first title={t('admin.open')} value={t('admin.openHint')} onPress={go('/admin')} />
+        </Section>
+      ) : null}
+
       <Section title={t('ux.sectionProfile')}>
         <Row first title={t('me.editProfile')} onPress={go('/profile/edit')} />
         <Row title={t('me.preferences')} onPress={go('/preferences')} />
@@ -84,7 +90,9 @@ export default function Me() {
 
       <Section title={t('ux.sectionAccount')} footnote={t('me.pauseHint')}>
         <SwitchRow first title={t('me.pause')} value={paused} onValueChange={setPaused} />
-        <Row title={t(DEMO_MODE ? 'me.restartDemo' : 'me.signOut')} onPress={signOut} trailing={null} />
+        {via ? <Row title={t('signin.account')} value={via} /> : null}
+        <Row title={t('me.signOut')} onPress={signOut} trailing={null} />
+        {DEMO_MODE && account ? <Row title={t('signin.forget')} onPress={forget} trailing={null} /> : null}
       </Section>
     </Screen>
   );

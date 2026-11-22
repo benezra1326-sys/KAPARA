@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { AppState } from 'react-native';
-import { DEMO_MODE, useSessionStatus } from '../api/client';
+import { DEMO_MODE } from '../api/client';
+import { useAuthStatus } from '../account';
 import { DemoTransport } from './demo-transport';
 import { SocketTransport } from './socket-transport';
 import { LiveStore, type LiveState } from './store';
@@ -17,7 +18,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const store = useMemo(() => new LiveStore(DEMO_MODE ? new DemoTransport() : new SocketTransport()), []);
   // Connected mode: the socket opens only for a signed-in member and closes at sign-out.
-  const signedIn = useSessionStatus() === 'signedIn';
+  const signedIn = useAuthStatus() === 'signedIn';
 
   useEffect(() => {
     if (!signedIn) return;
