@@ -16,3 +16,4 @@ export * from './PhotoGrid';
 export * from './Icon';
 export * from './layout';
 export * from "./AppNav";
+export * from './Logo';

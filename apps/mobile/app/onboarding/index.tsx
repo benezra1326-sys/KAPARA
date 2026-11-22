@@ -7,7 +7,7 @@ import { APP } from '@kapara/config';
 import { space } from '@kapara/design';
 import { DEMO_MODE, useSessionStatus } from '../../src/api/client';
 import { useTheme } from '../../src/theme';
-import { Button, Icon, Text, useLayout } from '../../src/ui';
+import { BrandMark, Button, Icon, Text, Wordmark, useLayout } from '../../src/ui';
 
 const UNIVERSES = ['forYou', 'crossed', 'live'] as const;
 const GLYPH = { forYou: 'forYou', crossed: 'crossed', live: 'live' } as const;
@@ -29,8 +29,9 @@ export default function Welcome() {
       justifyContent: isPhone ? 'space-between' : 'center', gap: isPhone ? undefined : space.xxxl, width: '100%', maxWidth: 560, alignSelf: 'center' }}>
       <View style={{ gap: space.xxl }}>
         <Animated.View entering={FadeInDown.duration(500)} style={{ gap: space.md }}>
-          <Text variant="overline" tone="highlight">{t('onb.welcomeOverline')}</Text>
-          <Text variant="hero" accessibilityRole="header" style={{ fontSize: 52, lineHeight: 56 }}>{APP.name}</Text>
+          <BrandMark size={72} />
+          <Text variant="overline" tone="highlight" style={{ marginTop: space.md }}>{t('onb.welcomeOverline')}</Text>
+          <Wordmark size={26} header />
           <Text variant="quote" tone="textMuted">{tagline}</Text>
         </Animated.View>
         <View style={{ gap: space.lg }}>

@@ -1,0 +1,78 @@
+"""Regenerate the brand SVGs (icon, favicon, wordmarks) from the app fonts.
+
+Logo "Nuit": a light Fraunces capital on the night colour, one antique-brass
+dot, and the name in widely tracked Inter Medium capitals. Text is turned
+into paths so the files never depend on installed fonts.
+
+    pip install fonttools
+    python3 apps/mobile/assets/brand/generate.py   # name from brand.json
+
+PNGs (icon-1024, apple-touch-icon 180, icon-192/512, favicon-32) are then
+rendered from icon.svg / favicon.svg with any SVG renderer (opaque, no alpha
+for the iOS icon). In the app, src/ui/Logo.tsx draws the same mark.
+"""
+import json, os, re, sys
+from fontTools.ttLib import TTFont
+from fontTools.pens.svgPathPen import SVGPathPen
+from fontTools.pens.transformPen import TransformPen
+from fontTools.pens.boundsPen import BoundsPen
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
+NM = os.path.join(ROOT, 'node_modules/@expo-google-fonts')
+FRAUNCES_LIGHT = f'{NM}/fraunces/300Light/Fraunces_300Light.ttf'
+INTER_MEDIUM = f'{NM}/inter/500Medium/Inter_500Medium.ttf'
+OUT = os.path.dirname(os.path.abspath(__file__))
+PUBLIC = os.path.join(OUT, '../../public')
+
+NIGHT, PORCELAIN, INK, BRASS, BRASS_LIGHT = '#131220', '#F5F4F7', '#1B1928', '#7F5A28', '#D6AE6E'
+
+
+def rnd(s):
+    return re.sub(r'-?\d+\.\d+', lambda m: ('%.1f' % float(m.group())).rstrip('0').rstrip('.'), s)
+
+
+def glyphs(path, s, size, x, y, track=0.0, pen_factory=None):
+    f = TTFont(path); gs = f.getGlyphSet(); cmap = f.getBestCmap(); sc = size / f['head'].unitsPerEm
+    pen = pen_factory(gs); cx = 0
+    for i, ch in enumerate(s):
+        g = cmap[ord(ch)]
+        gs[g].draw(TransformPen(pen, (sc, 0, 0, -sc, x + cx, y)))
+        cx += gs[g].width * sc + (track * size if i < len(s) - 1 else 0)
+    return pen, cx
+
+
+def svg(w, h, body, bg=None, rx=0):
+    rect = f'<rect width="{w}" height="{h}" rx="{rx}" fill="{bg}"/>' if bg else ''
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">{rect}{body}</svg>\n'
+
+
+def main(name):
+    # Mark: the initial, optically centred slightly left to leave room for the dot.
+    letter, size, cx, cy = name[0].upper(), 560, 500, 512
+    x0, y0, x1, y1 = glyphs(FRAUNCES_LIGHT, letter, size, 0, 0, pen_factory=BoundsPen)[0].bounds
+    pen, _ = glyphs(FRAUNCES_LIGHT, letter, size, cx - (x0 + x1) / 2, cy - (y0 + y1) / 2, pen_factory=SVGPathPen)
+    body = (f'<path d="{rnd(pen.getCommands())}" fill="{PORCELAIN}"/>'
+            f'<circle cx="{cx + (x1 - x0) / 2 + 44:.1f}" cy="{cy + (y1 - y0) / 2 - 18:.1f}" r="18" fill="{BRASS_LIGHT}"/>')
+    open(f'{OUT}/icon.svg', 'w').write(svg(1024, 1024, body, NIGHT))
+    open(f'{PUBLIC}/favicon.svg', 'w').write(svg(1024, 1024, body, NIGHT, rx=230))
+
+    # Wordmark: capitals tracked at 0.42 em.
+    wsize, track = 120, 0.42
+    for fname, colour in (('wordmark', INK), ('wordmark-dark', PORCELAIN)):
+        pen, w = glyphs(INTER_MEDIUM, name.upper(), wsize, 40, 40 + wsize * 0.727, track, pen_factory=SVGPathPen)
+        open(f'{OUT}/{fname}.svg', 'w').write(
+            svg(round(w + 80), round(wsize * 0.727 + 80), f'<path d="{rnd(pen.getCommands())}" fill="{colour}"/>'))
+
+    # Web app manifest (Android / desktop install; iPhone uses apple-touch-icon.png).
+    json.dump({'name': name, 'short_name': name, 'start_url': '/', 'display': 'standalone',
+               'background_color': PORCELAIN, 'theme_color': PORCELAIN,
+               'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+                         {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+                         {'src': '/favicon.svg', 'sizes': 'any', 'type': 'image/svg+xml'}]},
+              open(f'{PUBLIC}/manifest.webmanifest', 'w'), indent=2, ensure_ascii=False)
+
+
+if __name__ == '__main__':
+    # Default: the working name from packages/config/src/brand.json.
+    brand = json.load(open(os.path.join(ROOT, 'packages/config/src/brand.json')))
+    main(sys.argv[1] if len(sys.argv) > 1 else brand['name'])

@@ -3,11 +3,11 @@ import type { Tabs } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { APP } from '@kapara/config';
 import { fonts, hitSlop, layout, radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
 import { useTheme } from '../theme';
 import { Icon, type IconName } from './Icon';
+import { Logo } from './Logo';
 import { useLayout } from './layout';
 import { Text } from './Text';
 
@@ -60,7 +60,7 @@ export function AppNav({ state, descriptors, emitter, navigateToTab }: TabBarPro
     return (
       <View accessibilityRole="tablist" style={{ width: layout.sidebar, paddingTop: insets.top + space.xxl, paddingBottom: space.xl, paddingHorizontal: space.lg,
         backgroundColor: c.surface, borderRightWidth: 1, borderRightColor: c.border, gap: space.xs }}>
-        <Text variant="title" accessibilityRole="header" style={{ paddingHorizontal: space.lg, marginBottom: space.xl, letterSpacing: 0.5 }}>{APP.name}</Text>
+        <View style={{ paddingHorizontal: space.lg, marginBottom: space.xl }}><Logo size={36} header /></View>
         {items}
         <View style={{ flex: 1 }} />
         {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.lg }}>{t('nav.demoFooter')}</Text> : null}
