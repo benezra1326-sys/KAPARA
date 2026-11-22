@@ -22,7 +22,12 @@ const config: ExpoConfig = {
     package: brand.bundleId,
     permissions: ['ACCESS_COARSE_LOCATION', 'CAMERA', 'RECORD_AUDIO'],
   },
-  plugins: ['expo-router', 'expo-font', 'expo-localization', 'expo-secure-store'],
+  plugins: [
+    'expo-router', 'expo-font', 'expo-localization', 'expo-secure-store',
+    // Live calls (LiveKit / WebRTC): native modules, so a development build is required (not Expo Go).
+    ['@livekit/react-native-expo-plugin', { android: { audioType: 'communication' } }],
+    '@config-plugins/react-native-webrtc',
+  ],
   experiments: { typedRoutes: true },
   extra: { apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000' },
 };
