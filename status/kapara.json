@@ -6,7 +6,7 @@
   "etape": "developpement",
   "statut": "en_cours",
   "avancement": 55,
-  "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. App traduite en français, anglais et hébreu, 68 tests verts.",
+  "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. Écran « Mes préférences » (âge, distance, genres, critères indispensables réciproques et préférences pondérées). App traduite en français, anglais et hébreu, 68 tests verts.",
   "prochaine_etape": "Essai complet sur téléphone (build de développement Expo), compte LiveKit pour des appels réels, polissage visuel et parcours d'inscription de bout en bout.",
   "blocages": [],
   "chantiers": [
@@ -91,5 +91,5 @@
       "texte": "Les 5 chantiers (A à E) sont fusionnés sur main ; CI verte (typecheck, 68 tests, contrôle i18n)."
     }
   ],
-  "maj_le": "2026-11-22T03:59:18Z"
+  "maj_le": "2026-11-22T08:30:00Z"
 }
