@@ -48,4 +48,12 @@ export const RULES = {
   /** Live presence expires without heartbeat. */
   livePresenceTtlSeconds: 90,
   liveInviteTtlSeconds: 60,
+  /** "Je suis disponible" lasts this long, then the member is invisible again. */
+  liveAvailabilityMinutes: 15,
+  /** After a declined invitation, the same caller cannot re-invite for this long. */
+  liveDeclineCooldownHours: 24,
+  /** After an unanswered invitation, a shorter pause before trying again. */
+  liveExpiredCooldownMinutes: 10,
+  /** Anti-spam: invitations a member can send per 10 minutes. */
+  liveMaxInvitesPer10Min: 5,
 } as const;
