@@ -11,3 +11,16 @@
 | 2026-11-22 | Dealbreakers : une réponse absente ou non partagée n’exclut jamais | Pas de déduction, pas de pénalité |
 | 2026-11-22 | Croisés : grille 150 m, rayon 250 m, fenêtre 72 h, jamais lieu/heure | Vie privée |
 | 2026-11-22 | Direction artistique « candlelight editorial » : ivoire, encre, grenade, laiton ; Fraunces + Inter | Chaleureux, élégant, non générique |
+| 2026-11-22 | Auth : OTP e-mail (Resend, HTTP sans SDK) + Apple/Google vérifiés avec `jose` 6 | Pas de mot de passe ; une seule dépendance, maintenue |
+| 2026-11-22 | Accès JWT 15 min + rafraîchissement opaque haché, rotation, détection de réutilisation | Sessions révocables, vol de jeton limité |
+| 2026-11-22 | Liaison Apple/Google à un compte existant seulement par e-mail marqué vérifié | Pas de prise de compte par e-mail non vérifié |
+| 2026-11-22 | Aucune réponse « vie juive » stockée sans consentement explicite du champ ; retrait = effacement | RGPD art. 9 : pas de consentement, pas de stockage |
+| 2026-11-22 | Zone de domicile sur grille 1 km, jamais renvoyée ; distances en tranches | Pas de localisation précise, même pour « Pour toi » |
+| 2026-11-22 | Critères éliminatoires, âge, genre et distance mutuels ; réponse inconnue = neutre | Respect des deux personnes, pas de pénalité au silence |
+| 2026-11-22 | Sélection du jour persistée (`DailyPick`), renouvelée à minuit heure locale | Liste finie et stable, pas de swipe infini |
+| 2026-11-22 | Match = conversation créée automatiquement | Pas de match sans moyen d’écrire |
+| 2026-11-22 | Croisés : arrondi ~110 m sur le téléphone + grille 150 m serveur, affichage après 2 h, « une fois / plusieurs fois » seulement, lieux discrets (400 m), aucune localisation en arrière-plan | Plus strict que happn ; rien ne permet de déduire où ni quand |
+| 2026-11-22 | Présentations : la personne présentée voit le profil de l’autre, jamais sa réponse ; l’entremetteur voit « en attente / en contact / terminée », jamais qui a refusé ; 14 jours, suspendu pendant Shabbat | Double opt-in sans pression |
+| 2026-11-22 | Blocage global (`BlockService`) : ferme les conversations et présentations en cours, sans prévenir ; un signalement bloque par défaut | Un blocage s’applique partout |
+| 2026-11-22 | Nudge de bienveillance par liste courte FR/EN/HE, jamais bloquant, rien stocké | Pas d’IA, la personne décide |
+| 2026-11-22 | Mode Shabbat : horaires @hebcal/core (NOAA) par région, bougies 18 min, fin à la tombée de la nuit, réglables ; jamais visible des autres | Respect du rythme sans exposer la pratique |

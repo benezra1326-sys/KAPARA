@@ -1,66 +1,202 @@
-import { Body, Controller, Get, NotFoundException, Param, Put, Module, UseGuards } from '@nestjs/common';
-import { JewishLife } from '@kapara/shared';
+import {
+  BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, Module, NotFoundException, Param, Put, Post, UseGuards,
+} from '@nestjs/common';
+import { z } from 'zod';
+import { RULES } from '@kapara/config';
+import {
+  AccountSettings, ConsentGrant, JewishLife, JewishLifeField, LocationUpdate, PhotosUpdate, PreferencesInput, ProfileUpdate,
+  SENSITIVE_POLICY_VERSION,
+} from '@kapara/shared';
+import { AccountsService } from '../auth/accounts.service';
 import { AuthGuard, CurrentUser, type AuthUser } from '../auth/auth.guard';
+import { SessionsService } from '../auth/sessions.service';
+import { ageOn } from '../common/age';
 import { ZodPipe } from '../common/zod.pipe';
-import { filterJewishLife, type ViewerRelation } from '../common/visibility';
 import { PrismaService } from '../prisma/prisma.service';
+import { applyJewishLifeUpdate, eraseField } from './jewish-life-update';
+import { ProfilesService } from './profiles.service';
 
-const ageOf = (d: Date) => Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000));
+/** Same fields as JewishLife; `null` erases an answer. Unknown keys are refused. */
+const JewishLifePatch = z.object(
+  Object.fromEntries(Object.entries(JewishLife.shape).map(([k, v]) => [k, v.nullable().optional()])) as {
+    [K in keyof typeof JewishLife.shape]: z.ZodOptional<z.ZodNullable<(typeof JewishLife.shape)[K]>>
+  },
+).strict();
+
+const DEFAULT_PREFERENCES = { ageMin: 25, ageMax: 40, maxDistanceKm: 25, genders: [] as string[], dealbreakers: {}, soft: {} };
 
 @Controller('profiles')
 @UseGuards(AuthGuard)
 class ProfilesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly profiles: ProfilesService,
+    private readonly accounts: AccountsService,
+    private readonly sessions: SessionsService,
+  ) {}
 
+  /** Everything about me, plus what onboarding still needs. */
   @Get('me')
-  me(@CurrentUser() me: AuthUser) {
-    return this.view(me.id, me.id);
+  async me(@CurrentUser() me: AuthUser) {
+    const u = await this.prisma.user.findUnique({
+      where: { id: me.id },
+      include: { profile: { include: { photos: true } }, preferences: true, consents: { where: { revokedAt: null } } },
+    });
+    if (!u || u.deletedAt) throw new NotFoundException();
+    const [loc] = await this.prisma.$queryRaw<{ has: boolean }[]>`SELECT "homeArea" IS NOT NULL AS has FROM "User" WHERE id = ${me.id}`;
+    const missing: string[] = [];
+    if (!u.profile) missing.push('profile');
+    if (!u.profile?.photos.length) missing.push('photos');
+    if (!u.preferences?.genders.length) missing.push('preferences');
+    return {
+      id: u.id, email: u.email, locale: u.locale, regionCode: u.regionCode,
+      paused: u.paused, shabbatMode: u.shabbatMode, isDemo: u.isDemo, verified: Boolean(u.verifiedAt),
+      hasApproximateLocation: Boolean(loc?.has),
+      profile: u.profile ? (await this.profiles.view(me.id, me.id)) ?? null : null,
+      consents: u.consents.map((c) => ({ field: c.field, grantedAt: c.grantedAt, policyVersion: c.policyVersion })),
+      consentPolicyVersion: SENSITIVE_POLICY_VERSION,
+      onboarding: { complete: missing.length === 0, missing },
+    };
+  }
+
+  /** Creates (end of onboarding) or edits the basic profile. */
+  @Put('me')
+  async upsert(@CurrentUser() me: AuthUser, @Body(new ZodPipe(ProfileUpdate)) b: ProfileUpdate) {
+    const birth = new Date(`${b.birthDate}T00:00:00Z`);
+    if (Number.isNaN(birth.getTime())) throw new BadRequestException('invalid_birth_date');
+    const age = ageOn(birth);
+    if (age < RULES.minAge || age > 120) throw new BadRequestException('adults_only');
+    if (b.regionCode) await this.accounts.resolveRegion(b.regionCode);
+    const data = { firstName: b.firstName, birthDate: birth, gender: b.gender, headline: b.headline ?? null, languages: b.languages, prompts: b.prompts };
+    await this.prisma.$transaction([
+      this.prisma.profile.upsert({ where: { userId: me.id }, create: { userId: me.id, ...data }, update: data }),
+      ...(b.regionCode ? [this.prisma.user.update({ where: { id: me.id }, data: { regionCode: b.regionCode } })] : []),
+    ]);
+    return this.profiles.view(me.id, me.id);
+  }
+
+  /** Replaces the photo list (order = position). Upload storage is a separate service. */
+  @Put('me/photos')
+  async photos(@CurrentUser() me: AuthUser, @Body(new ZodPipe(PhotosUpdate)) b: PhotosUpdate) {
+    await this.requireProfile(me.id);
+    await this.prisma.$transaction([
+      this.prisma.photo.deleteMany({ where: { profileId: me.id } }),
+      this.prisma.photo.createMany({ data: b.photos.map((p, position) => ({ profileId: me.id, url: p.url, caption: p.caption, position })) }),
+    ]);
+    return this.profiles.view(me.id, me.id);
+  }
+
+  /** Approximate home area, snapped to a ~1 km grid before storage, never returned. */
+  @Put('me/location')
+  async location(@CurrentUser() me: AuthUser, @Body(new ZodPipe(LocationUpdate)) p: LocationUpdate) {
+    const g = RULES.homeAreaPrecisionMeters;
+    await this.prisma.$executeRaw`
+      UPDATE "User" SET "homeArea" =
+        ST_Transform(ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_MakePoint(${p.lng}, ${p.lat}), 4326), 3857), ${g}), 4326)::geography
+      WHERE id = ${me.id}`;
+    return { ok: true, precisionMeters: g };
+  }
+
+  /** Forget my approximate location: distances fall back to my region's centre. */
+  @Delete('me/location')
+  async forgetLocation(@CurrentUser() me: AuthUser) {
+    await this.prisma.$executeRaw`UPDATE "User" SET "homeArea" = NULL WHERE id = ${me.id}`;
+    return { ok: true };
+  }
+
+  @Put('me/settings')
+  async settings(@CurrentUser() me: AuthUser, @Body(new ZodPipe(AccountSettings)) b: AccountSettings) {
+    const u = await this.prisma.user.update({ where: { id: me.id }, data: b, select: { paused: true, shabbatMode: true, locale: true } });
+    return u;
   }
 
   /**
-   * Updating Jewish-life answers. Any field with visibility other than private
-   * or useForMatching=true requires an active consent row, created here only
-   * because the client sends it after the explicit consent screen.
+   * Explicit consent for sensitive fields, given on the explanation screen.
+   * Required before any answer (value or note) to that field is stored.
    */
-  @Put('me/jewish-life')
-  async updateJewishLife(@CurrentUser() me: AuthUser, @Body(new ZodPipe(JewishLife.partial())) body: Partial<JewishLife>) {
-    const needsConsent = Object.entries(body)
-      .filter(([, f]) => f && (f.visibility !== 'private' || f.useForMatching))
-      .map(([k]) => k);
+  @Post('me/consents')
+  @HttpCode(200)
+  async consent(@CurrentUser() me: AuthUser, @Body(new ZodPipe(ConsentGrant)) b: ConsentGrant) {
+    await this.prisma.$transaction(b.fields.map((field) => this.prisma.sensitiveConsent.upsert({
+      where: { userId_field: { userId: me.id, field } },
+      create: { userId: me.id, field, policyVersion: b.policyVersion },
+      update: { revokedAt: null, grantedAt: new Date(), policyVersion: b.policyVersion },
+    })));
+    return { ok: true, fields: b.fields };
+  }
+
+  /** Withdrawing consent erases the stored answer for that field. */
+  @Delete('me/consents/:field')
+  async revoke(@CurrentUser() me: AuthUser, @Param('field', new ZodPipe(JewishLifeField)) field: JewishLifeField) {
+    const p = await this.requireProfile(me.id);
     await this.prisma.$transaction([
-      this.prisma.profile.update({ where: { userId: me.id }, data: { jewishLife: body as object } }),
-      ...needsConsent.map((field) => this.prisma.sensitiveConsent.upsert({
-        where: { userId_field: { userId: me.id, field } },
-        create: { userId: me.id, field },
-        update: { revokedAt: null, grantedAt: new Date() },
-      })),
+      this.prisma.sensitiveConsent.updateMany({ where: { userId: me.id, field, revokedAt: null }, data: { revokedAt: new Date() } }),
+      this.prisma.profile.update({ where: { userId: me.id }, data: { jewishLife: eraseField(p.jewishLife as Partial<JewishLife>, field) as object } }),
     ]);
-    return this.view(me.id, me.id);
+    return { ok: true, erased: field };
+  }
+
+  /** Partial update of Jewish-life answers (merged). `null` erases a field. */
+  @Put('me/jewish-life')
+  async updateJewishLife(@CurrentUser() me: AuthUser, @Body(new ZodPipe(JewishLifePatch)) body: z.infer<typeof JewishLifePatch>) {
+    const p = await this.requireProfile(me.id);
+    const consents = await this.prisma.sensitiveConsent.findMany({ where: { userId: me.id, revokedAt: null }, select: { field: true } });
+    const { next, missingConsent } = applyJewishLifeUpdate(p.jewishLife as Partial<JewishLife>, body, new Set(consents.map((c) => c.field)));
+    if (missingConsent.length) throw new ConflictException({ code: 'consent_required', fields: missingConsent, policyVersion: SENSITIVE_POLICY_VERSION });
+    await this.prisma.profile.update({ where: { userId: me.id }, data: { jewishLife: next as object } });
+    return this.profiles.view(me.id, me.id);
+  }
+
+  /** Deletes the account and everything attached to it. Safety reports are kept. */
+  @Delete('me')
+  async deleteAccount(@CurrentUser() me: AuthUser) {
+    await this.sessions.revokeAll(me.id);
+    await this.prisma.user.delete({ where: { id: me.id } });
+    return { ok: true };
   }
 
   @Get(':id')
-  get(@CurrentUser() me: AuthUser, @Param('id') id: string) {
-    return this.view(me.id, id);
+  async get(@CurrentUser() me: AuthUser, @Param('id') id: string) {
+    const v = await this.profiles.view(me.id, id, { withDistance: id !== me.id });
+    if (!v) throw new NotFoundException();
+    return v;
   }
 
-  private async view(viewerId: string, id: string) {
-    const u = await this.prisma.user.findUnique({
-      where: { id },
-      include: { profile: { include: { photos: { orderBy: { position: 'asc' } } } }, consents: { where: { revokedAt: null } } },
-    });
-    if (!u?.profile || u.deletedAt) throw new NotFoundException();
-    const relation: ViewerRelation = viewerId === id ? 'self'
-      : (await this.prisma.like.findFirst({ where: { status: 'matched', OR: [{ fromId: viewerId, toId: id }, { fromId: id, toId: viewerId }] } })) ? 'match' : 'member';
-    const p = u.profile;
-    return {
-      id: u.id, firstName: p.firstName, age: ageOf(p.birthDate), regionCode: u.regionCode,
-      headline: p.headline, languages: p.languages, prompts: p.prompts,
-      photos: p.photos.map((x) => ({ id: x.id, url: x.url, caption: x.caption, isDemo: x.isDemo })),
-      jewishLife: filterJewishLife(p.jewishLife as Partial<JewishLife>, relation, new Set(u.consents.map((c) => c.field))),
-      verified: Boolean(u.verifiedAt), isDemo: u.isDemo,
-    };
+  private async requireProfile(userId: string) {
+    const p = await this.prisma.profile.findUnique({ where: { userId } });
+    if (!p) throw new NotFoundException('profile_missing');
+    return p;
   }
 }
 
-@Module({ controllers: [ProfilesController] })
+/** Dealbreakers are mutual and only ever compared with answers shared for matching. */
+@Controller('preferences')
+@UseGuards(AuthGuard)
+class PreferencesController {
+  constructor(private readonly prisma: PrismaService) {}
+
+  @Get()
+  async get(@CurrentUser() me: AuthUser) {
+    const p = await this.prisma.preferences.findUnique({ where: { userId: me.id } });
+    if (!p) return { ...DEFAULT_PREFERENCES, isDefault: true };
+    const { userId: _u, ...rest } = p;
+    return { ...rest, isDefault: false };
+  }
+
+  @Put()
+  async put(@CurrentUser() me: AuthUser, @Body(new ZodPipe(PreferencesInput)) b: PreferencesInput) {
+    const data = { ...b, dealbreakers: b.dealbreakers as object, soft: b.soft as object };
+    const p = await this.prisma.preferences.upsert({ where: { userId: me.id }, create: { userId: me.id, ...data }, update: data });
+    // Today's selection was computed with the old criteria.
+    await this.prisma.dailyPick.deleteMany({ where: { userId: me.id, state: 'new' } });
+    const { userId: _u, ...rest } = p;
+    return { ...rest, isDefault: false };
+  }
+}
+
+@Module({
+  controllers: [ProfilesController, PreferencesController],
+  providers: [ProfilesService],
+  exports: [ProfilesService],
+})
 export class ProfilesModule {}

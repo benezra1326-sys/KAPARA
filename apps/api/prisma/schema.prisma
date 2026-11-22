@@ -70,6 +70,11 @@ model User {
   messages      Message[]
   sensitiveZones SensitiveZone[]
   shabbat        ShabbatSettings?
+  /// Approximate home area for "Pour toi" distance, snapped to ~1 km. Never returned.
+  homeArea      Unsupported("geography(Point,4326)")?
+  identities    AuthIdentity[]
+  sessions      Session[]
+  dailyPicks    DailyPick[]
 }
 
 model Profile {
@@ -117,6 +122,8 @@ model SensitiveConsent {
   field      String
   grantedAt  DateTime  @default(now())
   revokedAt  DateTime?
+  /// Version of the explanation text the member accepted.
+  policyVersion String?
   @@unique([userId, field])
 }
 
@@ -160,9 +167,12 @@ model RecommendationFeedback {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjectId String
-  /// "more_like_this" | "not_for_me" | reason key
+  /// "more_like_this" | "not_for_me"
   signal    String
+  /// Optional voluntary reason for "not_for_me" (too_far, values_differ…)
+  reason    String?
   createdAt DateTime @default(now())
+  @@index([userId, createdAt])
 }
 
 model Introduction {
@@ -267,4 +277,59 @@ model ShabbatSettings {
   candleLightingMins Int     @default(18)
   /// null = nightfall (sun 8.5° below the horizon)
   havdalahMins       Int?
+}
+
+/// Email one-time codes. Only an HMAC of the code is stored.
+model EmailOtp {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+  @@index([email, createdAt])
+}
+
+/// External sign-in identities (Apple, Google) linked to a member.
+model AuthIdentity {
+  provider  String // "apple" | "google"
+  subject   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@id([provider, subject])
+  @@index([userId])
+}
+
+/// Refresh-token sessions. Tokens are opaque, stored hashed, rotated on use;
+/// reuse of a rotated token revokes the whole family.
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId   String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  rotatedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  @@index([userId])
+  @@index([familyId])
+}
+
+/// "Pour toi" daily selection, persisted so the list is finite and stable for the day.
+model DailyPick {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day       String // YYYY-MM-DD in the member's region timezone
+  subjectId String
+  position  Int
+  score     Float
+  reasons   Json     @default("[]")
+  /// "new" | "liked" | "dismissed"
+  state     String   @default("new")
+  createdAt DateTime @default(now())
+  @@id([userId, day, subjectId])
+  @@index([userId, createdAt])
 }
