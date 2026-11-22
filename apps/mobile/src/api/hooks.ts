@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Like, ProfilePublic, Recommendation } from '@kapara/shared';
 import { DEMO_PICKS } from '../demo/profiles';
 import { api, DEMO_MODE } from './client';
@@ -8,7 +8,7 @@ export function useForYou() {
     queryKey: ['for-you'],
     queryFn: async (): Promise<Recommendation[]> => {
       if (DEMO_MODE) return DEMO_PICKS;
-      // TODO(workstream api-integration): hydrate ids into full profiles server-side.
+      // The API returns today's picks already filtered for the viewer (visibility, consents, blocks).
       const r = await api<{ picks: Recommendation[] }>('/for-you');
       return r.picks;
     },
@@ -17,11 +17,14 @@ export function useForYou() {
 
 /** Reaction to a photo or an answer. Demo: simulated locally, nothing is sent. */
 export function useSendLike() {
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (like: Like): Promise<{ matched: boolean }> => {
+    mutationFn: async (like: Like): Promise<{ matched: boolean; conversationId?: string }> => {
       if (DEMO_MODE) { await new Promise((r) => setTimeout(r, 450)); return { matched: false }; }
-      return api<{ matched: boolean }>('/for-you/like', { method: 'POST', body: JSON.stringify(like) });
+      return api<{ matched: boolean; conversationId?: string }>('/for-you/like', { method: 'POST', body: JSON.stringify(like) });
     },
+    // A mutual like opens a conversation: Messages shows it right away.
+    onSuccess: (r) => { if (r.matched) void qc.invalidateQueries({ queryKey: ['conversations'] }); },
   });
 }
 

@@ -1,7 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
 import { io, type Socket } from 'socket.io-client';
 import { LIVE_EVENTS_V1 as EV, type CallSnapshot, type JoinInfo, type LiveMember, type LiveSettings, type LiveStatus, type CallReportReason } from '@kapara/shared';
-import { api, API_BASE } from '../api/client';
+import { api, API_BASE, session } from '../api/client';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
 const TIMEOUT_MS = 8000;
@@ -11,18 +10,20 @@ export class SocketTransport implements LiveTransport {
   readonly kind = 'server' as const;
   private socket?: Socket;
   private readonly events = new Emitter<LiveServerEvent>();
+  private usedToken: string | null = null;
+  private lastAuthRetry = 0;
 
   on(l: (e: LiveServerEvent) => void) { return this.events.on(l); }
 
   async connect() {
     if (this.socket) return;
     this.events.emit({ type: 'connection', status: 'connecting' });
-    // Access tokens are short-lived (15 min): read the current one at every (re)connection,
-    // so a token refreshed elsewhere in the app is picked up automatically.
+    // Access tokens are short-lived (15 min): ask the session at every (re)connection,
+    // which refreshes the token first when it is about to expire.
     const s = io(`${API_BASE}/live`, {
       transports: ['websocket'],
       reconnectionDelayMax: 10_000,
-      auth: (cb) => { void SecureStore.getItemAsync('token').catch(() => null).then((token) => cb({ token: token ?? '' })); },
+      auth: (cb) => { void session.accessToken().catch(() => null).then((token) => { this.usedToken = token; cb({ token: token ?? '' }); }); },
     });
     this.socket = s;
     s.on('connect', () => this.events.emit({ type: 'connection', status: 'online' }));
@@ -32,7 +33,11 @@ export class SocketTransport implements LiveTransport {
     // by which time the app may have refreshed its access token.
     s.on('live:error', () => {
       this.events.emit({ type: 'connection', status: 'unauthorized' });
-      setTimeout(() => { if (this.socket === s && !s.connected) s.connect(); }, 5_000);
+      // Refresh once and reconnect; at most every 30 s, so a server that keeps refusing never causes a loop.
+      const used = this.usedToken;
+      if (!used || Date.now() - this.lastAuthRetry < 30_000) return;
+      this.lastAuthRetry = Date.now();
+      void session.afterUnauthorized(used).catch(() => null).then((t) => { if (t && this.socket === s && !s.connected) s.connect(); });
     });
     s.on(EV.inviteReceived, (call: CallSnapshot) => this.events.emit({ type: 'invited', call }));
     s.on(EV.stateChanged, (call: CallSnapshot) => this.events.emit({ type: 'state', call }));

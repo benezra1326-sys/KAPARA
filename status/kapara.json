@@ -5,9 +5,9 @@
   "depot": "benezra1326-sys/KAPARA",
   "etape": "developpement",
   "statut": "en_cours",
-  "avancement": 55,
-  "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. App traduite en français, anglais et hébreu, 68 tests verts.",
-  "prochaine_etape": "Essai complet sur téléphone (build de développement Expo), compte LiveKit pour des appels réels, polissage visuel et parcours d'inscription de bout en bout.",
+  "avancement": 62,
+  "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. Mode connecté réel : connexion par code e-mail dans l’app, session sécurisée avec rafraîchissement automatique, Pour toi, Croisés et Messages sur la vraie API (essayé de bout en bout contre une base PostGIS). App traduite en français, anglais et hébreu, 74 tests verts.",
+  "prochaine_etape": "Essai complet sur téléphone (build de développement Expo), ajout de photos de profil (stockage), compte LiveKit pour des appels réels, envoi des e-mails de code (Resend).",
   "blocages": [],
   "chantiers": [
     {
@@ -53,6 +53,12 @@
       "responsable": "apps-produit"
     },
     {
+      "nom": "Mode connecté réel (code e-mail, session, API dans l'app)",
+      "statut": "termine",
+      "avancement": 100,
+      "responsable": "apps-dev"
+    },
+    {
       "nom": "Essai sur téléphone et polissage",
       "statut": "a_faire",
       "avancement": 0,
@@ -91,5 +97,5 @@
       "texte": "Les 5 chantiers (A à E) sont fusionnés sur main ; CI verte (typecheck, 68 tests, contrôle i18n)."
     }
   ],
-  "maj_le": "2026-11-22T03:59:18Z"
+  "maj_le": "2026-11-22T08:15:00Z"
 }
