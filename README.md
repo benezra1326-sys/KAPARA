@@ -40,7 +40,24 @@ npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 | Paiement | Aucun en v1. |
 | IA | Aucune. « Pour toi » est un score explicable (critères déclarés + proximité + retours « pas pour moi »). |
 | Photos de démo | Images génériques picsum.photos (licence Unsplash), badge « Profil de démonstration ». |
-| Authentification | Connexion démo uniquement pour l’instant (chantier dédié : OTP e-mail + Apple/Google). |
+| Authentification | **Réelle** : code à usage unique par e-mail (Resend), Sign in with Apple, Sign in with Google (jetons vérifiés côté serveur). Sans clé, la méthode est annoncée indisponible (`GET /v1/auth/methods`) ; en développement, le code e-mail est renvoyé dans la réponse avec `delivery: "demo"`. |
+
+## API profils, préférences, découverte (chantier B)
+
+| Route | Rôle |
+| --- | --- |
+| `GET /auth/methods` | Méthodes réellement configurées (`email` / `demo` / `unavailable`, Apple, Google) |
+| `POST /auth/otp/request` · `/auth/otp/verify` | Code à 6 chiffres, 10 min, 5 essais, 1 demande / 30 s et 5 / h par adresse ; seul un HMAC du code est stocké |
+| `POST /auth/apple` · `/auth/google` | Jeton d’identité vérifié (signature JWKS, émetteur, audience, expiration, nonce) |
+| `POST /auth/refresh` · `/auth/logout` · `/auth/logout-all` | Accès JWT 15 min ; jeton de rafraîchissement opaque 60 j, haché, renouvelé à chaque usage ; réutilisation = toute la session révoquée |
+| `GET/PUT /profiles/me` · `PUT /profiles/me/photos` · `PUT/DELETE /profiles/me/location` · `PUT /profiles/me/settings` · `DELETE /profiles/me` | Profil, photos, zone approximative (grille 1 km, jamais renvoyée), pause / mode Shabbat, suppression du compte |
+| `POST /profiles/me/consents` · `DELETE /profiles/me/consents/:champ` | Consentement explicite par champ sensible ; le retrait efface la réponse |
+| `PUT /profiles/me/jewish-life` | Mise à jour partielle (fusion) ; `null` efface ; 409 `consent_required` si une réponse est envoyée sans consentement |
+| `GET/PUT /preferences` | Âge, distance, genres, critères éliminatoires et préférences souples (valeurs contrôlées) |
+| `GET /for-you` | Sélection du jour (8 max), stable jusqu’à minuit heure locale, profils complets + raisons |
+| `POST /for-you/feedback` · `/for-you/like` · `GET /for-you/likes-received` | « Pas pour moi » (raison facultative), « plus comme ça », like sur une photo ou une réponse précise ; like réciproque = match + conversation |
+
+**Découverte.** Filtres durs en SQL : distance PostGIS (`ST_DWithin` entre zones approximatives, centre de la région à défaut), genre et âge **dans les deux sens**, blocages, déjà aimés, « pas pour moi », profils vus il y a moins de 14 jours. Puis `discovery/scoring.ts` : critères éliminatoires **mutuels**, score = préférences souples du membre 50 %, celles de l’autre sur lui 15 %, proximité 15 % (30 % après deux « trop loin »), ressemblance avec les profils appréciés 20 % (à partir de 3 signaux). Une réponse absente ou non partagée n’élimine jamais et compte comme neutre. Seules les réponses consenties **et** marquées « utilisables pour les suggestions » sont lues (`matchableAnswers`), jamais les champs libres. Chaque suggestion porte 1 à 3 raisons (clés i18n `reason.*`). Distances affichées en tranches (« moins de 5 km »).
 
 ## Architecture
 

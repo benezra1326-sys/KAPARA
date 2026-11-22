@@ -32,6 +32,8 @@ export const ProfilePublic = z.object({
   jewishLife: JewishLife.partial(),
   verified: z.boolean(),
   isDemo: z.boolean(),
+  /** Rounded distance bucket in km (1, 2, 3, 5, 10, 15…), never precise. Absent for self. */
+  distanceKm: z.number().optional(),
 });
 export type ProfilePublic = z.infer<typeof ProfilePublic>;
 
@@ -51,6 +53,8 @@ export const Recommendation = z.object({
   profile: ProfilePublic,
   score: z.number().min(0).max(1),
   reasons: z.array(z.object({ key: z.string(), params: z.record(z.string(), z.string()).optional() })).max(3),
+  /** What the member already did with this pick today. */
+  state: z.enum(['new', 'liked', 'dismissed']).optional(),
 });
 export type Recommendation = z.infer<typeof Recommendation>;
 

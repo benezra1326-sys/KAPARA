@@ -43,6 +43,10 @@ export const RULES = {
   crossedWindowHours: 72,
   /** Locations are snapped to a grid before storage, never shown precisely. */
   locationPrecisionMeters: 150,
+  /** "Pour toi" home area is snapped to this grid; distances are shown as rounded buckets. */
+  homeAreaPrecisionMeters: 1000,
+  /** A profile shown in "Pour toi" is not shown again for this many days (unless nothing else is left). */
+  picksCooldownDays: 14,
   /** "Pour toi": curated daily selection instead of infinite swipe. */
   dailyPicks: 8,
   /** Live presence expires without heartbeat. */
