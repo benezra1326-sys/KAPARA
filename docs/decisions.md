@@ -28,6 +28,10 @@
 | 2026-11-22 | Live : « qui peut m’appeler » par défaut = mes contacts ; refus toujours vague (not_available) | Vie privée, pas de déduction possible |
 | 2026-11-22 | Live : anti-harcèlement (24 h après un refus, 5 invitations / 10 min, une seule conversation à la fois) | Sécurité |
 | 2026-11-22 | @livekit/react-native 3.1, react-native-webrtc 150.1, livekit-client 2.23 (versions de plus de 2 semaines) | Stabilité ; development build obligatoire |
+| 2026-11-22 | Onboarding en 3 étapes (essentiel, vie juive facultative, questions), consentement groupé explicite en fin d’étape 2, puis réglage champ par champ | Rapide à remplir, privé par défaut, jamais bloquant |
+| 2026-11-22 | App : consentement demandé avant d’enregistrer une réponse sensible (règle API), visibilité et usage pour les suggestions réglés à part ; retrait = effacement | Benchmark §6.2, RGPD art. 9 |
+| 2026-11-22 | Aperçu « mon profil vu par un membre / un contact » avec la même règle que l’API (`visibleSensitive` dans shared) | Confiance : voir avant d’exposer |
+| 2026-11-22 | Mode démo : profil personnel en mémoire, réactions simulées et annoncées comme telles | Pas de fausse fonctionnalité |
 | 2026-11-22 | Portraits de démo illustrés et générés par code, sans visage | Aucun visage réel ni licence à suivre ; pas de crédits d’IA d’image disponibles |
 | 2026-11-22 | Une seule source pour la démo (app hors ligne et seed) | Même histoire et mêmes identifiants partout |
 | 2026-11-22 | i18n : fr référence, en/he complets, contrôle automatique ; hébreu au pluriel ou à l’infinitif pour rester neutre | Pas de genre supposé |

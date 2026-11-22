@@ -39,7 +39,7 @@ function Root() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="profile/[id]" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="settings/privacy" options={{ headerShown: true, title: '' }} />
+        <Stack.Screen name="settings/privacy" />
         <Stack.Screen name="settings/live" options={{ headerShown: true, title: '' }} />
         <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }} />
       </Stack>

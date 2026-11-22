@@ -9,7 +9,6 @@ import { DEMO_MODE } from '../api/client';
 import { isRTL } from '../i18n';
 import { useTheme } from '../theme';
 import { Text } from '../ui';
-import './i18n';
 import { photoSource } from '../demo/images';
 
 /** Building blocks shared by the Croisés / messages / introductions / safety screens. */
