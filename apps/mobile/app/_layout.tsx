@@ -48,6 +48,7 @@ function Root() {
         <Stack.Screen name="(tabs)" options={{ contentStyle: full }} />
         <Stack.Screen name="profile/[id]" options={{ presentation: 'modal', contentStyle: wide }} />
         <Stack.Screen name="profile/preview" options={{ contentStyle: wide }} />
+        <Stack.Screen name="admin/index" options={{ contentStyle: wide }} />
         <Stack.Screen name="settings/privacy" />
         <Stack.Screen name="settings/live" options={{ headerShown: true, title: '' }} />
         <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: full }} />

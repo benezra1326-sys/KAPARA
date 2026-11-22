@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSessionStatus } from '../../src/api/client';
+import { useAuthStatus } from '../../src/account';
 import { meStore } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
 import { AppNav, useLayout } from '../../src/ui';
@@ -14,7 +14,7 @@ export default function TabsLayout() {
   const { c } = useTheme();
   const { t } = useTranslation();
   const { isDesktop } = useLayout();
-  const status = useSessionStatus();
+  const status = useAuthStatus();
   const qc = useQueryClient();
   // Signed out (by the member, or because the session expired): nothing of the
   // previous account stays in memory.

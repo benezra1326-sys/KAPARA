@@ -79,6 +79,12 @@
       "statut": "termine",
       "avancement": 100,
       "responsable": "apps-design"
+    },
+    {
+      "nom": "Connexion Apple, Google, Facebook et espace administrateur",
+      "statut": "en_cours",
+      "avancement": 70,
+      "responsable": "apps-dev"
     }
   ],
   "liens": [
@@ -129,6 +135,6 @@
       "texte": "Photos de profil de bout en bout : photothèque ou appareil photo, ré-encodage sans métadonnées GPS, envoi par URL signée S3, classement, suppression et étape d'onboarding."
     }
   ],
-  "maj_le": "2026-11-22T19:30:00Z",
+  "maj_le": "2026-11-22T19:45:00Z",
   "demo_web": "https://motek-demo.vercel.app"
 }

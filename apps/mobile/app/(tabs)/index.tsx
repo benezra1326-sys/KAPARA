@@ -37,7 +37,8 @@ export default function ForYou() {
       <EmptyState title={t('pick.errorTitle')} body={t('common.offline')} action={{ label: t('common.retry'), onPress: () => void hydrate.refetch() }} />
     </Screen>
   );
-  if (!onboarded) return <Redirect href="/onboarding" />;
+  // Signed in but the profile isn't finished: carry on with it, don't start over.
+  if (!onboarded) return <Redirect href="/onboarding/basics" />;
   if (q.isLoading) return <Loading />;
   if (q.isError) return (
     <Screen title={t('forYou.title')}>

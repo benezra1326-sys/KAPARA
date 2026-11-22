@@ -1,13 +1,16 @@
-import { router } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { APP } from '@kapara/config';
 import { space } from '@kapara/design';
-import { DEMO_MODE, useSessionStatus } from '../../src/api/client';
+import { useAuthStatus } from '../../src/account';
+import { SignInChoices } from '../../src/account/SignInChoices';
+import { DEMO_MODE } from '../../src/api/client';
+import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { BrandMark, Button, Icon, Text, Wordmark, useLayout } from '../../src/ui';
+import { BrandMark, Icon, Text, Wordmark, useLayout } from '../../src/ui';
 
 const UNIVERSES = ['forYou', 'crossed', 'live'] as const;
 const GLYPH = { forYou: 'forYou', crossed: 'crossed', live: 'live' } as const;
@@ -18,9 +21,11 @@ export default function Welcome() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { isPhone } = useLayout();
-  // Connected mode: sign in by email code first, unless a session already exists.
-  const signedIn = useSessionStatus() === 'signedIn';
-  const start = () => router.push(signedIn ? '/onboarding/basics' : '/onboarding/email');
+  const status = useAuthStatus();
+  const onboarded = useMe((s) => s.onboarded);
+  // Already signed in (reload, back button): never ask again.
+  if (status === 'loading') return null;
+  if (status === 'signedIn') return <Redirect href={onboarded ? '/' : '/onboarding/basics'} />;
   const tagline = (APP.tagline as Record<string, string>)[i18n.language] ?? APP.tagline.fr;
   return (
     <ScrollView style={{ flex: 1, backgroundColor: c.bg }} contentContainerStyle={{ flexGrow: 1 }}>
@@ -52,9 +57,9 @@ export default function Welcome() {
         </Animated.View>
       </View>
       <View style={{ gap: space.sm }}>
-        {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('onb.demoNotice')}</Text> : null}
-        <Button label={t('onb.start')} onPress={start} />
-        {!signedIn ? <Button kind="ghost" label={t('auth.signIn')} onPress={() => router.push('/onboarding/email')} /> : null}
+        {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('signin.demoNotice')}</Text> : null}
+        <SignInChoices />
+        <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('signin.terms')}</Text>
       </View>
     </View>
     </ScrollView>
