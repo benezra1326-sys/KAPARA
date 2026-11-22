@@ -1,15 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, Tabs } from 'expo-router';
 import { useEffect } from 'react';
-import type { ColorValue } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts } from '@kapara/design';
 import { useSessionStatus } from '../../src/api/client';
 import { meStore } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { Text } from '../../src/ui';
-
-const glyph = (g: string) => ({ color }: { color: ColorValue | null }) => <Text style={{ color: color ?? undefined, fontSize: 20 }} accessibilityElementsHidden>{g}</Text>;
+import { AppNav, useLayout } from '../../src/ui';
 
 export const unstable_settings = { initialRouteName: 'index' };
 
@@ -17,6 +13,7 @@ export const unstable_settings = { initialRouteName: 'index' };
 export default function TabsLayout() {
   const { c } = useTheme();
   const { t } = useTranslation();
+  const { isDesktop } = useLayout();
   const status = useSessionStatus();
   const qc = useQueryClient();
   // Signed out (by the member, or because the session expired): nothing of the
@@ -26,19 +23,19 @@ export default function TabsLayout() {
   if (status === 'signedOut') return <Redirect href="/onboarding" />;
   return (
     <Tabs
+      tabBar={(props) => <AppNav {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: c.accent,
-        tabBarInactiveTintColor: c.textSubtle,
-        tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border },
-        tabBarLabelStyle: { fontFamily: fonts.bodyMedium, fontSize: 11 },
+        // Desktop: the navigation becomes a sidebar (see AppNav).
+        tabBarPosition: isDesktop ? 'left' : 'bottom',
+        sceneStyle: { backgroundColor: c.bg },
       }}
     >
-      <Tabs.Screen name="croises" options={{ title: t('tabs.crossed'), tabBarIcon: glyph('◌') }} />
-      <Tabs.Screen name="index" options={{ title: t('tabs.forYou'), tabBarIcon: glyph('✦') }} />
-      <Tabs.Screen name="live" options={{ title: t('tabs.live'), tabBarIcon: glyph('◉') }} />
-      <Tabs.Screen name="messages" options={{ title: t('tabs.messages'), tabBarIcon: glyph('❝') }} />
-      <Tabs.Screen name="moi" options={{ title: t('tabs.me'), tabBarIcon: glyph('○') }} />
+      <Tabs.Screen name="croises" options={{ title: t('tabs.crossed') }} />
+      <Tabs.Screen name="index" options={{ title: t('tabs.forYou') }} />
+      <Tabs.Screen name="live" options={{ title: t('tabs.live') }} />
+      <Tabs.Screen name="messages" options={{ title: t('tabs.messages') }} />
+      <Tabs.Screen name="moi" options={{ title: t('tabs.me') }} />
     </Tabs>
   );
 }

@@ -3,6 +3,33 @@ type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]>
 
 /** English — complete (checked against fr.ts by `npm run i18n:check -w @kapara/mobile`). */
 const en: DeepPartial<typeof fr> = {
+  nav: {
+    demoFooter: 'Demo: fictional profiles, nothing is sent.',
+  },
+  ux: {
+    previewNoPromptsTitle: 'Your profile is still quiet',
+    previewNoPromptsBody: 'Questions make people want to write: one or two answers are enough to start a conversation.',
+    verifiedDemo: 'Verified (demo)',
+    sharedNote: 'Only the answers {{name}} chose to show. A private answer never appears here.',
+    react: 'React',
+    reactHint: 'Pick an answer or a photo, and add a word if you like.',
+    demoPicks: 'demo selection',
+    accountTitle: 'Account (private)',
+    accountFootnote: 'This is never shown. Your age is calculated from your date of birth.',
+    birthDate: 'Date of birth',
+    onlyAgeShown: 'only your age is visible',
+    profileIncomplete: 'Profile to complete',
+    demoMyPhotos: 'Demo illustrations instead of your photos.',
+    seeAsOthers: 'Preview',
+    edit: 'Edit',
+    sameEverywhere: 'What you see here, the editor and the preview all come from the same profile.',
+    sectionProfile: 'Profile',
+    privacyHint: 'Who sees your answers, and what is used for suggestions.',
+    liveSettings: 'Live settings',
+    liveSettingsHint: 'Who can call you, audio or video.',
+    sectionAccount: 'Account',
+    liveIntroShort: 'Become available for a few minutes and suggest a call. The other person accepts first; cameras turn on only if you both agree.',
+  },
   tabs: {
     crossed: 'Crossed',
     forYou: 'For you',
@@ -84,7 +111,7 @@ const en: DeepPartial<typeof fr> = {
     },
     same_intent: 'Same intention: $t(jewishLife.options.relationshipIntent.{{value}})',
     like_profiles_you_appreciated: 'Similar to profiles you appreciated',
-    nearby: 'Less than {{km}} km away',
+    nearby: 'Nearby',
     shared_language: 'You both speak $t(languages.{{language}})',
     fits_your_criteria: 'Matches your criteria',
     crossed_recently: 'You crossed paths recently',

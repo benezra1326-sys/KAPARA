@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LiveProvider } from '../src/live/LiveProvider';
 import { ThemeProvider, useTheme } from '../src/theme';
+import { useLayout } from '../src/ui/layout';
 
 void SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } });
@@ -33,15 +34,23 @@ export default function RootLayout() {
 
 function Root() {
   const { c, dark } = useTheme();
+  const { isPhone } = useLayout();
+  const full = { backgroundColor: c.bg };
+  // Pages outside the tabs (conversation, settings, onboarding…) keep a
+  // readable column on tablets and desktops instead of spanning the window.
+  const column = isPhone ? full : { backgroundColor: c.bg, width: '100%' as const, maxWidth: 760, alignSelf: 'center' as const };
+  // Profiles (photos + words side by side) get a wider column.
+  const wide = isPhone ? full : { ...column, maxWidth: 1080 };
   return (
     <LiveProvider>
       <StatusBar style={dark ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="profile/[id]" options={{ presentation: 'modal' }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: column }}>
+        <Stack.Screen name="(tabs)" options={{ contentStyle: full }} />
+        <Stack.Screen name="profile/[id]" options={{ presentation: 'modal', contentStyle: wide }} />
+        <Stack.Screen name="profile/preview" options={{ contentStyle: wide }} />
         <Stack.Screen name="settings/privacy" />
         <Stack.Screen name="settings/live" options={{ headerShown: true, title: '' }} />
-        <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: full }} />
       </Stack>
     </LiveProvider>
   );

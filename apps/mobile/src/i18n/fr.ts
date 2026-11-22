@@ -5,6 +5,33 @@
  * Plurals follow i18next suffixes (_one, _other; Hebrew adds _two).
  */
 export default {
+  nav: {
+    demoFooter: 'Démonstration : profils fictifs, rien n’est envoyé.',
+  },
+  ux: {
+    previewNoPromptsTitle: 'Votre profil est encore discret',
+    previewNoPromptsBody: 'Les questions donnent envie d’écrire : une ou deux réponses suffisent pour lancer la conversation.',
+    verifiedDemo: 'Vérifié (démo)',
+    sharedNote: 'Seulement les réponses que {{name}} a choisi de montrer. Une réponse privée n’apparaît jamais ici.',
+    react: 'Réagir',
+    reactHint: 'Choisissez une réponse ou une photo, et ajoutez un mot si vous le souhaitez.',
+    demoPicks: 'sélection de démonstration',
+    accountTitle: 'Compte (privé)',
+    accountFootnote: 'Ces informations ne sont jamais affichées. Votre âge est calculé à partir de votre date de naissance.',
+    birthDate: 'Date de naissance',
+    onlyAgeShown: 'seul l’âge est visible',
+    profileIncomplete: 'Profil à compléter',
+    demoMyPhotos: 'Illustrations de démonstration à la place de vos photos.',
+    seeAsOthers: 'Aperçu',
+    edit: 'Modifier',
+    sameEverywhere: 'Ce que vous voyez ici, l’éditeur et l’aperçu viennent du même profil.',
+    sectionProfile: 'Profil',
+    privacyHint: 'Qui voit vos réponses, et ce qui sert aux suggestions.',
+    liveSettings: 'Réglages Live',
+    liveSettingsHint: 'Qui peut vous appeler, audio ou vidéo.',
+    sectionAccount: 'Compte',
+    liveIntroShort: 'Devenez disponible quelques minutes et proposez un appel. L’autre personne accepte d’abord ; la caméra ne s’allume qu’avec l’accord des deux.',
+  },
   tabs: {
     crossed: 'Croisés',
     forYou: 'Pour toi',
@@ -86,7 +113,7 @@ export default {
     },
     same_intent: 'Même intention : $t(jewishLife.options.relationshipIntent.{{value}})',
     like_profiles_you_appreciated: 'Proche des profils que vous avez appréciés',
-    nearby: 'À moins de {{km}} km',
+    nearby: 'À proximité',
     shared_language: 'Vous parlez tous les deux $t(languages.{{language}})',
     fits_your_criteria: 'Correspond à vos critères',
     crossed_recently: 'Vous vous êtes croisés récemment',

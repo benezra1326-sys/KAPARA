@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { LAUNCH_REGION, REGIONS } from '@kapara/config';
-import { visibleSensitive, type JewishLife, type ProfilePublic, type ViewerRelation } from '@kapara/shared';
+import type { ViewerRelation } from '@kapara/shared';
 import { hitSlop, radius, space } from '@kapara/design';
-import { ageFrom, useMe } from '../../src/me/store';
+import { myPublicProfile } from '../../src/me/identity';
+import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { Screen, Text } from '../../src/ui';
+import { Button, Screen, Text } from '../../src/ui';
+import { router } from 'expo-router';
 import { ProfileCard } from '../../src/ui/ProfileCard';
 
 /** "See my profile as…": the same visibility rule the API applies, shown before anyone else sees it. */
@@ -15,16 +16,9 @@ export default function Preview() {
   const { c } = useTheme();
   const me = useMe();
   const [as, setAs] = useState<Exclude<ViewerRelation, 'self'>>('member');
-  const consented = new Set(Object.keys(me.consents));
-  const profile: ProfilePublic = {
-    id: 'me', firstName: me.firstName || '—', age: ageFrom(me.birthDate) ?? 0,
-    city: (REGIONS.find((r) => r.code === me.regionCode) ?? LAUNCH_REGION).city, regionCode: me.regionCode,
-    headline: me.headline || undefined, languages: me.languages, photos: me.photos, prompts: me.prompts,
-    jewishLife: visibleSensitive(me.jewishLife as Record<string, JewishLife[keyof JewishLife]>, as, consented) as Partial<JewishLife>,
-    verified: false, isDemo: false,
-  };
+  const profile = myPublicProfile(me, as);
   return (
-    <Screen back="close" title={t('preview.title')}>
+    <Screen back="close" title={t('preview.title')} width="wide">
       <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', marginHorizontal: space.xl, marginBottom: space.md, backgroundColor: c.surfaceAlt, borderRadius: radius.md, padding: space.xs, gap: space.xs }}>
         {(['member', 'match'] as const).map((r) => (
           <Pressable key={r} onPress={() => setAs(r)} accessibilityRole="radio" accessibilityState={{ checked: as === r }}
@@ -35,6 +29,13 @@ export default function Preview() {
       </View>
       <Text variant="caption" tone="textSubtle" style={{ marginHorizontal: space.xl, marginBottom: space.lg }}>{t(`preview.hint.${as}`)}</Text>
       <ProfileCard profile={profile} />
+      {me.prompts.length === 0 ? (
+        <View style={{ margin: space.lg, padding: space.xl, borderRadius: radius.lg, backgroundColor: c.surface, gap: space.md, maxWidth: 560 }}>
+          <Text variant="bodyStrong">{t('ux.previewNoPromptsTitle')}</Text>
+          <Text tone="textMuted">{t('ux.previewNoPromptsBody')}</Text>
+          <Button kind="secondary" label={t('edit.addPrompt')} onPress={() => router.push('/profile/prompt')} />
+        </View>
+      ) : null}
     </Screen>
   );
 }

@@ -48,7 +48,8 @@ export function PhotoGrid() {
 
   return (
     <View style={{ padding: space.lg, gap: space.md }}>
-      <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>
+      {/* Capped at 480 px: on a desktop, six 4:5 tiles would otherwise fill the screen. */}
+      <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP, width: '100%', maxWidth: 480 }}>
         {slot ? photos.map((p, i) => (
           <Tile key={p.id} photo={p} index={i} count={photos.length} size={slot}
             onPress={() => (p.status === 'error' ? retryPhoto(p.id) : setPanel({ kind: 'photo', id: p.id }))} />

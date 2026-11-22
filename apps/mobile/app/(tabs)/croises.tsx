@@ -5,12 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Linking, Pressable, RefreshControl, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RULES } from '@kapara/config';
-import { radius, shadow, space } from '@kapara/design';
+import { layout, radius, shadow, space } from '@kapara/design';
 import type { CrossedItem } from '@kapara/shared';
 import { sendPing, useClearCrossed, useCrossed, useCrossedSettings, useSetCrossed } from '../../src/social/api';
-import { Card, DemoNotice, Loading, Pill, Row, RowGroup, Section } from '../../src/social/ui';
+import { Card, DemoNotice, Loading, Row, RowGroup, Section } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
+import { Button, columnsFor, DemoBadge, EmptyState, Icon, Screen, Text, useLayout } from '../../src/ui';
 import { DEMO_MODE } from '../../src/api/client';
 import { photoSource } from '../../src/demo/images';
 
@@ -23,6 +23,7 @@ type Perm = 'unknown' | 'granted' | 'denied';
  */
 export default function Crossed() {
   const { t } = useTranslation();
+  const { c } = useTheme();
   const settings = useCrossedSettings();
   const setCrossed = useSetCrossed();
   const enabled = Boolean(settings.data?.enabled);
@@ -55,11 +56,14 @@ export default function Crossed() {
         <DemoNotice />
         <View style={{ marginHorizontal: space.lg, gap: space.lg }}>
           <Card>
-            <Text variant="quote">{t('crossed.offTitle')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+              <Icon name="crossed" size={22} color={c.accent} />
+              <Text variant="heading">{t('crossed.offTitle')}</Text>
+            </View>
             <Text tone="textMuted">{t('crossed.offBody')}</Text>
+            <Button label={t('crossed.enable')} loading={setCrossed.isPending} onPress={() => void enable()} />
           </Card>
           <HowItWorks />
-          <Button label={t('crossed.enable')} loading={setCrossed.isPending} onPress={() => void enable()} />
           {perm === 'denied' ? <PermissionDenied /> : null}
         </View>
       </Screen>
@@ -83,8 +87,13 @@ function CrossedList() {
   const { c } = useTheme();
   const q = useCrossed(true);
   const items = q.data ?? [];
+  const { contentWidth } = useLayout();
+  // Compact cards: 2 columns on phones, up to 5 on desktop, never stretched.
+  const avail = contentWidth('wide') - space.lg * 2;
+  const cols = Math.max(2, columnsFor(avail, 176, 5));
+  const cardWidth = Math.floor((avail - space.md * (cols - 1)) / cols);
   return (
-    <Screen title={t('crossed.title')} subtitle={t('crossed.subtitle')}
+    <Screen title={t('crossed.title')} subtitle={t('crossed.subtitle')} width="wide"
       refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => void q.refetch()} tintColor={c.accent} />}>
       <DemoNotice />
       {q.isLoading ? <Loading /> : q.isError ? (
@@ -93,7 +102,7 @@ function CrossedList() {
         <EmptyState title={t('crossed.empty')} />
       ) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: space.lg, gap: space.md, marginBottom: space.xl }}>
-          {items.map((it) => <CrossedCard key={it.userId} item={it} />)}
+          {items.map((it) => <CrossedCard key={it.userId} item={it} width={cardWidth} />)}
         </View>
       )}
       <Footer />
@@ -101,22 +110,28 @@ function CrossedList() {
   );
 }
 
-function CrossedCard({ item }: { item: CrossedItem }) {
+function CrossedCard({ item, width }: { item: CrossedItem; width: number }) {
   const { t } = useTranslation();
   const { c } = useTheme();
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/profile/[id]', params: { id: item.userId } })}
       accessibilityRole="button" accessibilityLabel={t('crossed.viewProfile', { name: item.firstName })}
-      style={({ pressed }) => [{ width: '48%', flexGrow: 1, borderRadius: radius.lg, backgroundColor: c.surface, overflow: 'hidden', transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow.card]}>
+      style={({ pressed }) => [{ width, borderRadius: radius.lg, backgroundColor: c.surface, overflow: 'hidden', transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow.card]}>
       <View>
-        {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={250} accessible={false} />
-          : <View style={{ width: '100%', aspectRatio: 3 / 4, backgroundColor: c.surfaceAlt }} />}
-        {item.isDemo ? <View style={{ position: 'absolute', top: space.sm, left: space.sm }}><DemoBadge /></View> : null}
+        {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ width: '100%', aspectRatio: 4 / 5 }} contentFit="cover" contentPosition="top" transition={250} accessible={false} />
+          : <View style={{ width: '100%', aspectRatio: 4 / 5, backgroundColor: c.surfaceAlt }} />}
+        {item.isDemo ? <View style={{ position: 'absolute', top: space.sm, start: space.sm }}><DemoBadge compact /></View> : null}
       </View>
       <View style={{ padding: space.md, gap: space.xs }}>
-        <Text variant="bodyStrong" numberOfLines={1}>{item.firstName}, {item.age}{item.verified ? ' ✓' : ''}</Text>
-        <Pill label={item.times === 'several' ? t('crossed.recentlySeveral') : t('crossed.recentlyOnce')} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text variant="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{item.firstName}, {item.age}</Text>
+          {item.verified ? <Icon name="check" size={16} color={c.live} /> : null}
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
+          <View style={{ paddingTop: 1 }}><Icon name="crossed" size={14} color={c.accent} /></View>
+          <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>{item.times === 'several' ? t('crossed.recentlySeveral') : t('crossed.recentlyOnce')}</Text>
+        </View>
       </View>
     </Pressable>
   );
@@ -124,12 +139,13 @@ function CrossedCard({ item }: { item: CrossedItem }) {
 
 function HowItWorks() {
   const { t } = useTranslation();
+  const { c } = useTheme();
   return (
     <Card>
       <Text variant="overline" tone="textSubtle">{t('crossed.howTitle')}</Text>
       {(['how1', 'how2', 'how3', 'how4'] as const).map((k) => (
         <View key={k} style={{ flexDirection: 'row', gap: space.md }}>
-          <Text tone="highlight" accessibilityElementsHidden>✦</Text>
+          <View style={{ paddingTop: 3 }}><Icon name="sparkle" size={16} color={c.highlight} filled /></View>
           <Text tone="textMuted" style={{ flex: 1 }}>{t(`crossed.${k}`)}</Text>
         </View>
       ))}
@@ -150,12 +166,14 @@ function PermissionDenied() {
 
 function Footer() {
   const { t } = useTranslation();
+  const { c } = useTheme();
   const clear = useClearCrossed();
   const setCrossed = useSetCrossed();
   return (
+    <View style={{ maxWidth: layout.readable }}>
     <Section title={t('crossed.howTitle')}>
       <RowGroup>
-        <Row first label={t('crossed.zones')} detail={t('crossed.zonesHint')} onPress={() => router.push('/crossed/zones')} right={<Text tone="textSubtle">›</Text>} />
+        <Row first label={t('crossed.zones')} detail={t('crossed.zonesHint')} onPress={() => router.push('/crossed/zones')} right={<Icon name="chevron" size={18} color={c.textSubtle} />} />
         <Row label={t('crossed.clearHistory')} onPress={() => clear.mutate(undefined, { onSuccess: () => Alert.alert(t('crossed.clearDone')) })} />
         <Row danger label={t('crossed.disable')} onPress={() => Alert.alert(t('crossed.disable'), t('crossed.disableConfirm'), [
           { text: t('common.cancel'), style: 'cancel' },
@@ -163,6 +181,7 @@ function Footer() {
         ])} />
       </RowGroup>
     </Section>
+    </View>
   );
 }
 

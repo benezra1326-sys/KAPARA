@@ -6,9 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { hitSlop, radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
-import { isRTL } from '../i18n';
 import { useTheme } from '../theme';
-import { Text } from '../ui';
+import { Icon, Text } from '../ui';
 import { photoSource } from '../demo/images';
 
 /** Building blocks shared by the Croisés / messages / introductions / safety screens. */
@@ -27,12 +26,13 @@ export function Avatar({ uri, name, size = 56 }: { uri: string | null; name: str
 /** Stack screen header: back + title, safe-area aware, RTL aware. */
 export function StackHeader({ title, subtitle, right }: { title: string; subtitle?: string; right?: ReactNode }) {
   const { t } = useTranslation();
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <View style={{ paddingTop: insets.top + space.sm, paddingHorizontal: space.lg, paddingBottom: space.md, flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
       <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} accessibilityRole="button" accessibilityLabel={t('common.back')}
         style={{ width: hitSlop, height: hitSlop, alignItems: 'center', justifyContent: 'center' }}>
-        <Text variant="heading" accessibilityElementsHidden>{isRTL ? '→' : '←'}</Text>
+        <Icon name="back" size={24} color={c.text} />
       </Pressable>
       <View style={{ flex: 1 }}>
         {subtitle ? <Text variant="overline" tone="textSubtle">{subtitle}</Text> : null}
@@ -99,8 +99,9 @@ export function DemoNotice() {
   const { c } = useTheme();
   if (!DEMO_MODE) return null;
   return (
-    <View style={{ marginHorizontal: space.lg, marginBottom: space.lg, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.md, backgroundColor: c.surfaceAlt }} accessibilityRole="text">
-      <Text variant="caption" tone="textMuted">{t('common.demoMode')}</Text>
+    <View style={{ marginHorizontal: space.lg, marginBottom: space.lg, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.md, backgroundColor: c.surfaceAlt, flexDirection: 'row', gap: space.sm, alignItems: 'center' }} accessibilityRole="text">
+      <Icon name="info" size={16} color={c.textMuted} />
+      <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>{t('common.demoMode')}</Text>
     </View>
   );
 }

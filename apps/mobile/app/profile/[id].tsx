@@ -25,7 +25,7 @@ export default function Profile() {
   if (!p) return <Screen back="close"><EmptyState title={t('profile.notFound')} body={t('profile.notFoundBody')} /></Screen>;
 
   return (
-    <Screen back="close">
+    <Screen back="close" width="wide">
       {notice ? <View style={{ marginHorizontal: space.xl, marginBottom: space.lg }} accessibilityLiveRegion="polite"><Text variant="label" tone="live">{notice}</Text></View> : null}
       <ProfileCard profile={p} onReact={setTarget} />
       <ReactSheet profile={p} target={target} onClose={() => setTarget(null)}
