@@ -16,14 +16,24 @@ export class SocketTransport implements LiveTransport {
 
   async connect() {
     if (this.socket) return;
-    const token = await SecureStore.getItemAsync('token').catch(() => null);
     this.events.emit({ type: 'connection', status: 'connecting' });
-    const s = io(`${API_BASE}/live`, { transports: ['websocket'], auth: { token: token ?? '' }, reconnectionDelayMax: 10_000 });
+    // Access tokens are short-lived (15 min): read the current one at every (re)connection,
+    // so a token refreshed elsewhere in the app is picked up automatically.
+    const s = io(`${API_BASE}/live`, {
+      transports: ['websocket'],
+      reconnectionDelayMax: 10_000,
+      auth: (cb) => { void SecureStore.getItemAsync('token').catch(() => null).then((token) => cb({ token: token ?? '' })); },
+    });
     this.socket = s;
     s.on('connect', () => this.events.emit({ type: 'connection', status: 'online' }));
     s.on('disconnect', () => this.events.emit({ type: 'connection', status: 'offline' }));
     s.on('connect_error', () => this.events.emit({ type: 'connection', status: 'offline' }));
-    s.on('live:error', () => this.events.emit({ type: 'connection', status: 'unauthorized' }));
+    // Expired or invalid token: the server closes the socket. Retry once a little later,
+    // by which time the app may have refreshed its access token.
+    s.on('live:error', () => {
+      this.events.emit({ type: 'connection', status: 'unauthorized' });
+      setTimeout(() => { if (this.socket === s && !s.connected) s.connect(); }, 5_000);
+    });
     s.on(EV.inviteReceived, (call: CallSnapshot) => this.events.emit({ type: 'invited', call }));
     s.on(EV.stateChanged, (call: CallSnapshot) => this.events.emit({ type: 'state', call }));
     s.on(EV.join, (p: { callId: string; join: JoinInfo }) => this.events.emit({ type: 'join', ...p }));

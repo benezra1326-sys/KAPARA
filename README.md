@@ -85,6 +85,27 @@ status/     kapara.json, lu par le back-office
 - **i18n** : FR (référence), EN, HE (RTL). Régions = données (`REGIONS`), fuseau et devise par région.
 - **TypeScript 5.9** : TypeScript 7 est sorti mais l’outillage Expo/Nest n’est pas encore validé dessus.
 
+## Live : comment ça marche
+
+Trois consentements distincts, appliqués côté serveur (`apps/api/src/live`) :
+
+1. **Être visible** : opt-in « Je suis disponible », 15 min maximum, coupé sans battement de cœur (90 s).
+2. **Accepter un appel** : toujours audio d’abord. L’invitation respecte « Qui peut m’appeler » (personne / mes contacts / membres compatibles), les blocages, la pause et les préférences déclarées des deux côtés. Refus toujours vague (`not_available`) pour ne rien révéler. Après un refus, 24 h avant que la même personne puisse rappeler ; 5 invitations max par 10 min.
+3. **Allumer la caméra** : demandée par l’un, acceptée par l’autre. Le jeton LiveKit n’autorise que le micro ; la caméra n’est accordée aux deux participants par le serveur LiveKit (`updateParticipant`, `canPublishSources`) qu’à l’état `video_on`. Chacun peut couper sa caméra ou repasser en audio.
+
+Pendant l’appel : signaler et bloquer en un geste (l’appel s’arrête). Aucun enregistrement ; seul `CallLog` (date, issue, démo ou non) est gardé.
+
+| Contexte | Ce qui se passe |
+| --- | --- |
+| App sans API (`EXPO_PUBLIC_DEMO` ≠ `0`) | Simulation locale avec profils fictifs badgés ; bandeau « appels simulés ». |
+| API sans clés LiveKit | Vraie signalisation (présence, invitations, consentements) mais média simulé, annoncé comme tel. |
+| API + clés LiveKit + *development build* | Vrais appels audio/vidéo. Expo Go ne contient pas WebRTC : l’app l’indique. |
+| Web | Démo uniquement pour l’instant. |
+
+LiveKit en local : `docker compose -f infra/docker-compose.yml --profile live up -d`, puis `LIVEKIT_URL=ws://localhost:7880`, `LIVEKIT_API_KEY=devkey`, `LIVEKIT_API_SECRET=secret` (clés du mode `--dev`). Build natif : `npx expo run:ios` / `run:android` ou EAS.
+
+Limite connue : présence et appels sont en mémoire (une instance d’API). Au-delà, passer `PresenceStore` et `CallRegistry` sur Redis.
+
 ## Tests
 
 ```bash

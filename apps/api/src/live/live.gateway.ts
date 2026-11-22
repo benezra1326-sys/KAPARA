@@ -56,7 +56,8 @@ export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async handleConnection(socket: Socket) {
     try {
       const token = String(socket.handshake.auth?.token ?? '');
-      const { sub } = await this.jwt.verifyAsync<{ sub: string }>(token);
+      const { sub, typ } = await this.jwt.verifyAsync<{ sub: string; typ?: string }>(token);
+      if (typ !== 'access') throw new Error('wrong_token_type'); // refresh tokens never open a socket
       if (!(await this.repo.exists(sub))) throw new Error('unknown_user');
       socket.data.userId = sub;
       await socket.join(`user:${sub}`);

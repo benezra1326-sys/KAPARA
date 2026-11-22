@@ -19,3 +19,7 @@
 | 2026-11-22 | Critères éliminatoires, âge, genre et distance mutuels ; réponse inconnue = neutre | Respect des deux personnes, pas de pénalité au silence |
 | 2026-11-22 | Sélection du jour persistée (`DailyPick`), renouvelée à minuit heure locale | Liste finie et stable, pas de swipe infini |
 | 2026-11-22 | Match = conversation créée automatiquement | Pas de match sans moyen d’écrire |
+| 2026-11-22 | Live : la caméra est accordée par le serveur LiveKit (canPublishSources) seulement à l’état video_on | Le consentement ne dépend pas que de l’app |
+| 2026-11-22 | Live : « qui peut m’appeler » par défaut = mes contacts ; refus toujours vague (not_available) | Vie privée, pas de déduction possible |
+| 2026-11-22 | Live : anti-harcèlement (24 h après un refus, 5 invitations / 10 min, une seule conversation à la fois) | Sécurité |
+| 2026-11-22 | @livekit/react-native 3.1, react-native-webrtc 150.1, livekit-client 2.23 (versions de plus de 2 semaines) | Stabilité ; development build obligatoire |

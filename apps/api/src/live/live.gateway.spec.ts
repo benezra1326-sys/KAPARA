@@ -117,3 +117,19 @@ test('malformed payloads are refused', async () => {
   assert.deepEqual(await gw.invite(sock('a'), { to: 42 }), { ok: false, error: 'invalid_input' });
   assert.deepEqual(await gw.setPresence(sock('a'), null), { ok: false, error: 'invalid_input' });
 });
+
+test('only access tokens open a Live socket', async () => {
+  const make = (typ: string | undefined) => {
+    const g = new LiveGateway({ verifyAsync: async () => ({ sub: 'a', typ }) } as any, {} as any, { exists: async () => true } as any);
+    g.server = gw.server;
+    return g;
+  };
+  for (const [typ, ok] of [['access', true], ['refresh', false], [undefined, false]] as const) {
+    const g = make(typ);
+    let disconnected = false;
+    const s: any = { id: 's', data: {}, handshake: { auth: { token: 't' } }, join: async () => undefined, emit: () => undefined, disconnect: () => { disconnected = true; } };
+    await g.handleConnection(s);
+    assert.equal(disconnected, !ok, `typ=${typ}`);
+    g.onModuleDestroy();
+  }
+});
