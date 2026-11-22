@@ -27,3 +27,96 @@ export const LIVE_EVENTS = {
   videoRespond: 'call:video:respond',
   hangup: 'call:hangup',
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* Live v1 contract (workstream C). Additive: earlier exports unchanged. */
+/* ------------------------------------------------------------------ */
+
+/** Who may propose a Live call to me. Default: people I already matched with. */
+export const LiveCallsFrom = z.enum(['nobody', 'matches', 'members']);
+export type LiveCallsFrom = z.infer<typeof LiveCallsFrom>;
+
+export const LiveSettings = z.object({
+  /** Live is opt-in: off until the member turns it on. */
+  liveEnabled: z.boolean(),
+  liveCallsFrom: LiveCallsFrom,
+});
+export type LiveSettings = z.infer<typeof LiveSettings>;
+
+/** How calls are carried. `demo` = simulated, nothing is transmitted (announced in the UI). */
+export const LiveMode = z.enum(['livekit', 'demo']);
+export type LiveMode = z.infer<typeof LiveMode>;
+
+export const LiveStatus = z.object({
+  mode: LiveMode,
+  availabilityMinutes: z.number().int(),
+  inviteTtlSeconds: z.number().int(),
+});
+export type LiveStatus = z.infer<typeof LiveStatus>;
+
+/** A member shown in Live. Only what is needed to decide to propose a call. */
+export const LiveMember = z.object({
+  userId: z.string(),
+  firstName: z.string(),
+  age: z.number().int(),
+  headline: z.string().optional(),
+  photoUrl: z.string().optional(),
+  verified: z.boolean(),
+  isDemo: z.boolean(),
+});
+export type LiveMember = z.infer<typeof LiveMember>;
+
+/** Reasons an invitation can be refused. Deliberately vague towards the caller. */
+export const InviteRefusal = z.enum([
+  'not_available',   // offline, invisible, busy, blocked, not allowed: never say which
+  'live_disabled',   // the caller has not turned Live on
+  'cooldown',        // recently declined by this person
+  'rate_limited',    // too many invitations in a short time
+]);
+export type InviteRefusal = z.infer<typeof InviteRefusal>;
+
+/** What the app needs to join the media room. */
+export const JoinInfo = z.discriminatedUnion('mode', [
+  z.object({ mode: z.literal('livekit'), url: z.string(), token: z.string(), room: z.string() }),
+  z.object({ mode: z.literal('demo'), room: z.string(), notice: z.literal('demo_call_simulated') }),
+]);
+export type JoinInfo = z.infer<typeof JoinInfo>;
+
+export const CallSnapshot = z.object({
+  callId: z.string(),
+  state: CallState,
+  /** The other person, from the receiver's point of view. */
+  peer: LiveMember,
+  direction: z.enum(['outgoing', 'incoming']),
+  /** Who asked for video, when state is video_requested. */
+  videoRequestedBy: z.enum(['me', 'peer']).optional(),
+});
+export type CallSnapshot = z.infer<typeof CallSnapshot>;
+
+export const CallReportReason = z.enum(['inappropriate', 'harassment', 'fake_profile', 'underage', 'other']);
+export type CallReportReason = z.infer<typeof CallReportReason>;
+
+/** Socket payloads (client → server), validated on the server. */
+export const LivePayloads = {
+  presenceSet: z.object({ available: z.boolean() }),
+  invite: z.object({ to: z.string().min(1) }),
+  respond: z.object({ callId: z.string().min(1), accept: z.boolean() }),
+  callRef: z.object({ callId: z.string().min(1) }),
+  videoRespond: z.object({ callId: z.string().min(1), accept: z.boolean() }),
+  report: z.object({ callId: z.string().min(1), reason: CallReportReason, block: z.boolean().default(true) }),
+} as const;
+
+/** Events added in v1 (server → client unless noted). */
+export const LIVE_EVENTS_V1 = {
+  ...LIVE_EVENTS,
+  /** client → server: keep my availability alive (every ~30 s). */
+  presenceHeartbeat: 'presence:heartbeat',
+  /** server → client: someone became (un)available; refetch the list. */
+  presenceChanged: 'presence:changed',
+  /** server → client: media room credentials for a call. */
+  join: 'call:join',
+  /** client → server: switch back to audio only, for both. */
+  videoStop: 'call:video:stop',
+  /** client → server: report (and block) the other person; ends the call. */
+  report: 'call:report',
+} as const;

@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { LiveProvider } from '../src/live/LiveProvider';
 import { ThemeProvider, useTheme } from '../src/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -33,13 +34,15 @@ export default function RootLayout() {
 function Root() {
   const { c, dark } = useTheme();
   return (
-    <>
+    <LiveProvider>
       <StatusBar style={dark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="profile/[id]" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="settings/privacy" options={{ headerShown: true, title: '' }} />
+        <Stack.Screen name="settings/privacy" />
+        <Stack.Screen name="settings/live" options={{ headerShown: true, title: '' }} />
+        <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }} />
       </Stack>
-    </>
+    </LiveProvider>
   );
 }

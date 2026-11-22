@@ -9,6 +9,8 @@ import { IntroductionsModule } from './introductions/introductions.module';
 import { LiveModule } from './live/live.module';
 import { PrismaModule } from './prisma/prisma.service';
 import { ProfilesModule } from './profiles/profiles.module';
+import { SafetyModule } from './safety/safety.module';
+import { ShabbatModule } from './shabbat/shabbat.module';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { ProfilesModule } from './profiles/profiles.module';
         redact: ['req.headers.authorization', 'req.body', 'res.body'],
       },
     }),
-    PrismaModule, AuthModule, ProfilesModule, DiscoveryModule, CrossedModule, LiveModule, IntroductionsModule, ConversationsModule,
+    PrismaModule, AuthModule, SafetyModule, ShabbatModule, ProfilesModule, DiscoveryModule, CrossedModule, LiveModule, IntroductionsModule, ConversationsModule,
   ],
   controllers: [HealthController],
 })

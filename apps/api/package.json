@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "tsx watch src/main.ts",
+    "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node dist/main.js\"",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
@@ -13,6 +13,7 @@
     "test": "node --import tsx --test src/**/*.spec.ts"
   },
   "dependencies": {
+    "@hebcal/core": "^6.16.1",
     "@kapara/config": "*",
     "@kapara/shared": "*",
     "@nestjs/common": "^12.6.0",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "prisma": "^7.10.1",
+    "tsc-watch": "^7.2.1",
     "tsx": "^4.20.0",
     "typescript": "~5.9.3"
   }
