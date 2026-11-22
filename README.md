@@ -30,7 +30,7 @@ npm run dev:api       # http://localhost:3000/health
 npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 ```
 
-`EXPO_PUBLIC_DEMO=0` branche l’app sur l’API. Comptes de démo : `demo1@demo.kapara.invalid` … `demo10@…` via `POST /v1/auth/demo-login` (désactivé en production).
+`EXPO_PUBLIC_DEMO=0` branche l’app sur l’API. Comptes de démo : `demo1@demo.kapara.invalid` (Ilan, le membre « vous » de la démo) … `demo29@…` via `POST /v1/auth/demo-login` (désactivé en production).
 
 ## Ce qui est réel et ce qui est simulé
 
@@ -39,7 +39,7 @@ npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 | Appels audio/vidéo | **Simulés** tant que `LIVEKIT_URL/API_KEY/API_SECRET` ne sont pas fournis. L’app l’annonce clairement. Avec les clés, l’API émet de vrais jetons LiveKit. |
 | Paiement | Aucun en v1. |
 | IA | Aucune. « Pour toi » est un score explicable (critères déclarés + proximité + retours « pas pour moi »). |
-| Photos de démo | Images génériques picsum.photos (licence Unsplash), badge « Profil de démonstration ». |
+| Photos de démo | Portraits **illustrés générés par code** (`apps/mobile/src/demo/art`), sans visage ni personne réelle, embarqués dans l’app (`kapara-demo://…`). Badge « Profil de démonstration ». |
 | Authentification | Connexion démo uniquement pour l’instant (chantier dédié : OTP e-mail + Apple/Google). |
 
 ## Architecture
@@ -67,6 +67,14 @@ status/     kapara.json, lu par le back-office
 - **Live** : présence et signalisation via socket.io en mémoire (une instance). Redis (`REDIS_URL`) devient nécessaire au-delà d’une instance. Machine d’états testée : la vidéo ne peut pas être activée sans acceptation explicite.
 - **i18n** : FR (référence), EN, HE (RTL). Régions = données (`REGIONS`), fuseau et devise par région.
 - **TypeScript 5.9** : TypeScript 7 est sorti mais l’outillage Expo/Nest n’est pas encore validé dessus.
+
+## Données de démo
+
+29 membres fictifs (Paris surtout, plus Londres, Tel-Aviv et New York pour le Live), avec des pratiques, origines, âges (24 à 51 ans), situations familiales et orientations variées, des réponses nuancées dont certaines privées ou « je préfère ne pas répondre ». Autour du membre de démo : 8 suggestions expliquées, 5 croisements, 6 présences Live, 4 conversations, 4 présentations, 3 réactions reçues.
+
+- Source unique : `apps/mobile/src/demo/{people,scenarios}.ts`, utilisée par l’app hors ligne **et** par `npm run db:seed` (mêmes identifiants `demo-<prénom>`).
+- Portraits : `npm run demo:art -w @kapara/mobile` régénère les 87 images (Chromium de Playwright).
+- Traductions : `npm run i18n:check -w @kapara/mobile` vérifie que en et he couvrent toutes les clés de fr.ts (variables et pluriels compris).
 
 ## Tests
 

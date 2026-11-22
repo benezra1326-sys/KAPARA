@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { Recommendation } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
-import { PROMPT_LABELS } from '../demo/profiles';
+import { photoSource } from '../demo/images';
 import { useTheme } from '../theme';
 import { DemoBadge } from './DemoBadge';
 import { Text } from './Text';
@@ -21,7 +21,7 @@ export function ProfileCard({ rec, onReact }: { rec: Recommendation; onReact: (t
     <View style={{ marginHorizontal: space.lg, marginBottom: space.xxl, gap: space.lg }}>
       {first ? (
         <View style={[{ borderRadius: radius.xl, overflow: 'hidden', backgroundColor: c.surfaceAlt }, shadow.card]}>
-          <Image source={first.url} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={300}
+          <Image source={photoSource(first.url)} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={300}
             accessibilityLabel={`${p.firstName}, photo 1`} />
           <View style={{ position: 'absolute', left: space.lg, right: 80, bottom: space.lg, gap: space.sm }}>
             {p.isDemo ? <DemoBadge /> : null}
@@ -44,7 +44,7 @@ export function ProfileCard({ rec, onReact }: { rec: Recommendation; onReact: (t
 
       {p.prompts.map((q) => (
         <View key={q.id} style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.xl, gap: space.sm }}>
-          <Text variant="overline" tone="textSubtle">{PROMPT_LABELS[q.id] ?? q.id}</Text>
+          <Text variant="overline" tone="textSubtle">{t(`prompts.${q.id}`, { defaultValue: q.id })}</Text>
           <Text variant="quote">{q.answer}</Text>
           <ReactButton inline label={t('forYou.react')} onPress={() => onReact({ kind: 'prompt', id: q.id })} />
         </View>
@@ -52,7 +52,7 @@ export function ProfileCard({ rec, onReact }: { rec: Recommendation; onReact: (t
 
       {rest.map((ph, i) => (
         <View key={ph.id} style={{ borderRadius: radius.xl, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-          <Image source={ph.url} style={{ width: '100%', aspectRatio: 4 / 5 }} contentFit="cover" transition={300} accessibilityLabel={`${p.firstName}, photo ${i + 2}`} />
+          <Image source={photoSource(ph.url)} style={{ width: '100%', aspectRatio: 4 / 5 }} contentFit="cover" transition={300} accessibilityLabel={`${p.firstName}, photo ${i + 2}`} />
           <ReactButton label={t('forYou.react')} onPress={() => onReact({ kind: 'photo', id: ph.id })} />
         </View>
       ))}

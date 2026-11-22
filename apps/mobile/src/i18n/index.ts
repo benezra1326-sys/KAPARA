@@ -20,3 +20,9 @@ void i18n.use(initReactI18next).init({
 I18nManager.allowRTL(true);
 export const isRTL = RTL_LOCALES.includes(lng);
 export default i18n;
+
+/** Option labels are grouped by answer type; both kashrut fields share one list. */
+const OPTION_GROUP: Record<string, string> = { kashrutHome: 'kashrut', kashrutOutside: 'kashrut' };
+
+/** i18n key of a Jewish-life answer, e.g. t(jewishLifeOptionKey('kashrutHome', 'not_kosher')). */
+export const jewishLifeOptionKey = (field: string, value: string) => `jewishLife.options.${OPTION_GROUP[field] ?? field}.${value}`;

@@ -9,6 +9,7 @@ export const Prompt = z.object({
 export const PROMPT_KEYS = [
   'favorite_tradition', 'ideal_shabbat_meal', 'favorite_holiday', 'makes_me_laugh',
   'project_excited_about', 'perfect_sunday', 'green_flag', 'teach_me',
+  'family_recipe', 'currently_learning', 'together_we_could', 'best_advice',
 ] as const;
 
 export const Photo = z.object({

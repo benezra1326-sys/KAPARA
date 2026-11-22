@@ -11,3 +11,6 @@
 | 2026-11-22 | Dealbreakers : une réponse absente ou non partagée n’exclut jamais | Pas de déduction, pas de pénalité |
 | 2026-11-22 | Croisés : grille 150 m, rayon 250 m, fenêtre 72 h, jamais lieu/heure | Vie privée |
 | 2026-11-22 | Direction artistique « candlelight editorial » : ivoire, encre, grenade, laiton ; Fraunces + Inter | Chaleureux, élégant, non générique |
+| 2026-11-22 | Portraits de démo illustrés et générés par code, sans visage | Aucun visage réel ni licence à suivre ; pas de crédits d’IA d’image disponibles |
+| 2026-11-22 | Une seule source pour la démo (app hors ligne et seed) | Même histoire et mêmes identifiants partout |
+| 2026-11-22 | i18n : fr référence, en/he complets, contrôle automatique ; hébreu au pluriel ou à l’infinitif pour rester neutre | Pas de genre supposé |
