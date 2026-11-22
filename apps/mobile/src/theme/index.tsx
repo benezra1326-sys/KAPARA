@@ -10,6 +10,15 @@ import { colors, DEFAULT_SCHEME, type ColorScheme, type ThemeColors } from '@kap
 const KEY = 'motek.appearance';
 const read = (): ColorScheme => {
   try {
+    // A shared link can pick the look: ?theme=noir or ?theme=blanc.
+    if (Platform.OS === 'web' && typeof location !== 'undefined') {
+      const q = new URLSearchParams(location.search).get('theme');
+      if (q === 'noir' || q === 'dark' || q === 'blanc' || q === 'light') {
+        const v: ColorScheme = q === 'noir' || q === 'dark' ? 'dark' : 'light';
+        try { localStorage.setItem(KEY, v); } catch { /* ignore */ }
+        return v;
+      }
+    }
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
       const v = localStorage.getItem(KEY);
       if (v === 'light' || v === 'dark') return v;
@@ -18,6 +27,7 @@ const read = (): ColorScheme => {
   return DEFAULT_SCHEME;
 };
 let scheme: ColorScheme = read();
+if (Platform.OS === 'web' && typeof document !== 'undefined' && document.body) document.body.style.backgroundColor = colors[scheme].bg;
 const listeners = new Set<() => void>();
 export const appearance = {
   get: () => scheme,

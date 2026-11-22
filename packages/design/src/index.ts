@@ -7,7 +7,7 @@
  * and one vivid accent, "motek" rose, for what is about people: hearts,
  * reactions, the active tab, live presence. No beige, no brown.
  * Titles in Instrument Serif (fine, editorial), text in DM Sans (light,
- * friendly). A dark mode with the same accent is one tap away in Moi.
+ * friendly). "Noir" (black and sand) is one tap away in Moi.
  * Every text tone passes WCAG AA (4.5:1) on `bg` and `surface`.
  */
 export const palette = {
@@ -24,15 +24,17 @@ export const palette = {
   violet: '#5B4BDB',
   green: '#16A34A',
   red: '#D92D20',
-  // Dark mode
-  black: '#0A0A0C',
-  coal: '#151518',
-  coalHigh: '#1F1F24',
-  coalLine: '#2C2C33',
-  cloud: '#F5F5F7',
-  cloudSoft: '#B8B8C2',
-  fog: '#8E8E99',
-  roseBright: '#FF4F84',
+  // Noir (dark mode): black and sand
+  black: '#0A0A0A',
+  coal: '#151515',
+  coalHigh: '#1E1E1E',
+  coalLine: '#2A2A2A',
+  cream: '#F4EFE6',
+  creamSoft: '#BFB7AA',
+  dune: '#928A7D',
+  sand: '#D9C4A0',
+  sandPressed: '#C6AF88',
+  sandMist: '#29241C',
   /** Calls stay dark whatever the theme (video first). */
   night: '#0A0A0C',
 } as const;
@@ -46,12 +48,13 @@ export const colors = {
     primary: palette.ink, primaryPressed: '#2A2A33', onPrimary: palette.white,
     highlight: palette.rose, live: palette.green, danger: palette.red, onAccent: palette.white,
   },
+  /** "Noir": true black and warm sand, quiet luxury for the evening. */
   dark: {
     bg: palette.black, surface: palette.coal, surfaceAlt: palette.coalHigh, border: palette.coalLine,
-    text: palette.cloud, textMuted: palette.cloudSoft, textSubtle: palette.fog,
-    accent: palette.roseBright, accentPressed: '#E8336D', accentSoft: '#3A1424',
-    primary: palette.cloud, primaryPressed: '#DADADF', onPrimary: palette.black,
-    highlight: palette.roseBright, live: '#4ADE80', danger: '#FF6B5E', onAccent: palette.black,
+    text: palette.cream, textMuted: palette.creamSoft, textSubtle: palette.dune,
+    accent: palette.sand, accentPressed: palette.sandPressed, accentSoft: palette.sandMist,
+    primary: palette.sand, primaryPressed: palette.sandPressed, onPrimary: palette.black,
+    highlight: palette.sand, live: '#7FCF9A', danger: '#FF7A6B', onAccent: palette.black,
   },
 } as const;
 export type ColorScheme = keyof typeof colors;

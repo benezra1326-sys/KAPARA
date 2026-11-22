@@ -8,8 +8,8 @@ const en: DeepPartial<typeof fr> = {
   },
   ux: {
     appearance: 'Appearance',
-    themeLight: 'Light',
-    themeDark: 'Dark',
+    themeLight: 'White',
+    themeDark: 'Black',
     previewNoPromptsTitle: 'Your profile is still quiet',
     previewNoPromptsBody: 'Questions make people want to write: one or two answers are enough to start a conversation.',
     verifiedDemo: 'Verified (demo)',

@@ -181,8 +181,8 @@ const he: Catalog<typeof fr> = {
   },
   ux: {
     appearance: 'מראה',
-    themeLight: 'בהיר',
-    themeDark: 'כהה',
+    themeLight: 'לבן',
+    themeDark: 'שחור',
     previewNoPromptsTitle: 'הפרופיל עדיין שקט',
     previewNoPromptsBody: 'השאלות מעוררות רצון לכתוב: תשובה או שתיים מספיקות כדי לפתוח שיחה.',
     verifiedDemo: 'מאומת (הדגמה)',
