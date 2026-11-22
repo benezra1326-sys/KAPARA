@@ -48,6 +48,7 @@ Comptes de démo seedés : `demo1@demo.kapara.invalid` (Ilan, le membre « vous 
 | Appels audio/vidéo | **Simulés** tant que `LIVEKIT_URL/API_KEY/API_SECRET` ne sont pas fournis. L’app l’annonce clairement. Avec les clés, l’API émet de vrais jetons LiveKit. |
 | Paiement | Aucun en v1. |
 | IA | Aucune. « Pour toi » est un score explicable (critères déclarés + proximité + retours « pas pour moi »). |
+| Photos de profil | **Réelles** : choix dans la photothèque (sélecteur système, sans accès à toute la galerie) ou appareil photo, recadrage 4:5, ré-encodage JPEG 1600 px sur le téléphone (métadonnées et position GPS retirées), envoi direct vers un stockage compatible S3 par URL pré-signée. Sans `S3_*` : stockage sur le disque de l’API en développement (annoncé `mode: "local"`), refus en production. App en mode démo : les photos restent sur le téléphone. |
 | Photos de démo | Portraits **illustrés générés par code** (`apps/mobile/src/demo/art`), sans visage ni personne réelle, embarqués dans l’app (`kapara-demo://…`). Badge « Profil de démonstration ». |
 | Authentification | **Réelle** : code à usage unique par e-mail (Resend), Sign in with Apple, Sign in with Google (jetons vérifiés côté serveur). Sans clé, la méthode est annoncée indisponible (`GET /v1/auth/methods`) ; en développement, le code e-mail est renvoyé dans la réponse avec `delivery: "demo"`. |
 
@@ -59,7 +60,7 @@ Comptes de démo seedés : `demo1@demo.kapara.invalid` (Ilan, le membre « vous 
 | `POST /auth/otp/request` · `/auth/otp/verify` | Code à 6 chiffres, 10 min, 5 essais, 1 demande / 30 s et 5 / h par adresse ; seul un HMAC du code est stocké |
 | `POST /auth/apple` · `/auth/google` | Jeton d’identité vérifié (signature JWKS, émetteur, audience, expiration, nonce) |
 | `POST /auth/refresh` · `/auth/logout` · `/auth/logout-all` | Accès JWT 15 min ; jeton de rafraîchissement opaque 60 j, haché, renouvelé à chaque usage ; réutilisation = toute la session révoquée |
-| `GET/PUT /profiles/me` · `PUT /profiles/me/photos` · `PUT/DELETE /profiles/me/location` · `PUT /profiles/me/settings` · `DELETE /profiles/me` | Profil, photos, zone approximative (grille 1 km, jamais renvoyée), pause / mode Shabbat, suppression du compte |
+| `GET/PUT /profiles/me` · `PUT /profiles/me/photos` (voir « Photos de profil ») · `PUT/DELETE /profiles/me/location` · `PUT /profiles/me/settings` · `DELETE /profiles/me` | Profil, photos, zone approximative (grille 1 km, jamais renvoyée), pause / mode Shabbat, suppression du compte |
 | `POST /profiles/me/consents` · `DELETE /profiles/me/consents/:champ` | Consentement explicite par champ sensible ; le retrait efface la réponse |
 | `PUT /profiles/me/jewish-life` | Mise à jour partielle (fusion) ; `null` efface ; 409 `consent_required` si une réponse est envoyée sans consentement |
 | `GET/PUT /preferences` | Âge, distance, genres, critères éliminatoires et préférences souples (valeurs contrôlées) |
@@ -67,6 +68,18 @@ Comptes de démo seedés : `demo1@demo.kapara.invalid` (Ilan, le membre « vous 
 | `POST /for-you/feedback` · `/for-you/like` · `GET /for-you/likes-received` | « Pas pour moi » (raison facultative), « plus comme ça », like sur une photo ou une réponse précise ; like réciproque = match + conversation |
 
 **Découverte.** Filtres durs en SQL : distance PostGIS (`ST_DWithin` entre zones approximatives, centre de la région à défaut), genre et âge **dans les deux sens**, blocages, déjà aimés, « pas pour moi », profils vus il y a moins de 14 jours. Puis `discovery/scoring.ts` : critères éliminatoires **mutuels**, score = préférences souples du membre 50 %, celles de l’autre sur lui 15 %, proximité 15 % (30 % après deux « trop loin »), ressemblance avec les profils appréciés 20 % (à partir de 3 signaux). Une réponse absente ou non partagée n’élimine jamais et compte comme neutre. Seules les réponses consenties **et** marquées « utilisables pour les suggestions » sont lues (`matchableAnswers`), jamais les champs libres. Chaque suggestion porte 1 à 3 raisons (clés i18n `reason.*`). Distances affichées en tranches (« moins de 5 km »).
+
+## Photos de profil
+
+1. `POST /v1/media/photo-uploads` `{ contentType, size }` → ticket `{ mode, key, uploadUrl, headers, expiresAt }` (5 min, 30 tickets / 10 min par membre). Clé `profiles/<id membre>/<128 bits aléatoires>.jpg`.
+2. L’app envoie le fichier en `PUT` sur `uploadUrl` avec les en-têtes donnés. En `s3`, c’est une URL pré-signée SigV4 (`apps/api/src/media/sigv4.ts`, vérifiée contre l’exemple officiel AWS) : le téléphone ne détient aucune clé de stockage.
+3. `PUT /v1/profiles/me/photos` `{ photos: [{ id } | { key }] }` : la liste complète et ordonnée (la première est la principale). L’API vérifie chaque nouvelle clé (appartient au membre, fichier présent, vrai JPEG/PNG/WebP lu sur ses premiers octets, ≤ 10 Mo), puis supprime les photos retirées **et leur fichier**. Liste vide acceptée : le profil n’est simplement plus proposé. La suppression du compte efface aussi les fichiers.
+
+Variables : `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_ENDPOINT` (vide pour AWS ; Cloudflare R2, Scaleway, MinIO sinon), `S3_PUBLIC_URL` (domaine public ou CDN de lecture). Sans elles : `UPLOAD_DIR` (`.uploads`) et `PUBLIC_API_URL` en développement.
+
+Compromis : les photos sont lues par une URL publique non devinable (CDN), pas par des URL signées à chaque lecture, pour garder un cache simple. Les fichiers envoyés mais jamais rattachés à un profil (onboarding abandonné) restent : prévoir une règle de cycle de vie du bucket ou un nettoyage périodique. Pas de modération automatique des images en v1 : le signalement existant couvre les photos.
+
+Côté app (`apps/mobile/src/me/photos.ts`, `src/ui/PhotoGrid.tsx`) : 6 emplacements, déplacer avant/après, « photo principale », suppression, actions aussi disponibles au lecteur d’écran ; envoi en arrière-plan avec état « échec, toucher pour réessayer » ; appareil photo refusé → explication et bouton vers les réglages. Étape « Vos photos » dans l’onboarding (encouragée, pas obligatoire).
 
 ## Croisés, présentations, conversations, sécurité, mode Shabbat (chantier D)
 

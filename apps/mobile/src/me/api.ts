@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { SENSITIVE_POLICY_VERSION, type Gender, type JewishLife, type ProfilePublic } from '@kapara/shared';
 import { api, ApiError, DEMO_MODE } from '../api/client';
 import type { JLKey } from './fields';
+import { commitPhotos } from './photos';
 import { basicsPayload, meStore, type SensitiveField } from './store';
 
 type MeResponse = {
@@ -25,7 +26,9 @@ export function useHydrateMe() {
       const p = r.profile;
       meStore.set({
         onboarded: true, firstName: p.firstName, headline: p.headline ?? '', languages: p.languages, regionCode: r.regionCode,
-        prompts: p.prompts, photos: p.photos, jewishLife: p.jewishLife, consents,
+        prompts: p.prompts, jewishLife: p.jewishLife, consents,
+        // Photos still uploading (or not yet attached) on this phone are kept.
+        photos: [...p.photos, ...meStore.get().photos.filter((x) => x.key || x.status)],
         // Self view may not include these; the basics editor then asks for them again.
         ...(p.birthDate ? { birthDate: p.birthDate.slice(0, 10) } : {}), ...(p.gender ? { gender: p.gender } : {}),
       });
@@ -43,6 +46,8 @@ export type SaveRequest = {
   answers?: Partial<Record<JLKey, SensitiveField | null>>;
   /** Fields whose consent is withdrawn: the API erases the answer. */
   revoke?: JLKey[];
+  /** Attach the photos uploaded during onboarding (PUT /profiles/me/photos). */
+  photos?: boolean;
   /** During onboarding everything stays local until the last step sends it all. */
   force?: boolean;
 };
@@ -62,6 +67,7 @@ export function useSaveMe() {
       if (r.grant?.length) await api('/profiles/me/consents', { method: 'POST', body: JSON.stringify({ fields: r.grant, policyVersion: SENSITIVE_POLICY_VERSION }) });
       if (r.answers && Object.keys(r.answers).length) await api('/profiles/me/jewish-life', { method: 'PUT', body: JSON.stringify(r.answers as Partial<JewishLife>) });
       for (const f of r.revoke ?? []) await api(`/profiles/me/consents/${f}`, { method: 'DELETE' });
+      if (r.photos && s.photos.some((p) => !p.status)) await commitPhotos();
     },
   });
 }

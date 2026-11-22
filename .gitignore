@@ -11,3 +11,4 @@ android/
 coverage/
 apps/api/src/generated/
 dist-web/
+.uploads/

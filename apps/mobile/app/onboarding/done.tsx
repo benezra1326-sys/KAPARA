@@ -19,7 +19,7 @@ export default function OnbDone() {
   const go = () => {
     const s = meStore.get();
     save.mutate(
-      { force: true, basics: true, grant: Object.keys(s.consents) as JLKey[], answers: s.jewishLife },
+      { force: true, basics: true, grant: Object.keys(s.consents) as JLKey[], answers: s.jewishLife, photos: true },
       { onSuccess: () => { meStore.set({ onboarded: true }); router.replace('/'); } },
     );
   };
