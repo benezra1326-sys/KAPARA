@@ -10,3 +10,4 @@ android/
 !.env.example
 coverage/
 apps/api/src/generated/
+dist-web/

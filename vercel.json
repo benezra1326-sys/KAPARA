@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build -w @kapara/config -w @kapara/shared -w @kapara/design && cd apps/mobile && EXPO_PUBLIC_DEMO=1 npx expo export --platform web --output-dir ../../dist-web",
+  "outputDirectory": "dist-web",
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "headers": [{ "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }]
+}
