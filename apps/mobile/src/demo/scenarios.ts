@@ -14,13 +14,13 @@ export interface DemoPick { key: string; reasons: { key: string; params?: Record
  */
 export const DEMO_PICKS_PLAN: DemoPick[] = [
   { key: 'lea', reasons: [{ key: 'reason.shared.shabbat', params: { value: 'friday_dinner' } }, { key: 'reason.same_intent', params: { value: 'long_term' } }, { key: 'reason.nearby' }] },
+  { key: 'chloe', reasons: [{ key: 'reason.shared.kashrutHome', params: { value: 'no_pork_seafood' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
   { key: 'clara', reasons: [{ key: 'reason.shared.relationshipIntent', params: { value: 'long_term' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
+  { key: 'avigail', reasons: [{ key: 'reason.shared.holidays', params: { value: 'all_major' } }, { key: 'reason.shared_language', params: { language: 'he' } }] },
   { key: 'hannah', reasons: [{ key: 'reason.shared.holidays', params: { value: 'all_major' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
-  { key: 'noemie', reasons: [{ key: 'reason.shared.kashrutHome', params: { value: 'kosher_home_flexible_out' } }, { key: 'reason.shared.traditionPlace', params: { value: 'important' } }] },
-  { key: 'rachel', reasons: [{ key: 'reason.shared.shabbat', params: { value: 'friday_dinner' } }, { key: 'reason.shared_language', params: { language: 'he' } }] },
-  { key: 'sarah', reasons: [{ key: 'reason.shared.holidays', params: { value: 'all_major' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
-  { key: 'maya', reasons: [{ key: 'reason.like_profiles_you_appreciated', params: { field: 'practice' } }, { key: 'reason.nearby' }] },
-  { key: 'judith', reasons: [{ key: 'reason.crossed_recently' }, { key: 'reason.shared_language', params: { language: 'en' } }] },
+  { key: 'shira', reasons: [{ key: 'reason.shared.shabbat', params: { value: 'friday_dinner' } }, { key: 'reason.shared_language', params: { language: 'fr' } }] },
+  { key: 'oceane', reasons: [{ key: 'reason.shared.kashrutHome', params: { value: 'kosher_home_flexible_out' } }, { key: 'reason.same_intent', params: { value: 'long_term' } }] },
+  { key: 'julie', reasons: [{ key: 'reason.shared.shabbat', params: { value: 'friday_dinner' } }, { key: 'reason.shared.holidays', params: { value: 'all_major' } }] },
 ];
 
 /** "Croisés": never a place or a time, only that you crossed paths recently. */
@@ -30,6 +30,13 @@ export const DEMO_CROSSED: { key: string; times: number }[] = [
   { key: 'clara', times: 2 },
   { key: 'myriam', times: 1 },
   { key: 'ruben', times: 1 },
+  { key: 'noemie', times: 2 },
+  { key: 'deborah', times: 4 },
+  { key: 'hannah', times: 1 },
+  { key: 'sacha', times: 1 },
+  { key: 'rachel', times: 2 },
+  { key: 'eli', times: 1 },
+  { key: 'yael', times: 1 },
 ];
 
 export type LivePresence = 'available' | 'busy';
@@ -41,6 +48,14 @@ export const DEMO_LIVE: { key: string; presence: LivePresence; availableForMinut
   { key: 'naomi', presence: 'available', availableForMinutes: 14 },
   { key: 'tamar', presence: 'busy', availableForMinutes: 7 },
   { key: 'ruben', presence: 'busy', availableForMinutes: 3 },
+  { key: 'shira', presence: 'available', availableForMinutes: 11 },
+  { key: 'gabriela', presence: 'available', availableForMinutes: 8 },
+  { key: 'liora', presence: 'available', availableForMinutes: 13 },
+  { key: 'alessia', presence: 'available', availableForMinutes: 6 },
+  { key: 'lina', presence: 'available', availableForMinutes: 10 },
+  { key: 'oceane', presence: 'busy', availableForMinutes: 5 },
+  { key: 'kayla', presence: 'available', availableForMinutes: 15 },
+  { key: 'julie', presence: 'available', availableForMinutes: 9 },
 ];
 
 /**
@@ -102,6 +117,32 @@ export const DEMO_CONVERSATIONS: DemoConversation[] = [
     origin: { kind: 'like', target: 'prompt', targetId: 'currently_learning', fromKey: 'hannah', comment: 'Tu parles hébreu ? J’ai besoin d’un partenaire de conversation patient.' },
     messages: [],
   },
+  {
+    id: 'demo-conv-chloe', withKey: 'chloe', startedMinutesAgo: 60 * 50,
+    origin: { kind: 'like', target: 'prompt', targetId: 'makes_me_laugh', fromKey: 'chloe', comment: 'Un ingénieur acoustique : tu dois adorer le silence du métro londonien.' },
+    messages: [
+      { from: 'ilan', body: 'Le métro de Londres, silencieux ? On ne doit pas prendre la même ligne.', minutesAgo: 60 * 48 },
+      { from: 'chloe', body: 'Northern line, le matin. Tout le monde lit, personne ne parle. C’est presque une bibliothèque.', minutesAgo: 60 * 47 },
+      { from: 'ilan', body: 'Je passe à Londres le mois prochain pour un chantier. Tu me montres cette bibliothèque roulante ?', minutesAgo: 60 * 30 },
+      { from: 'chloe', body: 'Avec plaisir. Et je t’emmène manger le meilleur couscous de Londres, il n’y en a qu’un.', minutesAgo: 60 * 5 },
+    ],
+  },
+  {
+    id: 'demo-conv-avigail', withKey: 'avigail', startedMinutesAgo: 60 * 72,
+    origin: { kind: 'live', callMinutes: 22 },
+    messages: [
+      { from: 'avigail', body: 'Vingt-deux minutes à parler de Lyon depuis Jérusalem, je n’avais pas prévu ça ce soir.', minutesAgo: 60 * 71 },
+      { from: 'ilan', body: 'Moi non plus. Tu m’as donné envie de revoir la vieille ville, je n’y suis pas allé depuis dix ans.', minutesAgo: 60 * 70 },
+      { from: 'avigail', body: 'Je fais des visites le dimanche. Je te garde une place si tu viens pour Souccot.', minutesAgo: 60 * 26 },
+    ],
+  },
+  {
+    id: 'demo-conv-oceane', withKey: 'oceane', startedMinutesAgo: 60 * 8,
+    origin: { kind: 'like', target: 'photo', targetId: 'moment-0', fromKey: 'ilan', comment: 'Le mont Royal en octobre, ça a l’air incroyable.' },
+    messages: [
+      { from: 'oceane', body: 'C’est la plus belle semaine de l’année ici. Après, il fait −20 et on regrette.', minutesAgo: 60 * 7 },
+    ],
+  },
 ];
 
 export type DemoIntroStatus = 'proposed' | 'accepted_by_a' | 'accepted_by_b' | 'connected' | 'declined' | 'expired';
@@ -132,6 +173,9 @@ export const DEMO_LIKES_RECEIVED: { fromKey: string; target: 'photo' | 'prompt';
   { fromKey: 'judith', target: 'prompt', targetId: 'perfect_sunday', comment: 'Un concert de quartier que personne ne connaît : j’en connais un, justement.', minutesAgo: 90 },
   { fromKey: 'deborah', target: 'photo', targetId: 'moment-0', minutesAgo: 60 * 8 },
   { fromKey: 'maya', target: 'prompt', targetId: 'family_recipe', comment: 'Et si on essayait de la refaire ensemble ?', minutesAgo: 60 * 20 },
+  { fromKey: 'liora', target: 'photo', targetId: 'portrait', comment: 'Fellow vinyl person? Tell me your top three.', minutesAgo: 60 * 3 },
+  { fromKey: 'gabriela', target: 'prompt', targetId: 'perfect_sunday', minutesAgo: 60 * 11 },
+  { fromKey: 'lina', target: 'prompt', targetId: 'family_recipe', comment: 'Chez nous aussi, la recette de la grand-mère est un secret d’État.', minutesAgo: 60 * 26 },
 ];
 
 export const minutesAgo = (m: number, now: Date = new Date()) => new Date(now.getTime() - m * 60_000);
