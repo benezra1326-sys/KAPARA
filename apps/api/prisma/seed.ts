@@ -14,6 +14,7 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, type Gender, type IntroStatus } from '../src/generated/prisma/client';
 import { REGIONS, RULES } from '@kapara/config';
+import { SENSITIVE_POLICY_VERSION } from '@kapara/shared';
 import { DEMO_PEOPLE, DEMO_VIEWER_KEY, demoEmail, demoUserId as id, momentUrl, portraitUrl } from '../../mobile/src/demo/people';
 import { DEMO_CONVERSATIONS, DEMO_CROSSED, DEMO_INTRODUCTIONS, DEMO_LIKES_RECEIVED, minutesAgo } from '../../mobile/src/demo/scenarios';
 
@@ -57,8 +58,10 @@ async function seedRegions() {
 async function seedPeople() {
   for (const p of DEMO_PEOPLE) {
     const answers = Object.entries(p.jewishLife);
-    // Consent is recorded only for answers the member chose to share or use for matching.
-    const consented = answers.filter(([, f]) => f && (f.visibility !== 'private' || f.useForMatching)).map(([field]) => field);
+    // No sensitive answer is stored without the member's explicit consent for that field
+    // (chantier B rule): every answered field has a consent row, even the private ones.
+    // "Prefer not to say" stores no value, so it needs none.
+    const consented = answers.filter(([, f]) => f && f.value !== null).map(([field]) => field);
     const region = REGIONS.find((r) => r.code === p.regionCode)!;
     await prisma.user.create({
       data: {
@@ -80,9 +83,23 @@ async function seedPeople() {
             : {},
         } },
         privacy: { create: p.privacy },
-        consents: { create: consented.map((field) => ({ field })) },
+        consents: { create: consented.map((field) => ({ field, policyVersion: SENSITIVE_POLICY_VERSION })) },
       },
     });
+  }
+}
+
+/** Approximate home areas, snapped to the same 1 km grid as PUT /profiles/me/location. */
+async function seedHomeAreas() {
+  for (const [n, p] of DEMO_PEOPLE.entries()) {
+    const region = REGIONS.find((r) => r.code === p.regionCode)!;
+    // Deterministic spread of a few km around the city centre; never a real address.
+    const lat = region.center.lat + Math.sin(n * 2.4) * 0.03;
+    const lng = region.center.lng + Math.cos(n * 2.4) * 0.045;
+    await prisma.$executeRaw`
+      UPDATE "User" SET "homeArea" =
+        ST_Transform(ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 3857), ${RULES.homeAreaPrecisionMeters}), 4326)::geography
+      WHERE id = ${id(p.key)}`;
   }
 }
 
@@ -147,6 +164,7 @@ async function main() {
   await wipeDemo();
   await seedRegions();
   await seedPeople();
+  await seedHomeAreas();
   await seedInteractions();
   console.log(`Seeded ${DEMO_PEOPLE.length} demo members, ${DEMO_CONVERSATIONS.length} conversations, ${DEMO_INTRODUCTIONS.length} introductions.`);
   console.log(`Demo viewer: ${demoEmail(DEMO_VIEWER_KEY)} (${DEMO_VIEWER_KEY}).`);

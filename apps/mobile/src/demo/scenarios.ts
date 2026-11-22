@@ -8,16 +8,19 @@ import type { CallState } from '@kapara/shared';
 
 export interface DemoPick { key: string; reasons: { key: string; params?: Record<string, string> }[] }
 
-/** "Pour toi": a finite daily selection (RULES.dailyPicks = 8), each one explained. */
+/**
+ * "Pour toi": a finite daily selection (RULES.dailyPicks = 8), each one explained.
+ * Reason keys and params use the API format (apps/api/src/discovery/scoring.ts).
+ */
 export const DEMO_PICKS_PLAN: DemoPick[] = [
-  { key: 'lea', reasons: [{ key: 'shared.shabbat' }, { key: 'shared.relationshipIntent' }, { key: 'nearby' }] },
-  { key: 'clara', reasons: [{ key: 'shared.practice' }, { key: 'shared.children' }] },
-  { key: 'hannah', reasons: [{ key: 'shared.holidays' }, { key: 'shared.children' }] },
-  { key: 'noemie', reasons: [{ key: 'shared.kashrutHome' }, { key: 'shared.traditionPlace' }] },
-  { key: 'rachel', reasons: [{ key: 'shared.shabbat' }, { key: 'shared.languages', params: { value: 'he' } }] },
-  { key: 'sarah', reasons: [{ key: 'shared.holidays' }, { key: 'shared.children' }] },
-  { key: 'maya', reasons: [{ key: 'feedback.moreLikeThis' }, { key: 'nearby' }] },
-  { key: 'judith', reasons: [{ key: 'crossedRecently' }, { key: 'shared.languages', params: { value: 'en' } }] },
+  { key: 'lea', reasons: [{ key: 'reason.shared.shabbat', params: { value: 'friday_dinner' } }, { key: 'reason.same_intent', params: { value: 'long_term' } }, { key: 'reason.nearby', params: { km: '3' } }] },
+  { key: 'clara', reasons: [{ key: 'reason.shared.relationshipIntent', params: { value: 'long_term' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
+  { key: 'hannah', reasons: [{ key: 'reason.shared.holidays', params: { value: 'all_major' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
+  { key: 'noemie', reasons: [{ key: 'reason.shared.kashrutHome', params: { value: 'kosher_home_flexible_out' } }, { key: 'reason.shared.traditionPlace', params: { value: 'important' } }] },
+  { key: 'rachel', reasons: [{ key: 'reason.shared.shabbat', params: { value: 'friday_dinner' } }, { key: 'reason.shared_language', params: { language: 'he' } }] },
+  { key: 'sarah', reasons: [{ key: 'reason.shared.holidays', params: { value: 'all_major' } }, { key: 'reason.shared.children', params: { value: 'want' } }] },
+  { key: 'maya', reasons: [{ key: 'reason.like_profiles_you_appreciated', params: { field: 'practice' } }, { key: 'reason.nearby', params: { km: '2' } }] },
+  { key: 'judith', reasons: [{ key: 'reason.crossed_recently' }, { key: 'reason.shared_language', params: { language: 'en' } }] },
 ];
 
 /** "Croisés": never a place or a time, only that you crossed paths recently. */

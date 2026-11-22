@@ -86,7 +86,7 @@ export const DEMO_PEOPLE: DemoPerson[] = [
     ],
     portrait: { skin: 3, hair: 'short', hairColor: 'black', outfit: '#2F3E46', scene: 'studio', beard: true, lean: -0.2 },
     moments: [{ kind: 'vinyl', caption: 'Ma collection, triée par émotion plutôt que par ordre alphabétique.' }, { kind: 'rooftops', caption: 'Vue depuis un chantier de salle de concert.' }],
-    privacy: open, preferences: { ageMin: 26, ageMax: 38, maxDistanceKm: 20 },
+    privacy: open, preferences: { ageMin: 26, ageMax: 40, maxDistanceKm: 20 },
   },
   {
     key: 'lea', firstName: 'Léa', gender: 'woman', seeks: ['man'], birthDate: '1994-06-15', regionCode: 'fr-paris',

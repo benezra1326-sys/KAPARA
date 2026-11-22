@@ -36,7 +36,7 @@ export function ProfileCard({ rec, onReact }: { rec: Recommendation; onReact: (t
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }} accessibilityLabel={t('forYou.why')}>
           {rec.reasons.map((r) => (
             <View key={r.key} style={{ backgroundColor: c.accentSoft, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs }}>
-              <Text variant="caption" tone="accent">{t(`reason.${r.key}`, r.params ?? {})}</Text>
+              <Text variant="caption" tone="accent">{t(r.key.startsWith('reason.') ? r.key : `reason.${r.key}`, r.params ?? {})}</Text>
             </View>
           ))}
         </View>

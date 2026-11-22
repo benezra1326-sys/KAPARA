@@ -11,6 +11,14 @@
 | 2026-11-22 | Dealbreakers : une réponse absente ou non partagée n’exclut jamais | Pas de déduction, pas de pénalité |
 | 2026-11-22 | Croisés : grille 150 m, rayon 250 m, fenêtre 72 h, jamais lieu/heure | Vie privée |
 | 2026-11-22 | Direction artistique « candlelight editorial » : ivoire, encre, grenade, laiton ; Fraunces + Inter | Chaleureux, élégant, non générique |
+| 2026-11-22 | Auth : OTP e-mail (Resend, HTTP sans SDK) + Apple/Google vérifiés avec `jose` 6 | Pas de mot de passe ; une seule dépendance, maintenue |
+| 2026-11-22 | Accès JWT 15 min + rafraîchissement opaque haché, rotation, détection de réutilisation | Sessions révocables, vol de jeton limité |
+| 2026-11-22 | Liaison Apple/Google à un compte existant seulement par e-mail marqué vérifié | Pas de prise de compte par e-mail non vérifié |
+| 2026-11-22 | Aucune réponse « vie juive » stockée sans consentement explicite du champ ; retrait = effacement | RGPD art. 9 : pas de consentement, pas de stockage |
+| 2026-11-22 | Zone de domicile sur grille 1 km, jamais renvoyée ; distances en tranches | Pas de localisation précise, même pour « Pour toi » |
+| 2026-11-22 | Critères éliminatoires, âge, genre et distance mutuels ; réponse inconnue = neutre | Respect des deux personnes, pas de pénalité au silence |
+| 2026-11-22 | Sélection du jour persistée (`DailyPick`), renouvelée à minuit heure locale | Liste finie et stable, pas de swipe infini |
+| 2026-11-22 | Match = conversation créée automatiquement | Pas de match sans moyen d’écrire |
 | 2026-11-22 | Portraits de démo illustrés et générés par code, sans visage | Aucun visage réel ni licence à suivre ; pas de crédits d’IA d’image disponibles |
 | 2026-11-22 | Une seule source pour la démo (app hors ligne et seed) | Même histoire et mêmes identifiants partout |
 | 2026-11-22 | i18n : fr référence, en/he complets, contrôle automatique ; hébreu au pluriel ou à l’infinitif pour rester neutre | Pas de genre supposé |
