@@ -21,9 +21,16 @@ const config: ExpoConfig = {
   android: {
     package: brand.bundleId,
     permissions: ['ACCESS_COARSE_LOCATION', 'CAMERA', 'RECORD_AUDIO'],
+    // Croisés never needs precise or background location.
+    blockedPermissions: ['android.permission.ACCESS_FINE_LOCATION', 'android.permission.ACCESS_BACKGROUND_LOCATION'],
   },
   plugins: [
     'expo-router', 'expo-font', 'expo-localization', 'expo-secure-store',
+    ['expo-location', {
+      locationWhenInUsePermission: `${brand.name} utilise une position approximative uniquement si vous activez « Croisés ».`,
+      isIosBackgroundLocationEnabled: false,
+      isAndroidBackgroundLocationEnabled: false,
+    }],
     // Live calls (LiveKit / WebRTC): native modules, so a development build is required (not Expo Go).
     ['@livekit/react-native-expo-plugin', { android: { audioType: 'communication' } }],
     '@config-plugins/react-native-webrtc',

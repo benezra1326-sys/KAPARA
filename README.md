@@ -59,6 +59,21 @@ npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 
 **Découverte.** Filtres durs en SQL : distance PostGIS (`ST_DWithin` entre zones approximatives, centre de la région à défaut), genre et âge **dans les deux sens**, blocages, déjà aimés, « pas pour moi », profils vus il y a moins de 14 jours. Puis `discovery/scoring.ts` : critères éliminatoires **mutuels**, score = préférences souples du membre 50 %, celles de l’autre sur lui 15 %, proximité 15 % (30 % après deux « trop loin »), ressemblance avec les profils appréciés 20 % (à partir de 3 signaux). Une réponse absente ou non partagée n’élimine jamais et compte comme neutre. Seules les réponses consenties **et** marquées « utilisables pour les suggestions » sont lues (`matchableAnswers`), jamais les champs libres. Chaque suggestion porte 1 à 3 raisons (clés i18n `reason.*`). Distances affichées en tranches (« moins de 5 km »).
 
+## Croisés, présentations, conversations, sécurité, mode Shabbat (chantier D)
+
+| Route | Rôle |
+| --- | --- |
+| `GET/PUT /crossed/settings` | Activer Croisés ; désactiver efface l’historique |
+| `POST /crossed/ping` | Échantillon au premier plan (arrondi sur le téléphone, grille serveur, ignoré près des lieux discrets et pendant Shabbat) |
+| `GET /crossed` | Membres croisés : prénom, âge, photo, « une fois / plusieurs fois », jamais lieu ni heure |
+| `DELETE /crossed/history` · `GET/POST/DELETE /crossed/zones` | Effacer ; lieux discrets (jamais renvoyés en coordonnées) |
+| `POST /introductions` · `GET /introductions/inbox` · `GET /introductions/sent` · `POST /introductions/:id/respond` | Présentations en double consentement ; « connected » ouvre une conversation |
+| `GET /conversations` · `GET/POST /conversations/:id/messages` · `DELETE /conversations/:id` | Sans accusés de lecture ; `422 kindness_check` avant un message blessant, renvoyer avec `confirmed: true` |
+| `GET /safety/blocks` · `POST/DELETE /safety/blocks/:userId` · `POST /safety/reports` | Blocage global ; signalement (bloque par défaut) |
+| `GET/PUT /shabbat` | Mode Shabbat privé, prochain créneau calculé pour la ville |
+
+Services exportés pour les autres modules : `BlockService.hiddenFrom/eitherBlocked`, `ShabbatService.isResting`, `ConversationsService.open`.
+
 ## Architecture
 
 ```

@@ -13,6 +13,7 @@
     "test": "node --import tsx --test src/**/*.spec.ts"
   },
   "dependencies": {
+    "@hebcal/core": "^6.16.1",
     "@kapara/config": "*",
     "@kapara/shared": "*",
     "@nestjs/common": "^12.6.0",

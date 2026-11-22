@@ -1,4 +1,4 @@
-import type { CallSnapshot, JoinInfo, LiveMember, LiveMode, LiveSettings, ReportReason } from '@kapara/shared';
+import type { CallSnapshot, JoinInfo, LiveMember, LiveMode, LiveSettings, CallReportReason } from '@kapara/shared';
 import type { LiveTransport } from './transport';
 
 export interface EndedCall { peer: LiveMember; state: 'ended' | 'declined' | 'expired'; durationSec: number; direction: CallSnapshot['direction'] }
@@ -121,7 +121,7 @@ export class LiveStore {
   respondVideo(accept: boolean) { return this.withCall((id) => this.t.videoRespond(id, accept)); }
   stopVideo() { return this.withCall((id) => this.t.videoStop(id)); }
   hangup() { return this.withCall((id) => this.t.hangup(id)); }
-  report(reason: ReportReason) { return this.withCall((id) => this.t.report(id, reason)); }
+  report(reason: CallReportReason) { return this.withCall((id) => this.t.report(id, reason)); }
   simulateIncoming() { this.t.simulateIncoming?.(); }
   clearEnded() { this.patch({ lastEnded: null }); }
   clearError() { this.patch({ error: null }); }

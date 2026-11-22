@@ -42,8 +42,8 @@
     },
     {
       "nom": "D. Croisés, présentations, conversations, sécurité",
-      "statut": "a_faire",
-      "avancement": 15,
+      "statut": "en_revue",
+      "avancement": 85,
       "responsable": "apps-dev"
     },
     {
@@ -75,7 +75,11 @@
     {
       "quand": "2026-11-22T03:46:18Z",
       "texte": "Live (chantier C) en revue : présence, invitations, consentement vidéo appliqué par le serveur LiveKit, écran d'appel, réglage « qui peut m'appeler », mode démo annoncé."
+    },
+    {
+      "quand": "2026-11-22T03:46:43Z",
+      "texte": "Chantier D : Croisés (zones discrètes, affichage différé), présentations en double consentement, conversations avec nudge de bienveillance, blocage et signalement, mode Shabbat (horaires calculés par ville). Testé sur une vraie base PostGIS. PR ouverte."
     }
   ],
-  "maj_le": "2026-11-22T04:30:00Z"
+  "maj_le": "2026-11-22T03:46:43Z"
 }

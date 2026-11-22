@@ -93,8 +93,8 @@ export const CallSnapshot = z.object({
 });
 export type CallSnapshot = z.infer<typeof CallSnapshot>;
 
-export const ReportReason = z.enum(['inappropriate', 'harassment', 'fake_profile', 'underage', 'other']);
-export type ReportReason = z.infer<typeof ReportReason>;
+export const CallReportReason = z.enum(['inappropriate', 'harassment', 'fake_profile', 'underage', 'other']);
+export type CallReportReason = z.infer<typeof CallReportReason>;
 
 /** Socket payloads (client → server), validated on the server. */
 export const LivePayloads = {
@@ -103,7 +103,7 @@ export const LivePayloads = {
   respond: z.object({ callId: z.string().min(1), accept: z.boolean() }),
   callRef: z.object({ callId: z.string().min(1) }),
   videoRespond: z.object({ callId: z.string().min(1), accept: z.boolean() }),
-  report: z.object({ callId: z.string().min(1), reason: ReportReason, block: z.boolean().default(true) }),
+  report: z.object({ callId: z.string().min(1), reason: CallReportReason, block: z.boolean().default(true) }),
 } as const;
 
 /** Events added in v1 (server → client unless noted). */
