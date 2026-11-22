@@ -1,0 +1,229 @@
+// KAPARA data model. Geography uses PostGIS through explicit SQL
+// (see src/crossed and prisma/migrations/*_postgis). Prisma sees the columns
+// as Unsupported and never reads raw coordinates back into the app.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  woman
+  man
+  nonbinary
+}
+
+enum MatchStatus {
+  pending
+  matched
+  closed
+}
+
+enum IntroStatus {
+  proposed
+  accepted_by_a
+  accepted_by_b
+  connected
+  declined
+  expired
+}
+
+model Region {
+  code       String   @id // "fr-paris"
+  country    String
+  city       String
+  timezone   String
+  locale     String
+  launched   Boolean  @default(false)
+  center     Unsupported("geography(Point,4326)")?
+  users      User[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  createdAt     DateTime  @default(now())
+  deletedAt     DateTime?
+  locale        String    @default("fr")
+  regionCode    String
+  region        Region    @relation(fields: [regionCode], references: [code])
+  isDemo        Boolean   @default(false)
+  paused        Boolean   @default(false)
+  shabbatMode   Boolean   @default(false)
+  verifiedAt    DateTime?
+  profile       Profile?
+  preferences   Preferences?
+  privacy       PrivacySettings?
+  consents      SensitiveConsent[]
+  likesSent     Like[]    @relation("likeFrom")
+  likesReceived Like[]    @relation("likeTo")
+  sightings     Sighting[]
+  blocksMade    Block[]   @relation("blocker")
+  blocksGot     Block[]   @relation("blocked")
+  feedback      RecommendationFeedback[]
+  conversations ConversationMember[]
+  messages      Message[]
+}
+
+model Profile {
+  userId     String   @id
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName  String
+  birthDate  DateTime @db.Date
+  gender     Gender
+  headline   String?
+  languages  String[]
+  /// Structured, nuanced Jewish-life answers (see @kapara/shared JewishLife).
+  /// Each field holds { value, preferNotToSay, note, visibility, useForMatching }.
+  jewishLife Json     @default("{}")
+  prompts    Json     @default("[]")
+  photos     Photo[]
+  updatedAt  DateTime @updatedAt
+}
+
+model Photo {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [userId], onDelete: Cascade)
+  url       String
+  caption   String?
+  position  Int
+  isDemo    Boolean @default(false)
+}
+
+model Preferences {
+  userId        String   @id
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ageMin        Int      @default(25)
+  ageMax        Int      @default(40)
+  maxDistanceKm Int      @default(25)
+  genders       Gender[]
+  dealbreakers  Json     @default("{}")
+  soft          Json     @default("{}")
+}
+
+/// Explicit, revocable consent for processing a sensitive field (GDPR art. 9).
+model SensitiveConsent {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  field      String
+  grantedAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  @@unique([userId, field])
+}
+
+model PrivacySettings {
+  userId          String  @id
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  crossedEnabled  Boolean @default(false)
+  liveEnabled     Boolean @default(false)
+  /// "nobody" | "matches" | "members"
+  liveCallsFrom   String  @default("matches")
+  introducible    Boolean @default(true)
+}
+
+/// Coarse, short-lived location samples for "Croisés". Only stored when the
+/// member enabled the feature; snapped to a grid; purged after the window.
+model Sighting {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  at        DateTime @default(now())
+  cell      Unsupported("geography(Point,4326)")
+  @@index([userId, at])
+}
+
+model Like {
+  id         String      @id @default(cuid())
+  fromId     String
+  toId       String
+  from       User        @relation("likeFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to         User        @relation("likeTo", fields: [toId], references: [id], onDelete: Cascade)
+  targetKind String // "photo" | "prompt"
+  targetId   String
+  comment    String?
+  status     MatchStatus @default(pending)
+  createdAt  DateTime    @default(now())
+  @@unique([fromId, toId])
+}
+
+model RecommendationFeedback {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId String
+  /// "more_like_this" | "not_for_me" | reason key
+  signal    String
+  createdAt DateTime @default(now())
+}
+
+model Introduction {
+  id          String      @id @default(cuid())
+  introducerId String
+  personAId   String
+  personBId   String
+  note        String
+  status      IntroStatus @default(proposed)
+  createdAt   DateTime    @default(now())
+  decidedAt   DateTime?
+}
+
+model Conversation {
+  id        String               @id @default(cuid())
+  createdAt DateTime             @default(now())
+  members   ConversationMember[]
+  messages  Message[]
+}
+
+model ConversationMember {
+  conversationId String
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  createdAt      DateTime     @default(now())
+  @@index([conversationId, createdAt])
+}
+
+model Block {
+  blockerId String
+  blockedId String
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@id([blockerId, blockedId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reportedId String
+  reason     String
+  details    String?
+  createdAt  DateTime @default(now())
+}
+
+model CallLog {
+  id        String    @id @default(cuid())
+  callerId  String
+  calleeId  String
+  state     String
+  demo      Boolean
+  createdAt DateTime  @default(now())
+  endedAt   DateTime?
+}

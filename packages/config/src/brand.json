@@ -1,0 +1,12 @@
+{
+  "name": "KAPARA",
+  "slug": "kapara",
+  "scheme": "kapara",
+  "bundleId": "app.kapara.mobile",
+  "tagline": {
+    "fr": "Les belles rencontres commencent par la confiance.",
+    "en": "Meaningful connections start with trust."
+  },
+  "supportEmail": "support@example.invalid",
+  "isWorkingName": true
+}

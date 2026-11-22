@@ -1,0 +1,15 @@
+{
+  "name": "kapara-monorepo",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:api": "npm run dev -w @kapara/api",
+    "dev:mobile": "npm run start -w @kapara/mobile",
+    "db:up": "docker compose -f infra/docker-compose.yml up -d",
+    "db:migrate": "npm run prisma:migrate -w @kapara/api",
+    "db:seed": "npm run seed -w @kapara/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": { "node": ">=22" }
+}
