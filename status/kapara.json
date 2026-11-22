@@ -5,10 +5,13 @@
   "depot": "benezra1326-sys/KAPARA",
   "etape": "developpement",
   "statut": "en_cours",
-  "avancement": 55,
+  "avancement": 60,
   "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. Écran « Mes préférences » (âge, distance, genres, critères indispensables réciproques et préférences pondérées). App traduite en français, anglais et hébreu, 68 tests verts.",
-  "prochaine_etape": "Essai complet sur téléphone (build de développement Expo), compte LiveKit pour des appels réels, polissage visuel et parcours d'inscription de bout en bout.",
-  "blocages": [],
+  "prochaine_etape": "Mettre la démo web en ligne (Vercel) et produire un APK installable (EAS) ; puis mode connecté de bout en bout et appels réels LiveKit.",
+  "blocages": [
+    "Démo web : accès Vercel à accorder (ou import du dépôt sur vercel.com) par Avishay.",
+    "APK Android : secret EXPO_TOKEN à ajouter dans GitHub (voir docs/tester-sur-telephone.md)."
+  ],
   "chantiers": [
     {
       "nom": "Benchmark des apps de rencontre",
@@ -54,8 +57,8 @@
     },
     {
       "nom": "Essai sur téléphone et polissage",
-      "statut": "a_faire",
-      "avancement": 0,
+      "statut": "en_cours",
+      "avancement": 40,
       "responsable": "apps-qualite"
     }
   ],
@@ -89,7 +92,15 @@
     {
       "quand": "2026-11-22T03:59:18Z",
       "texte": "Les 5 chantiers (A à E) sont fusionnés sur main ; CI verte (typecheck, 68 tests, contrôle i18n)."
+    },
+    {
+      "quand": "2026-11-22T08:03:37Z",
+      "texte": "Préparation de l'essai sur téléphone : écran Moi refait, raisons « Pour toi » traduites, build EAS (APK) par workflow GitHub, config Vercel pour la démo web, guide docs/tester-sur-telephone.md."
+    },
+    {
+      "quand": "2026-11-22T08:06:10Z",
+      "texte": "Écran « Mes préférences » branché sur l'API (âge, distance, genres, critères indispensables et pondérés)."
     }
   ],
-  "maj_le": "2026-11-22T08:30:00Z"
+  "maj_le": "2026-11-22T08:06:10Z"
 }

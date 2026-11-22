@@ -87,9 +87,9 @@ function Why({ reasons }: { reasons: Recommendation['reasons'] }) {
   const { t } = useTranslation();
   return (
     <View style={{ borderStartWidth: 2, borderStartColor: c.highlight, paddingStart: space.lg, paddingVertical: space.xs, marginHorizontal: space.sm, gap: space.xs }}
-      accessible accessibilityLabel={`${t('forYou.why')}: ${reasons.map((r) => t(`reason.${r.key}`, { ...(r.params ?? {}), defaultValue: r.key })).join('. ')}`}>
+      accessible accessibilityLabel={`${t('forYou.why')}: ${reasons.map((r) => t(r.key.startsWith("reason.") ? r.key : `reason.${r.key}`, { ...(r.params ?? {}), defaultValue: r.key })).join('. ')}`}>
       <Text variant="overline" tone="highlight">{t('forYou.why')}</Text>
-      {reasons.map((r) => <Text key={r.key} variant="body" tone="textMuted">{t(`reason.${r.key}`, { ...(r.params ?? {}), defaultValue: r.key })}</Text>)}
+      {reasons.map((r) => <Text key={r.key} variant="body" tone="textMuted">{t(r.key.startsWith("reason.") ? r.key : `reason.${r.key}`, { ...(r.params ?? {}), defaultValue: r.key })}</Text>)}
       <Text variant="caption" tone="textSubtle">{t('pick.whyFootnote')}</Text>
     </View>
   );
