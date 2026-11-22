@@ -5,12 +5,12 @@
   "depot": "benezra1326-sys/KAPARA",
   "etape": "developpement",
   "statut": "en_cours",
-  "avancement": 68,
+  "avancement": 70,
   "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. Écran « Mes préférences » (âge, distance, genres, critères indispensables réciproques et préférences pondérées). Mode connecté réel : connexion par code e-mail dans l’app, session sécurisée avec rafraîchissement automatique, Pour toi, Croisés et Messages sur la vraie API (essayé de bout en bout contre une base PostGIS). Photos de profil réelles : choix ou prise de vue, recadrage, métadonnées GPS retirées, envoi direct vers un stockage S3 par URL signée, classement et suppression (repli local en développement, photos gardées sur le téléphone en démo). App traduite en français, anglais et hébreu, 82 tests verts.",
-  "prochaine_etape": "Mettre la démo web en ligne (Vercel) et produire un APK installable (EAS) ; stockage des photos en production (bucket S3/R2), appels réels LiveKit, envoi des e-mails de code (Resend).",
+  "prochaine_etape": "Démo web en ligne sur https://kapara-demo.vercel.app (iPhone : Safari, Partager, « Sur l'écran d'accueil »). Ensuite : vraie app iPhone via TestFlight (compte Apple Developer), stockage des photos en production (bucket S3/R2), appels réels LiveKit, envoi des e-mails de code (Resend).",
   "blocages": [
-    "Démo web : accès Vercel à accorder (ou import du dépôt sur vercel.com) par Avishay.",
-    "APK Android : secret EXPO_TOKEN à ajouter dans GitHub (voir docs/tester-sur-telephone.md).",
+    "App iPhone native (TestFlight) : compte Apple Developer (99 $/an) à créer par Avishay.",
+    "Mise à jour automatique de la démo : l'app Vercel n'a pas accès au dépôt GitHub KAPARA ; la démo est republiée à la main par Claude après chaque évolution.",
     "Photos en production : un bucket S3 compatible (ex. Cloudflare R2) et ses clés à fournir (variables S3_* de l'API)."
   ],
   "chantiers": [
@@ -123,5 +123,6 @@
       "texte": "Photos de profil de bout en bout : photothèque ou appareil photo, ré-encodage sans métadonnées GPS, envoi par URL signée S3, classement, suppression et étape d'onboarding."
     }
   ],
-  "maj_le": "2026-11-22T08:34:00Z"
+  "maj_le": "2026-11-22T13:15:00Z",
+  "demo_web": "https://kapara-demo.vercel.app"
 }

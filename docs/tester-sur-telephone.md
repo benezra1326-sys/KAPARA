@@ -21,3 +21,9 @@ Ensuite : GitHub → Actions → « Build mobile (EAS) » → Run workflow.
 - iPhone : nécessite un compte Apple Developer (99 $/an). Ensuite `ios` + `preview` produit un build installable sur les iPhone enregistrés (EAS demande l'identifiant Apple au premier build), ou `production` + envoi sur TestFlight (`eas submit -p ios`) pour l'installer via l'app TestFlight. Expo Go ne suffit pas (modules natifs des appels Live).
 
 Au premier build, EAS associe le projet à votre compte (`extra.eas.projectId`).
+
+## Publication actuelle de la démo (sans lien Git)
+Tant que l'app Vercel n'a pas accès au dépôt, la démo est publiée ainsi :
+1. `EXPO_PUBLIC_DEMO=1 npx expo export --platform web` (dans `apps/mobile`), puis pousser le dossier exporté sur la branche `demo-web` (historique d'un seul commit).
+2. Projet Vercel `kapara-demo` : un `index.html` + un `vercel.json` qui renvoie `/_expo/*`, `/assets/*` et l'icône vers jsDelivr (`cdn.jsdelivr.net/gh/benezra1326-sys/KAPARA@<commit demo-web>`), le reste vers `index.html`.
+Lien : https://kapara-demo.vercel.app
