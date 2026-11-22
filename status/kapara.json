@@ -5,9 +5,9 @@
   "depot": "benezra1326-sys/KAPARA",
   "etape": "developpement",
   "statut": "en_cours",
-  "avancement": 15,
-  "resume": "Benchmark terminé. Squelette complet en place : app Expo (5 onglets, design system, mode démo), API NestJS (profils, découverte, Croisés PostGIS, Live, présentations, conversations), schéma Prisma + migration PostGIS, 10 tests verts.",
-  "prochaine_etape": "Lancer 5 chantiers en parallèle : écrans Pour toi/profil, API profils et auth, Live, Croisés/présentations/messages, données de démo et i18n.",
+  "avancement": 55,
+  "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. App traduite en français, anglais et hébreu, 68 tests verts.",
+  "prochaine_etape": "Essai complet sur téléphone (build de développement Expo), compte LiveKit pour des appels réels, polissage visuel et parcours d'inscription de bout en bout.",
   "blocages": [],
   "chantiers": [
     {
@@ -24,33 +24,39 @@
     },
     {
       "nom": "A. Écrans Pour toi, profil, onboarding",
-      "statut": "a_faire",
-      "avancement": 10,
+      "statut": "termine",
+      "avancement": 100,
       "responsable": "apps-design"
     },
     {
       "nom": "B. API profils, préférences, découverte, auth",
-      "statut": "en_revue",
-      "avancement": 90,
+      "statut": "termine",
+      "avancement": 100,
       "responsable": "apps-dev"
     },
     {
       "nom": "C. Live : présence, invitations, LiveKit, écrans d'appel",
-      "statut": "en_revue",
-      "avancement": 85,
+      "statut": "termine",
+      "avancement": 100,
       "responsable": "apps-dev"
     },
     {
-      "nom": "D. Croisés, présentations, conversations, sécurité",
-      "statut": "en_revue",
-      "avancement": 85,
+      "nom": "D. Croisés, présentations, conversations, sécurité, mode Shabbat",
+      "statut": "termine",
+      "avancement": 100,
       "responsable": "apps-dev"
     },
     {
-      "nom": "E. Données de démo, i18n, portraits générés",
-      "statut": "en_revue",
-      "avancement": 90,
+      "nom": "E. Données de démo, i18n FR/EN/HE",
+      "statut": "termine",
+      "avancement": 100,
       "responsable": "apps-produit"
+    },
+    {
+      "nom": "Essai sur téléphone et polissage",
+      "statut": "a_faire",
+      "avancement": 0,
+      "responsable": "apps-qualite"
     }
   ],
   "liens": [
@@ -69,10 +75,6 @@
       "texte": "Squelette monorepo poussé sur main."
     },
     {
-      "quand": "2026-11-22T04:30:00Z",
-      "texte": "Chantier B : vraie connexion (code e-mail, Apple, Google), profils et consentements, préférences, sélection « Pour toi » mutuelle et expliquée avec distance PostGIS. PR ouverte."
-    },
-    {
       "quand": "2026-11-22T03:46:18Z",
       "texte": "Live (chantier C) en revue : présence, invitations, consentement vidéo appliqué par le serveur LiveKit, écran d'appel, réglage « qui peut m'appeler », mode démo annoncé."
     },
@@ -83,7 +85,11 @@
     {
       "quand": "2026-11-22T03:53:17Z",
       "texte": "Chantier E : 29 profils de démo fictifs, portraits illustrés générés par code, seed testé sur PostGIS et avec l’API, traductions fr/en/he complètes pour tous les écrans (Live, Croisés, messages compris), contrôle i18n en CI. PR ouverte."
+    },
+    {
+      "quand": "2026-11-22T03:59:18Z",
+      "texte": "Les 5 chantiers (A à E) sont fusionnés sur main ; CI verte (typecheck, 68 tests, contrôle i18n)."
     }
   ],
-  "maj_le": "2026-11-22T03:53:17Z"
+  "maj_le": "2026-11-22T03:59:18Z"
 }

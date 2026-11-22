@@ -5,7 +5,8 @@
   "bundleId": "app.kapara.mobile",
   "tagline": {
     "fr": "Les belles rencontres commencent par la confiance.",
-    "en": "Meaningful connections start with trust."
+    "en": "Meaningful connections start with trust.",
+    "he": "היכרויות טובות מתחילות באמון."
   },
   "supportEmail": "support@example.invalid",
   "isWorkingName": true
