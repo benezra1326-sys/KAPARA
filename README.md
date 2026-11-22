@@ -30,7 +30,16 @@ npm run dev:api       # http://localhost:3000/health
 npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 ```
 
-`EXPO_PUBLIC_DEMO=0` branche l’app sur l’API. Comptes de démo : `demo1@demo.kapara.invalid` (Ilan, le membre « vous » de la démo) … `demo29@…` via `POST /v1/auth/demo-login` (désactivé en production).
+### Mode connecté
+
+`EXPO_PUBLIC_DEMO=0 EXPO_PUBLIC_API_URL=http://<ip-de-la-machine>:3000 npm run dev:mobile` branche l’app sur l’API :
+
+- **Connexion par code e-mail** (pas de mot de passe) : adresse → code à 6 chiffres → l’app. Un compte qui existe déjà va directement aux onglets, un nouveau compte continue l’onboarding, qui enregistre le profil dans l’API. Sans `RESEND_API_KEY`, le serveur de développement renvoie le code à l’app, qui l’affiche dans un encadré « Serveur de développement : aucun email n’est envoyé » ; en production, l’envoi est obligatoire.
+- **Session** (`apps/mobile/src/api/session.ts`) : jeton d’accès de 15 min et jeton de rafraîchissement à rotation, rangés dans le trousseau du téléphone (`expo-secure-store`). Le jeton est rafraîchi une minute avant expiration, et une seule fois même si plusieurs requêtes partent en même temps, parce que l’API révoque toute la session si un jeton de rafraîchissement déjà utilisé est présenté de nouveau. Un 401 déclenche un rafraîchissement et un nouvel essai. Si le rafraîchissement est refusé, l’app revient à l’accueil et vide tout ce qu’elle avait en mémoire. Une coupure réseau, elle, ne déconnecte pas.
+- Pour toi, Croisés, Messages, présentations, sécurité, mode Shabbat et Live utilisent l’API réelle. La connexion Live ne s’ouvre qu’une fois connecté.
+- Sur le web, le trousseau n’existe pas : la session ne survit pas à un rechargement de page (le web sert d’aperçu, pas de cible).
+
+Comptes de démo seedés : `demo1@demo.kapara.invalid` (Ilan, le membre « vous » de la démo) … `demo29@…`, accessibles avec le code e-mail ou via `POST /v1/auth/demo-login` (désactivé en production).
 
 ## Ce qui est réel et ce qui est simulé
 

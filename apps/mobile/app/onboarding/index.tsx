@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { APP } from '@kapara/config';
 import { space } from '@kapara/design';
-import { DEMO_MODE } from '../../src/api/client';
+import { DEMO_MODE, useSessionStatus } from '../../src/api/client';
 import { useTheme } from '../../src/theme';
 import { Button, Text } from '../../src/ui';
 
@@ -17,6 +17,9 @@ export default function Welcome() {
   const { t, i18n } = useTranslation();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
+  // Connected mode: sign in by email code first, unless a session already exists.
+  const signedIn = useSessionStatus() === 'signedIn';
+  const start = () => router.push(signedIn ? '/onboarding/basics' : '/onboarding/email');
   const tagline = (APP.tagline as Record<string, string>)[i18n.language] ?? APP.tagline.fr;
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + space.xxxl, paddingBottom: insets.bottom + space.lg, paddingHorizontal: space.xl, justifyContent: 'space-between' }}>
@@ -43,7 +46,8 @@ export default function Welcome() {
       </View>
       <View style={{ gap: space.sm }}>
         {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('onb.demoNotice')}</Text> : null}
-        <Button label={t('onb.start')} onPress={() => router.push('/onboarding/basics')} />
+        <Button label={t('onb.start')} onPress={start} />
+        {!signedIn ? <Button kind="ghost" label={t('auth.signIn')} onPress={() => router.push('/onboarding/email')} /> : null}
       </View>
     </View>
   );

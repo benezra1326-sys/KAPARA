@@ -52,7 +52,7 @@ function ConversationRow({ conv, first }: { conv: ConversationSummary; first: bo
   const f = useFormat();
   const last = conv.lastMessage;
   const preview = last ? `${last.mine ? `${t('common.you')} : ` : ''}${last.body}` : t('messages.startHint');
-  const origin = t(`messages.origin.${conv.origin}`);
+  const origin = conv.origin === 'other' ? '' : t(`messages.origin.${conv.origin}`);
   return (
     <Pressable onPress={() => router.push({ pathname: '/conversation/[id]', params: { id: conv.id } })} accessibilityRole="button"
       accessibilityLabel={`${conv.other.firstName}. ${preview}`}
