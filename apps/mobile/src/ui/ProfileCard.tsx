@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { ProfilePublic, Recommendation } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
+import { photoSource } from '../demo/images';
 import { ALL_FIELDS } from '../me/fields';
 import { useTheme } from '../theme';
 import { DemoBadge } from './DemoBadge';
@@ -39,7 +40,7 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
     const ph = photos.shift();
     if (ph) blocks.push(
       <View key={`p-${ph.id}`} style={{ borderRadius: radius.xl, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-        <Image source={ph.url} style={{ width: '100%', aspectRatio: 4 / 5 }} contentFit="cover" transition={300}
+        <Image source={photoSource(ph.url)} style={{ width: '100%', aspectRatio: 4 / 5 }} contentFit="cover" transition={300}
           accessibilityLabel={ph.caption ?? t('pick.photoOf', { name: p.firstName, n: p.photos.indexOf(ph) + 1 })} />
         {onReact ? <ReactButton label={t('pick.reactToPhoto')} onPress={() => onReact({ kind: 'photo', id: ph.id })} /> : null}
       </View>,
@@ -52,7 +53,7 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
     <View style={{ marginHorizontal: space.lg, gap: space.lg }}>
       {first ? (
         <View style={[{ borderRadius: radius.xl, overflow: 'hidden', backgroundColor: c.surfaceAlt }, shadow.card]}>
-          <Image source={first.url} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={300}
+          <Image source={photoSource(first.url)} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={300}
             accessibilityLabel={first.caption ?? t('pick.photoOf', { name: p.firstName, n: 1 })} />
           <LinearGradient colors={['transparent', 'rgba(20,17,24,0.72)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '45%' }} pointerEvents="none" />
           <View style={{ position: 'absolute', start: space.xl, end: 88, bottom: space.xl, gap: space.sm }}>

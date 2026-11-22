@@ -12,6 +12,7 @@ import { Field } from './Field';
 import type { ReactTarget } from './ProfileCard';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
+import { photoSource } from '../demo/images';
 
 /**
  * Reacting to one photo or one answer, with an optional word.
@@ -36,7 +37,7 @@ export function ReactSheet({ profile, target, onClose, onDone }: { profile?: Pro
     <Sheet visible={!!target} onClose={onClose}>
       <Text variant="heading" accessibilityRole="header">{t('pick.sheetTitle', { name: profile?.firstName ?? '' })}</Text>
       <View style={{ flexDirection: 'row', gap: space.md, alignItems: 'center', backgroundColor: c.surface, borderRadius: radius.md, padding: space.md }}>
-        {photo ? <Image source={photo.url} style={{ width: 56, height: 70, borderRadius: radius.sm }} contentFit="cover" accessibilityIgnoresInvertColors /> : null}
+        {photo ? <Image source={photoSource(photo.url)} style={{ width: 56, height: 70, borderRadius: radius.sm }} contentFit="cover" accessibilityIgnoresInvertColors /> : null}
         <View style={{ flex: 1, gap: 2 }}>
           {prompt ? <Text variant="caption" tone="textSubtle">{t(`prompts.${prompt.id}`, { defaultValue: prompt.id })}</Text> : null}
           <Text variant={prompt ? 'quote' : 'body'} numberOfLines={3} style={prompt ? { fontSize: 16, lineHeight: 22 } : undefined}>

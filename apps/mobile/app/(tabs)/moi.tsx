@@ -5,7 +5,6 @@ import { APP } from '@kapara/config';
 import { radius, space } from '@kapara/design';
 import { useTheme } from '../../src/theme';
 import { Screen, Text } from '../../src/ui';
-import '../../src/social/i18n';
 
 export default function Me() {
   const { t } = useTranslation();

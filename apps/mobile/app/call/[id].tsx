@@ -15,6 +15,7 @@ import { Pulse } from '../../src/live/Pulse';
 import type { MediaIssue } from '../../src/live/stage';
 import { formatDuration, useNow } from '../../src/live/useNow';
 import { Button, DemoBadge, Text } from '../../src/ui';
+import { photoSource } from '../../src/demo/images';
 
 /** The call screen is always dark and quiet, whatever the app theme: the person comes first. */
 const INK = '#F5EFE8';
@@ -239,13 +240,13 @@ function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: bool
 function Avatar({ url, size }: { url?: string; size: number }) {
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: '#2A2431', borderWidth: 2, borderColor: 'rgba(255,255,255,0.22)' }}>
-      {url ? <Image source={url} style={{ flex: 1 }} contentFit="cover" transition={300} accessibilityIgnoresInvertColors /> : null}
+      {url ? <Image source={photoSource(url)} style={{ flex: 1 }} contentFit="cover" transition={300} accessibilityIgnoresInvertColors /> : null}
     </View>
   );
 }
 
 function StageBackdropLite({ url }: { url?: string }) {
-  return url ? <Image source={url} style={{ position: 'absolute', inset: 0, opacity: 0.25 }} blurRadius={30} contentFit="cover" /> : null;
+  return url ? <Image source={photoSource(url)} style={{ position: 'absolute', inset: 0, opacity: 0.25 }} blurRadius={30} contentFit="cover" /> : null;
 }
 
 function Chip({ label, icon, color }: { label: string; icon?: IconName; color: string }) {

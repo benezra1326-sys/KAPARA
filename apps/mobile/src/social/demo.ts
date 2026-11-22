@@ -1,56 +1,42 @@
 import type {
   ChatMessage, ConversationSummary, CrossedItem, IntroductionReceived, IntroductionSent, SensitiveZone, ShabbatStatus,
 } from '@kapara/shared';
+import { ageOf, DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId, portraitUrl } from '../demo/people';
+import { DEMO_CONVERSATIONS, DEMO_CROSSED, DEMO_INTRODUCTIONS } from '../demo/scenarios';
 
 /**
  * In-memory demo store for Croisés, conversations, introductions, safety and
- * Shabbat mode. Fictional people only (isDemo: true), placeholder photos.
- * Lives for the app session; nothing leaves the device.
+ * Shabbat mode. Built from the shared demo cast (src/demo), so every screen
+ * tells the same story as "Pour toi", Live and the seeded database.
+ * Fictional people only (isDemo: true). Lives for the app session; nothing leaves the device.
  */
-export const DEMO_ME = 'demo-me';
-const photo = (seed: string) => `https://picsum.photos/seed/kapara-${seed}/600/800`;
+export const DEMO_ME = demoUserId(DEMO_VIEWER_KEY);
 const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
 
 type Person = { id: string; firstName: string; age: number; photoUrl: string; verified: boolean };
-const PEOPLE: Person[] = [
-  { id: 'demo-0', firstName: 'Léa', age: 31, photoUrl: photo('0-0'), verified: true },
-  { id: 'demo-1', firstName: 'Sarah', age: 29, photoUrl: photo('1-0'), verified: false },
-  { id: 'demo-4', firstName: 'Noam', age: 34, photoUrl: photo('c-4'), verified: true },
-  { id: 'demo-5', firstName: 'Yaël', age: 30, photoUrl: photo('c-5'), verified: true },
-  { id: 'demo-6', firstName: 'David', age: 36, photoUrl: photo('c-6'), verified: false },
-  { id: 'demo-7', firstName: 'Ethan', age: 33, photoUrl: photo('c-7'), verified: true },
-  { id: 'demo-8', firstName: 'Myriam', age: 28, photoUrl: photo('c-8'), verified: false },
-];
+const PEOPLE: Person[] = DEMO_PEOPLE.map((p) => ({ id: demoUserId(p.key), firstName: p.firstName, age: ageOf(p.birthDate), photoUrl: portraitUrl(p.key), verified: p.verified }));
 export const person = (id: string) => PEOPLE.find((p) => p.id === id);
 
+const OPEN_INTRO = ['proposed', 'accepted_by_a', 'accepted_by_b'];
 const state = {
   crossedEnabled: false,
-  crossed: [
-    { userId: 'demo-5', times: 'several' as const }, { userId: 'demo-7', times: 'once' as const },
-    { userId: 'demo-8', times: 'once' as const }, { userId: 'demo-6', times: 'once' as const },
-  ],
+  crossed: DEMO_CROSSED.map((c) => ({ userId: demoUserId(c.key), times: c.times > 1 ? ('several' as const) : ('once' as const) })),
   zones: [] as SensitiveZone[],
   blocked: [] as { userId: string; firstName: string; blockedAt: string }[],
-  conversations: [
-    { id: 'c-1', otherId: 'demo-0', origin: 'like' as const, createdAt: ago(60 * 26), closed: false },
-    { id: 'c-2', otherId: 'demo-4', origin: 'introduction' as const, createdAt: ago(60 * 5), closed: false },
-  ],
-  messages: {
-    'c-1': [
-      { id: 'm1', senderId: DEMO_ME, mine: true, body: 'Ta réponse sur la grande tablée du vendredi m’a fait sourire. Plutôt challah nature ou aux graines ?', createdAt: ago(60 * 25) },
-      { id: 'm2', senderId: 'demo-0', mine: false, body: 'Aux graines, sans hésiter ! Et toi, tu cuisines pour Shabbat ?', createdAt: ago(60 * 20) },
-      { id: 'm3', senderId: DEMO_ME, mine: true, body: 'J’essaie. Ma soupe de poisson est encore un projet en cours.', createdAt: ago(60 * 19) },
-    ],
-    'c-2': [
-      { id: 'm4', senderId: 'demo-4', mine: false, body: 'Bonjour ! Yaël m’a dit que tu faisais de la céramique, c’est vrai ?', createdAt: ago(60 * 4) },
-    ],
-  } as Record<string, ChatMessage[]>,
-  introsReceived: [
-    { id: 'i-1', introducerId: 'demo-1', otherId: 'demo-6', note: 'Vous êtes tous les deux fous de randonnée et de cuisine marocaine. Je vous vois très bien discuter des heures.', myAnswer: 'pending' as 'pending' | 'accepted', createdAt: ago(60 * 30) },
-  ],
-  introsSent: [
-    { id: 's-1', personA: 'demo-0', personB: 'demo-7', outcome: 'waiting' as const, createdAt: ago(60 * 48) },
-  ] as { id: string; personA: string; personB: string; outcome: IntroductionSent['outcome']; createdAt: string }[],
+  conversations: DEMO_CONVERSATIONS.map((c) => ({ id: c.id, otherId: demoUserId(c.withKey), origin: c.origin.kind, createdAt: ago(c.startedMinutesAgo), closed: false })),
+  messages: Object.fromEntries(DEMO_CONVERSATIONS.map((c) => [c.id, c.messages.map((m, i): ChatMessage => ({
+    id: `${c.id}-${i}`, senderId: demoUserId(m.from), mine: m.from === DEMO_VIEWER_KEY, body: m.body, createdAt: ago(m.minutesAgo),
+  }))])) as Record<string, ChatMessage[]>,
+  introsReceived: DEMO_INTRODUCTIONS
+    .filter((i) => i.introducerKey !== DEMO_VIEWER_KEY && [i.aKey, i.bKey].includes(DEMO_VIEWER_KEY) && OPEN_INTRO.includes(i.status))
+    .map((i) => ({
+      id: i.id, introducerId: demoUserId(i.introducerKey), otherId: demoUserId(i.aKey === DEMO_VIEWER_KEY ? i.bKey : i.aKey), note: i.note,
+      myAnswer: 'pending' as 'pending' | 'accepted', createdAt: ago(i.minutesAgo),
+    })),
+  introsSent: DEMO_INTRODUCTIONS.filter((i) => i.introducerKey === DEMO_VIEWER_KEY).map((i) => ({
+    id: i.id, personA: demoUserId(i.aKey), personB: demoUserId(i.bKey), createdAt: ago(i.minutesAgo),
+    outcome: (OPEN_INTRO.includes(i.status) ? 'waiting' : i.status === 'connected' ? 'connected' : 'closed') as IntroductionSent['outcome'],
+  })),
   shabbat: { enabled: false, includeHolidays: true, candleLightingMins: 18, havdalahMins: null as number | null },
 };
 
@@ -118,7 +104,7 @@ export const demo = {
     return wait({ id: 'ok' });
   },
   contacts: () => state.conversations.filter((c) => !c.closed && !hidden(c.otherId)).map((c) => person(c.otherId)!)
-    .concat(PEOPLE.filter((p) => ['demo-1', 'demo-5', 'demo-7'].includes(p.id) && !hidden(p.id))),
+    .concat(PEOPLE.filter((p) => ['noam', 'esther', 'yael'].map(demoUserId).includes(p.id) && !hidden(p.id))),
 
   // ── Safety ───────────────────────────────────────────────────────────────
   block: (userId: string) => {

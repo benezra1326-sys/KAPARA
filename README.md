@@ -30,7 +30,7 @@ npm run dev:api       # http://localhost:3000/health
 npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 ```
 
-`EXPO_PUBLIC_DEMO=0` branche l’app sur l’API. Comptes de démo : `demo1@demo.kapara.invalid` … `demo10@…` via `POST /v1/auth/demo-login` (désactivé en production).
+`EXPO_PUBLIC_DEMO=0` branche l’app sur l’API. Comptes de démo : `demo1@demo.kapara.invalid` (Ilan, le membre « vous » de la démo) … `demo29@…` via `POST /v1/auth/demo-login` (désactivé en production).
 
 ## Ce qui est réel et ce qui est simulé
 
@@ -39,7 +39,7 @@ npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 | Appels audio/vidéo | **Simulés** tant que `LIVEKIT_URL/API_KEY/API_SECRET` ne sont pas fournis. L’app l’annonce clairement. Avec les clés, l’API émet de vrais jetons LiveKit. |
 | Paiement | Aucun en v1. |
 | IA | Aucune. « Pour toi » est un score explicable (critères déclarés + proximité + retours « pas pour moi »). |
-| Photos de démo | Images génériques picsum.photos (licence Unsplash), badge « Profil de démonstration ». |
+| Photos de démo | Portraits **illustrés générés par code** (`apps/mobile/src/demo/art`), sans visage ni personne réelle, embarqués dans l’app (`kapara-demo://…`). Badge « Profil de démonstration ». |
 | Authentification | **Réelle** : code à usage unique par e-mail (Resend), Sign in with Apple, Sign in with Google (jetons vérifiés côté serveur). Sans clé, la méthode est annoncée indisponible (`GET /v1/auth/methods`) ; en développement, le code e-mail est renvoyé dans la réponse avec `delivery: "demo"`. |
 
 ## API profils, préférences, découverte (chantier B)
@@ -120,6 +120,14 @@ Pendant l’appel : signaler et bloquer en un geste (l’appel s’arrête). Auc
 LiveKit en local : `docker compose -f infra/docker-compose.yml --profile live up -d`, puis `LIVEKIT_URL=ws://localhost:7880`, `LIVEKIT_API_KEY=devkey`, `LIVEKIT_API_SECRET=secret` (clés du mode `--dev`). Build natif : `npx expo run:ios` / `run:android` ou EAS.
 
 Limite connue : présence et appels sont en mémoire (une instance d’API). Au-delà, passer `PresenceStore` et `CallRegistry` sur Redis.
+
+## Données de démo
+
+29 membres fictifs (Paris surtout, plus Londres, Tel-Aviv et New York pour le Live), avec des pratiques, origines, âges (24 à 51 ans), situations familiales et orientations variées, des réponses nuancées dont certaines privées ou « je préfère ne pas répondre ». Autour du membre de démo : 8 suggestions expliquées, 5 croisements, 6 présences Live, 4 conversations, 4 présentations, 3 réactions reçues.
+
+- Source unique : `apps/mobile/src/demo/{people,scenarios}.ts`, utilisée par l’app hors ligne **et** par `npm run db:seed` (mêmes identifiants `demo-<prénom>`).
+- Portraits : `npm run demo:art -w @kapara/mobile` régénère les 87 images (Chromium de Playwright).
+- Traductions : `npm run i18n:check -w @kapara/mobile` vérifie que en et he couvrent toutes les clés de fr.ts (variables et pluriels compris) et que chaque `t('…')` utilisé dans l’app existe. Lancé en CI.
 
 ## Tests
 

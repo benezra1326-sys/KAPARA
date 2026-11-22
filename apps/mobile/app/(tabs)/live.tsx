@@ -12,6 +12,7 @@ import { Pulse } from '../../src/live/Pulse';
 import { formatDuration, useNow } from '../../src/live/useNow';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
+import { photoSource } from '../../src/demo/images';
 
 /**
  * Live: who is available right now. Three consents, never bundled:
@@ -159,7 +160,7 @@ function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (
   return (
     <View style={[{ marginHorizontal: space.lg, padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }, shadow.card]}>
       <View style={{ width: 92, height: 122, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-        {m.photoUrl ? <Image source={m.photoUrl} style={{ flex: 1 }} contentFit="cover" transition={250} accessibilityLabel={m.firstName} /> : null}
+        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ flex: 1 }} contentFit="cover" transition={250} accessibilityLabel={m.firstName} /> : null}
         <View style={{ position: 'absolute', top: space.sm, left: space.sm, width: 10, height: 10, borderRadius: 5, backgroundColor: c.live, borderWidth: 2, borderColor: c.surface }} />
       </View>
       <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>

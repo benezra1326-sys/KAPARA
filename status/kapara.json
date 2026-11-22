@@ -48,8 +48,8 @@
     },
     {
       "nom": "E. Données de démo, i18n, portraits générés",
-      "statut": "a_faire",
-      "avancement": 10,
+      "statut": "en_revue",
+      "avancement": 90,
       "responsable": "apps-produit"
     }
   ],
@@ -79,7 +79,11 @@
     {
       "quand": "2026-11-22T03:46:43Z",
       "texte": "Chantier D : Croisés (zones discrètes, affichage différé), présentations en double consentement, conversations avec nudge de bienveillance, blocage et signalement, mode Shabbat (horaires calculés par ville). Testé sur une vraie base PostGIS. PR ouverte."
+    },
+    {
+      "quand": "2026-11-22T03:53:17Z",
+      "texte": "Chantier E : 29 profils de démo fictifs, portraits illustrés générés par code, seed testé sur PostGIS et avec l’API, traductions fr/en/he complètes pour tous les écrans (Live, Croisés, messages compris), contrôle i18n en CI. PR ouverte."
     }
   ],
-  "maj_le": "2026-11-22T03:46:43Z"
+  "maj_le": "2026-11-22T03:53:17Z"
 }

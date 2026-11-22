@@ -7,6 +7,7 @@ import { FIELD_GROUPS, MAX_PROMPTS, answerLabel, type FieldMeta } from '../../sr
 import { ageFrom, useMe, type SensitiveField } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, Row, Screen, Section, Text, VisibilityTag } from '../../src/ui';
+import { photoSource } from '../../src/demo/images';
 
 /** "Mon profil": everything editable, each sensitive answer with its visibility in plain sight. */
 export default function EditProfile() {
@@ -22,7 +23,7 @@ export default function EditProfile() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ padding: space.lg, gap: space.md }}>
           {me.photos.map((p, i) => (
             <View key={p.id} style={{ width: 96, height: 128, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-              <Image source={p.url} style={{ flex: 1 }} contentFit="cover" accessibilityLabel={t('edit.photoN', { n: i + 1 })} />
+              <Image source={photoSource(p.url)} style={{ flex: 1 }} contentFit="cover" accessibilityLabel={t('edit.photoN', { n: i + 1 })} />
               {p.isDemo ? <View style={{ position: 'absolute', top: space.xs, start: space.xs, transform: [{ scale: 0.8 }] }}><DemoBadge /></View> : null}
             </View>
           ))}

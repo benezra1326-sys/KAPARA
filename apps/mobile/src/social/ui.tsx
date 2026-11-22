@@ -9,14 +9,14 @@ import { DEMO_MODE } from '../api/client';
 import { isRTL } from '../i18n';
 import { useTheme } from '../theme';
 import { Text } from '../ui';
-import './i18n';
+import { photoSource } from '../demo/images';
 
 /** Building blocks shared by the Croisés / messages / introductions / safety screens. */
 
 export function Avatar({ uri, name, size = 56 }: { uri: string | null; name: string; size?: number }) {
   const { c } = useTheme();
   return uri ? (
-    <Image source={uri} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.surfaceAlt }} contentFit="cover" transition={200} accessibilityIgnoresInvertColors accessible={false} />
+    <Image source={photoSource(uri)} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.surfaceAlt }} contentFit="cover" transition={200} accessibilityIgnoresInvertColors accessible={false} />
   ) : (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
       <Text variant="heading" tone="accent">{name.slice(0, 1)}</Text>

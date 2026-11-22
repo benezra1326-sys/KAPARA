@@ -32,3 +32,6 @@
 | 2026-11-22 | App : consentement demandé avant d’enregistrer une réponse sensible (règle API), visibilité et usage pour les suggestions réglés à part ; retrait = effacement | Benchmark §6.2, RGPD art. 9 |
 | 2026-11-22 | Aperçu « mon profil vu par un membre / un contact » avec la même règle que l’API (`visibleSensitive` dans shared) | Confiance : voir avant d’exposer |
 | 2026-11-22 | Mode démo : profil personnel en mémoire, réactions simulées et annoncées comme telles | Pas de fausse fonctionnalité |
+| 2026-11-22 | Portraits de démo illustrés et générés par code, sans visage | Aucun visage réel ni licence à suivre ; pas de crédits d’IA d’image disponibles |
+| 2026-11-22 | Une seule source pour la démo (app hors ligne et seed) | Même histoire et mêmes identifiants partout |
+| 2026-11-22 | i18n : fr référence, en/he complets, contrôle automatique ; hébreu au pluriel ou à l’infinitif pour rester neutre | Pas de genre supposé |

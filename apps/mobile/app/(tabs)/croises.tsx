@@ -12,6 +12,7 @@ import { Card, DemoNotice, Loading, Pill, Row, RowGroup, Section } from '../../s
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { DEMO_MODE } from '../../src/api/client';
+import { photoSource } from '../../src/demo/images';
 
 type Perm = 'unknown' | 'granted' | 'denied';
 
@@ -109,7 +110,7 @@ function CrossedCard({ item }: { item: CrossedItem }) {
       accessibilityRole="button" accessibilityLabel={t('crossed.viewProfile', { name: item.firstName })}
       style={({ pressed }) => [{ width: '48%', flexGrow: 1, borderRadius: radius.lg, backgroundColor: c.surface, overflow: 'hidden', transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow.card]}>
       <View>
-        {item.photoUrl ? <Image source={item.photoUrl} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={250} accessible={false} />
+        {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ width: '100%', aspectRatio: 3 / 4 }} contentFit="cover" transition={250} accessible={false} />
           : <View style={{ width: '100%', aspectRatio: 3 / 4, backgroundColor: c.surfaceAlt }} />}
         {item.isDemo ? <View style={{ position: 'absolute', top: space.sm, left: space.sm }}><DemoBadge /></View> : null}
       </View>
