@@ -1,6 +1,6 @@
 /**
  * Single source of truth for the product name and launch configuration.
- * KAPARA is a working name: change `brand.json` and every surface follows
+ * MOTEK (formerly KAPARA) is a working name: change `brand.json` and every surface follows
  * (app.config.ts, API, emails, UI copy via `APP.name`).
  */
 import brand from './brand.json';

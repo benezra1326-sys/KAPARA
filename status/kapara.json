@@ -1,6 +1,6 @@
 {
   "id": "kapara",
-  "nom": "KAPARA",
+  "nom": "MOTEK (nom provisoire, ex-KAPARA)",
   "description": "Application de rencontres pour la communauté juive : Croisés, Pour toi et Live dans un même profil. Lancement à Paris, conçue pour l'international.",
   "depot": "benezra1326-sys/KAPARA",
   "etape": "developpement",
@@ -129,6 +129,6 @@
       "texte": "Photos de profil de bout en bout : photothèque ou appareil photo, ré-encodage sans métadonnées GPS, envoi par URL signée S3, classement, suppression et étape d'onboarding."
     }
   ],
-  "maj_le": "2026-11-22T15:49:42Z",
+  "maj_le": "2026-11-22T19:00:00Z",
   "demo_web": "https://kapara-demo.vercel.app"
 }
