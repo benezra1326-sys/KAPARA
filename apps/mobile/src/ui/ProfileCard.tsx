@@ -1,7 +1,8 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Fragment, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, View, type LayoutChangeEvent } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import type { ProfilePublic, Recommendation } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
@@ -35,7 +36,7 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
   const onLayout = (e: LayoutChangeEvent) => setMeasured(Math.round(e.nativeEvent.layout.width));
   const twoCol = available >= 700;
   const [first, ...photos] = p.photos;
-  const photoMax = Math.max(280, Math.round(height * (height < 700 ? 0.45 : 0.52)));
+  const photoMax = Math.max(280, Math.round(height * (height < 700 ? 0.5 : 0.6)));
 
   const prompt = (q: ProfilePublic['prompts'][number]) => <PromptBlock key={`q-${q.id}`} q={q} onReact={onReact} />;
   const photo = (ph: ProfilePublic['photos'][number], style?: object) => (
@@ -56,14 +57,10 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
     return (
       <View onLayout={onLayout} style={{ marginHorizontal: space.lg, flexDirection: 'row', gap: space.xxl, alignItems: 'flex-start' }}>
         <View style={{ width: photoCol, gap: space.lg }}>
-          {hero}
-          {photos.map((ph) => photo(ph))}
+          {[hero, ...photos.map((ph) => photo(ph))].map((b, i) => <Rise key={i} i={i}>{b}</Rise>)}
         </View>
         <View style={{ flex: 1, gap: space.lg, maxWidth: 560 }}>
-          {why}
-          {intro}
-          {p.prompts.map(prompt)}
-          <SharedLife profile={p} />
+          {[why, intro, ...p.prompts.map(prompt), <SharedLife profile={p} key="life" />].map((b, i) => <Rise key={i} i={i + 1}>{b}</Rise>)}
         </View>
       </View>
     );
@@ -85,12 +82,18 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
 
   return (
     <View onLayout={onLayout} style={{ marginHorizontal: space.lg, gap: space.lg }}>
-      {hero}
-      {why}
-      {intro ? <View style={{ paddingHorizontal: space.xs }}>{intro}</View> : null}
-      {blocks.map((b, i) => <Fragment key={i}>{b}</Fragment>)}
+      <Rise i={0}>{hero}</Rise>
+      <Rise i={1}>{why}</Rise>
+      {intro ? <Rise i={2}><View style={{ paddingHorizontal: space.xs }}>{intro}</View></Rise> : null}
+      {blocks.map((b, i) => <Rise key={i} i={i + 3}>{b}</Rise>)}
     </View>
   );
+}
+
+/** Blocks rise into place one after the other: calm, eased, no bounce. */
+function Rise({ i, children }: { i: number; children: ReactNode }) {
+  if (!children) return null;
+  return <Animated.View entering={FadeInDown.delay(70 * Math.min(i, 6)).duration(520)}>{children}</Animated.View>;
 }
 
 /** Main photo with name, age, city and badges over a soft gradient. Faces stay in the upper part (contentPosition top). */
@@ -104,7 +107,7 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
       <LinearGradient colors={['transparent', 'rgba(19,18,32,0.78)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '48%' }} pointerEvents="none" />
       <View style={{ position: 'absolute', start: space.xl, end: onReact ? 84 : space.xl, bottom: space.xl, gap: space.sm }}>
         {p.isDemo ? <DemoBadge /> : null}
-        <Text variant="hero" style={{ color: '#fff', fontSize: 36, lineHeight: 40 }} accessibilityRole="header" numberOfLines={2}>{p.firstName}, {p.age}</Text>
+        <Text variant="hero" style={{ color: '#F4F1EA', fontSize: 40, lineHeight: 44 }} accessibilityRole="header" numberOfLines={2}>{p.firstName}, {p.age}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, flexWrap: 'wrap' }}>
           {p.city ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -149,7 +152,7 @@ function PromptBlock({ q, onReact }: { q: ProfilePublic['prompts'][number]; onRe
   return (
     <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.xl, gap: space.md, borderWidth: 1, borderColor: c.border }}
       accessibilityLabel={`${title}. ${q.answer}`}>
-      <Text variant="overline" tone="textMuted">{title}</Text>
+      <Text variant="overline" tone="highlight">{title}</Text>
       <Text variant="quote" style={{ fontSize: 22, lineHeight: 30 }}>{q.answer}</Text>
       {onReact ? <ReactButton inline label={t('pick.reactTo', { what: title })} onPress={() => onReact({ kind: 'prompt', id: q.id })} /> : null}
     </View>

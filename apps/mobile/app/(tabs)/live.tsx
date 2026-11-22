@@ -69,7 +69,7 @@ export default function Live() {
                 </Text>
               </View>
               <Switch value={available} onValueChange={(v) => void store.setAvailable(v)}
-                trackColor={{ true: c.live, false: c.border }} accessibilityLabel={t('live.availableToggle')}
+                trackColor={{ true: c.live, false: c.textSubtle }} accessibilityLabel={t('live.availableToggle')}
                 accessibilityHint={t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })} />
             </View>
             <Text variant="caption" tone="textSubtle">{t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })}</Text>
@@ -180,10 +180,10 @@ function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (
         <Pressable onPress={onInvite} disabled={disabled} accessibilityRole="button"
           accessibilityLabel={`${t('live.invite')} : ${m.firstName}`} accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
           style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill,
-            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentPressed : c.accent,
+            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentSoft : 'transparent', borderWidth: 1, borderColor: c.accent,
             opacity: disabled && !busy ? 0.45 : 1 })}>
-          {busy ? <ActivityIndicator color={c.onAccent} /> : <Icon name="phone" size={18} color={c.onAccent} />}
-          <Text variant="label" tone="onAccent">{t('live.invite')}</Text>
+          {busy ? <ActivityIndicator color={c.accent} /> : <Icon name="phone" size={18} color={c.accent} />}
+          <Text variant="label" tone="accent">{t('live.invite')}</Text>
         </Pressable>
       </View>
     </View>

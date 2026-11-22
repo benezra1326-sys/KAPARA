@@ -90,7 +90,7 @@ export function ToggleRow({ label, detail, value, onChange, first, disabled }: {
   return (
     <Row first={first} label={label} detail={detail}
       right={<Switch value={value} onValueChange={onChange} disabled={disabled} accessibilityLabel={label}
-        trackColor={{ true: c.accent, false: c.border }} thumbColor={c.surface} ios_backgroundColor={c.border} />} />
+        trackColor={{ true: c.accent, false: c.textSubtle }} thumbColor={c.text} ios_backgroundColor={c.border} />} />
   );
 }
 

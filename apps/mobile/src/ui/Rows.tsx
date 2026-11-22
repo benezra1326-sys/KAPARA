@@ -49,7 +49,7 @@ export function SwitchRow({ title, description, value, onValueChange, first }: {
         {description ? <Text variant="caption" tone="textMuted">{description}</Text> : null}
       </View>
       <Switch value={value} onValueChange={onValueChange} accessibilityLabel={title} accessibilityHint={description}
-        trackColor={{ true: c.accent, false: c.border }} thumbColor="#fff" />
+        trackColor={{ true: c.accent, false: c.textSubtle }} thumbColor="#fff" />
     </View>
   );
 }

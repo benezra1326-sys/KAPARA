@@ -1,11 +1,11 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
-import { colors, type ThemeColors } from '@kapara/design';
+import { colors, DEFAULT_SCHEME, type ThemeColors } from '@kapara/design';
 
-const ThemeCtx = createContext<{ c: ThemeColors; dark: boolean }>({ c: colors.light, dark: false });
+const ThemeCtx = createContext<{ c: ThemeColors; dark: boolean }>({ c: colors[DEFAULT_SCHEME], dark: DEFAULT_SCHEME === 'dark' });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const dark = useColorScheme() === 'dark';
+  // MOTEK is dark first (identity "Nuit"); a light mode can come later as a setting.
+  const dark = DEFAULT_SCHEME === 'dark';
   return <ThemeCtx.Provider value={{ c: dark ? colors.dark : colors.light, dark }}>{children}</ThemeCtx.Provider>;
 }
 export const useTheme = () => useContext(ThemeCtx);

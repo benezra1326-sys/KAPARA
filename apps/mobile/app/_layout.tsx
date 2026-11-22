@@ -1,5 +1,5 @@
 import '../src/i18n';
-import { useFonts, Fraunces_400Regular_Italic, Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
+import { useFonts, Fraunces_300Light, Fraunces_300Light_Italic, Fraunces_400Regular } from '@expo-google-fonts/fraunces';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -16,7 +16,7 @@ void SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } });
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ Fraunces_400Regular_Italic, Fraunces_600SemiBold, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
+  const [loaded, error] = useFonts({ Fraunces_300Light, Fraunces_300Light_Italic, Fraunces_400Regular, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
   useEffect(() => { if (loaded || error) void SplashScreen.hideAsync(); }, [loaded, error]);
   if (!loaded && !error) return null;
   return (

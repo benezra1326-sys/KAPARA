@@ -16,7 +16,7 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
   label: string; kind?: Kind; loading?: boolean; icon?: IconName; style?: StyleProp<ViewStyle>;
 }) {
   const { c } = useTheme();
-  const bg = kind === 'primary' ? c.accent : kind === 'secondary' ? c.surface : 'transparent';
+  const bg = kind === 'primary' ? c.accent : 'transparent';
   const fg = kind === 'primary' ? c.onAccent : kind === 'ghost' ? c.accent : c.text;
   return (
     <Pressable
@@ -30,7 +30,7 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
           minHeight: hitSlop + 4, borderRadius: radius.pill, paddingHorizontal: space.xl, justifyContent: 'center', alignItems: 'center',
           flexDirection: 'row', gap: space.sm,
           backgroundColor: kind === 'primary' ? (pressed || hovered ? c.accentPressed : bg) : (pressed || hovered) && kind !== 'ghost' ? c.surfaceAlt : bg,
-          borderWidth: kind === 'secondary' ? 1 : 0, borderColor: c.border,
+          borderWidth: kind === 'secondary' ? 1 : 0, borderColor: c.textSubtle,
           opacity: rest.disabled ? 0.5 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
           ...(Platform.OS === 'web' ? { transitionDuration: '160ms', transitionProperty: 'background-color, transform', outlineStyle: focused ? 'solid' : 'none', outlineWidth: 2, outlineColor: c.accent, outlineOffset: 2 } as object : {}),
@@ -41,7 +41,7 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
       {loading ? <ActivityIndicator color={fg} /> : (
         <>
           {icon ? <View><Icon name={icon} size={20} color={fg} /></View> : null}
-          <Text variant="label" style={{ color: fg, fontFamily: 'Inter_600SemiBold', fontSize: 15 }} numberOfLines={1}>{label}</Text>
+          <Text variant="label" style={{ color: fg, fontFamily: 'Inter_600SemiBold', fontSize: 15, letterSpacing: 0.2 }} numberOfLines={1}>{label}</Text>
         </>
       )}
     </Pressable>
