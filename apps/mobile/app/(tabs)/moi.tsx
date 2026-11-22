@@ -10,7 +10,7 @@ import { DEMO_MODE } from '../../src/api/client';
 import { cityOf, nameAndAge } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
 import { photoSource } from '../../src/demo/images';
-import { useTheme } from '../../src/theme';
+import { appearance, useAppearance, useTheme } from '../../src/theme';
 import { Button, DemoBadge, Icon, Screen, Text } from '../../src/ui';
 import { Row, Section, SwitchRow } from '../../src/ui/Rows';
 
@@ -84,6 +84,8 @@ export default function Me() {
         <Row title={t('me.blocked')} onPress={go('/settings/blocked')} />
       </Section>
 
+      <Appearance />
+
       <Section title={t('tabs.live')}>
         <Row first title={t('ux.liveSettings')} value={t('ux.liveSettingsHint')} onPress={go('/settings/live')} />
       </Section>
@@ -96,4 +98,16 @@ export default function Me() {
       </Section>
     </Screen>
   );
+}
+
+/** White by default; dark on request. Kept on this device. */
+function Appearance() {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  const scheme = useAppearance();
+  const opt = (value: 'light' | 'dark', first?: boolean) => (
+    <Row first={first} title={t(value === 'light' ? 'ux.themeLight' : 'ux.themeDark')} onPress={() => appearance.set(value)}
+      trailing={scheme === value ? <Icon name="check" size={20} color={c.accent} /> : <View style={{ width: 20 }} />} />
+  );
+  return <Section title={t('ux.appearance')}>{opt('light', true)}{opt('dark')}</Section>;
 }

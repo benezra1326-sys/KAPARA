@@ -7,6 +7,9 @@ const en: DeepPartial<typeof fr> = {
     demoFooter: 'Demo: fictional profiles, nothing is sent.',
   },
   ux: {
+    appearance: 'Appearance',
+    themeLight: 'Light',
+    themeDark: 'Dark',
     previewNoPromptsTitle: 'Your profile is still quiet',
     previewNoPromptsBody: 'Questions make people want to write: one or two answers are enough to start a conversation.',
     verifiedDemo: 'Verified (demo)',

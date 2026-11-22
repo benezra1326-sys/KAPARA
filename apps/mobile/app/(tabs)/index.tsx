@@ -64,7 +64,7 @@ export default function ForYou() {
     <View style={{ gap: space.xs, width: '100%', maxWidth: 560, alignSelf: 'center' }}>
       <View style={{ flexDirection: 'row', gap: space.sm }}>
         <Button kind="secondary" icon={narrow ? undefined : 'close'} label={t('pick.pass')} accessibilityHint={t('pick.passHint')} onPress={pass} style={{ flex: 1, paddingHorizontal: space.md }} />
-        <Button icon={narrow ? undefined : 'heart'} label={t('ux.react')} accessibilityHint={t('ux.reactHint')} style={{ flex: 1, paddingHorizontal: space.md }}
+        <Button kind="accent" icon={narrow ? undefined : 'heart'} label={t('ux.react')} accessibilityHint={t('ux.reactHint')} style={{ flex: 1, paddingHorizontal: space.md }}
           onPress={() => setTarget(rec.profile.prompts[0] ? { kind: 'prompt', id: rec.profile.prompts[0].id } : main ? { kind: 'photo', id: main.id } : null)} />
       </View>
       {isPhone ? null : <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('pick.passFootnote')}</Text>}

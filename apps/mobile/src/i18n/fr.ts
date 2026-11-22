@@ -9,6 +9,9 @@ export default {
     demoFooter: 'Démonstration : profils fictifs, rien n’est envoyé.',
   },
   ux: {
+    appearance: 'Apparence',
+    themeLight: 'Clair',
+    themeDark: 'Sombre',
     previewNoPromptsTitle: 'Votre profil est encore discret',
     previewNoPromptsBody: 'Les questions donnent envie d’écrire : une ou deux réponses suffisent pour lancer la conversation.',
     verifiedDemo: 'Vérifié (démo)',

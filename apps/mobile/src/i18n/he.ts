@@ -180,6 +180,9 @@ const he: Catalog<typeof fr> = {
     demoFooter: 'הדגמה: פרופילים בדויים, שום דבר לא נשלח.',
   },
   ux: {
+    appearance: 'מראה',
+    themeLight: 'בהיר',
+    themeDark: 'כהה',
     previewNoPromptsTitle: 'הפרופיל עדיין שקט',
     previewNoPromptsBody: 'השאלות מעוררות רצון לכתוב: תשובה או שתיים מספיקות כדי לפתוח שיחה.',
     verifiedDemo: 'מאומת (הדגמה)',

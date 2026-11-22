@@ -5,10 +5,11 @@ import { useTheme } from '../theme';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
-type Kind = 'primary' | 'secondary' | 'ghost';
+type Kind = 'primary' | 'accent' | 'secondary' | 'ghost';
 
 /**
- * One button for the whole app. Primary = the one action of a screen;
+ * One button for the whole app. Primary = the one action of a screen (black pill);
+ * accent = an action toward a person (react, like), in motek rose;
  * secondary = an alternative of equal standing; ghost = a quiet link.
  * Hover and focus are visible on the web; press feedback is a slight scale.
  */
@@ -16,8 +17,10 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
   label: string; kind?: Kind; loading?: boolean; icon?: IconName; style?: StyleProp<ViewStyle>;
 }) {
   const { c } = useTheme();
-  const bg = kind === 'primary' ? c.accent : 'transparent';
-  const fg = kind === 'primary' ? c.onAccent : kind === 'ghost' ? c.accent : c.text;
+  const solid = kind === 'primary' || kind === 'accent';
+  const bg = kind === 'primary' ? c.primary : kind === 'accent' ? c.accent : 'transparent';
+  const pressedBg = kind === 'primary' ? c.primaryPressed : c.accentPressed;
+  const fg = kind === 'primary' ? c.onPrimary : kind === 'accent' ? c.onAccent : c.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -29,11 +32,11 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
         return [{
           minHeight: hitSlop + 4, borderRadius: radius.pill, paddingHorizontal: space.xl, justifyContent: 'center', alignItems: 'center',
           flexDirection: 'row', gap: space.sm,
-          backgroundColor: kind === 'primary' ? (pressed || hovered ? c.accentPressed : bg) : (pressed || hovered) && kind !== 'ghost' ? c.surfaceAlt : bg,
-          borderWidth: kind === 'secondary' ? 1 : 0, borderColor: c.textSubtle,
+          backgroundColor: solid ? (pressed || hovered ? pressedBg : bg) : (pressed || hovered) ? c.surfaceAlt : bg,
+          borderWidth: kind === 'secondary' ? 1 : 0, borderColor: c.border,
           opacity: rest.disabled ? 0.5 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
-          ...(Platform.OS === 'web' ? { transitionDuration: '160ms', transitionProperty: 'background-color, transform', outlineStyle: focused ? 'solid' : 'none', outlineWidth: 2, outlineColor: c.accent, outlineOffset: 2 } as object : {}),
+          ...(Platform.OS === 'web' ? { transitionDuration: '160ms', transitionProperty: 'background-color, transform', outlineStyle: focused ? 'solid' : 'none', outlineWidth: 2, outlineColor: c.text, outlineOffset: 2 } as object : {}),
         }, style];
       }}
       {...rest}
@@ -41,7 +44,7 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
       {loading ? <ActivityIndicator color={fg} /> : (
         <>
           {icon ? <View><Icon name={icon} size={20} color={fg} /></View> : null}
-          <Text variant="label" style={{ color: fg, fontFamily: 'Inter_600SemiBold', fontSize: 15, letterSpacing: 0.2 }} numberOfLines={1}>{label}</Text>
+          <Text variant="label" style={{ color: fg, fontFamily: 'DMSans_600SemiBold', fontSize: 15, letterSpacing: 0.1 }} numberOfLines={1}>{label}</Text>
         </>
       )}
     </Pressable>

@@ -131,16 +131,16 @@ function CrossedCard({ item, width }: { item: CrossedItem; width: number }) {
         transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow.card,
         Platform.OS === 'web' ? ({ transitionDuration: '200ms', transitionProperty: 'transform' } as object) : null]}>
       {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300} accessible={false} /> : null}
-      <LinearGradient colors={['transparent', 'rgba(13,12,18,0.88)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }} pointerEvents="none" />
+      <LinearGradient colors={['transparent', 'rgba(10,10,12,0.78)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }} pointerEvents="none" />
       {item.isDemo ? <View style={{ position: 'absolute', top: space.sm, start: space.sm }}><DemoBadge compact /></View> : null}
       <View style={{ position: 'absolute', start: space.md, end: space.md, bottom: space.md, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text variant="heading" numberOfLines={1} style={{ color: '#F4F1EA', flexShrink: 1, fontFamily: 'Fraunces_300Light', fontSize: 22 }}>{item.firstName}, {item.age}</Text>
+          <Text variant="heading" numberOfLines={1} style={{ color: '#FFFFFF', flexShrink: 1, fontSize: 24 }}>{item.firstName}, {item.age}</Text>
           {item.verified ? <Icon name="check" size={15} color={c.live} /> : null}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <Icon name="crossed" size={13} color={c.accent} />
-          <Text variant="caption" numberOfLines={1} style={{ flex: 1, color: 'rgba(244,241,234,0.82)', fontSize: 12 }}>{item.times === 'several' ? t('crossed.recentlySeveral') : t('crossed.recentlyOnce')}</Text>
+          <Text variant="caption" numberOfLines={1} style={{ flex: 1, color: 'rgba(255,255,255,0.86)', fontSize: 12 }}>{item.times === 'several' ? t('crossed.recentlySeveral') : t('crossed.recentlyOnce')}</Text>
         </View>
       </View>
     </Pressable>

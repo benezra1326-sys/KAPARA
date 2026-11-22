@@ -107,7 +107,7 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
       <LinearGradient colors={['transparent', 'rgba(19,18,32,0.78)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '48%' }} pointerEvents="none" />
       <View style={{ position: 'absolute', start: space.xl, end: onReact ? 84 : space.xl, bottom: space.xl, gap: space.sm }}>
         {p.isDemo ? <DemoBadge /> : null}
-        <Text variant="hero" style={{ color: '#F4F1EA', fontSize: 40, lineHeight: 44 }} accessibilityRole="header" numberOfLines={2}>{p.firstName}, {p.age}</Text>
+        <Text variant="hero" style={{ color: '#FFFFFF', fontSize: 44, lineHeight: 46 }} accessibilityRole="header" numberOfLines={2}>{p.firstName}, {p.age}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, flexWrap: 'wrap' }}>
           {p.city ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -150,10 +150,10 @@ function PromptBlock({ q, onReact }: { q: ProfilePublic['prompts'][number]; onRe
   const { t } = useTranslation();
   const title = t(`prompts.${q.id}`, { defaultValue: q.id });
   return (
-    <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.xl, gap: space.md, borderWidth: 1, borderColor: c.border }}
+    <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.xl, paddingBottom: onReact ? space.xxl + space.sm : space.xl, gap: space.md }}
       accessibilityLabel={`${title}. ${q.answer}`}>
       <Text variant="overline" tone="highlight">{title}</Text>
-      <Text variant="quote" style={{ fontSize: 22, lineHeight: 30 }}>{q.answer}</Text>
+      <Text variant="quote" style={{ fontSize: 28, lineHeight: 33, paddingEnd: onReact ? space.xl : 0 }}>{q.answer}</Text>
       {onReact ? <ReactButton inline label={t('pick.reactTo', { what: title })} onPress={() => onReact({ kind: 'prompt', id: q.id })} /> : null}
     </View>
   );
@@ -212,7 +212,7 @@ function SharedLife({ profile: p }: { profile: ProfilePublic }) {
         <View key={it.key} style={{ gap: 2 }}>
           <Text variant="caption" tone="textMuted">{it.label}</Text>
           <Text variant="bodyStrong">{it.text}</Text>
-          {it.note ? <Text variant="quote" style={{ fontSize: 16, lineHeight: 23 }}>« {it.note} »</Text> : null}
+          {it.note ? <Text variant="quote" style={{ fontSize: 19, lineHeight: 24 }}>« {it.note} »</Text> : null}
         </View>
       ))}
     </View>
@@ -226,8 +226,8 @@ function ReactButton({ label, onPress, inline }: { label: string; onPress: () =>
       style={({ pressed }) => [{
         width: 52, height: 52, borderRadius: 26, borderWidth: inline ? 1 : 0, borderColor: c.border, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center',
         transform: [{ scale: pressed ? 0.9 : 1 }],
-      }, inline ? { alignSelf: 'flex-end' } : { position: 'absolute', end: space.lg, bottom: space.lg }, shadow.float]}>
-      <Icon name="heart" size={24} color={c.accent} />
+      }, inline ? { position: 'absolute', end: space.md, bottom: space.md, width: 44, height: 44, borderRadius: 22, backgroundColor: c.bg } : { position: 'absolute', end: space.lg, bottom: space.lg }, shadow.float]}>
+      <Icon name="heart" size={inline ? 20 : 24} color={c.accent} />
     </Pressable>
   );
 }

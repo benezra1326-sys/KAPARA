@@ -3,8 +3,8 @@
   "short_name": "MOTEK",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D0C12",
-  "theme_color": "#0D0C12",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "icons": [
     {
       "src": "/icon-192.png",
