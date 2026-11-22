@@ -68,6 +68,8 @@ model User {
   feedback      RecommendationFeedback[]
   conversations ConversationMember[]
   messages      Message[]
+  sensitiveZones SensitiveZone[]
+  shabbat        ShabbatSettings?
 }
 
 model Profile {
@@ -172,11 +174,21 @@ model Introduction {
   status      IntroStatus @default(proposed)
   createdAt   DateTime    @default(now())
   decidedAt   DateTime?
+  /// Proposals lapse quietly; the clock does not run during Shabbat mode.
+  expiresAt   DateTime?
+  @@index([personAId, status])
+  @@index([personBId, status])
+  @@index([introducerId])
 }
 
 model Conversation {
   id        String               @id @default(cuid())
   createdAt DateTime             @default(now())
+  /// "like" | "introduction" | "live" | "other"
+  origin    String               @default("other")
+  introductionId String?         @unique
+  /// Set when a member closes the conversation or blocks the other.
+  closedAt  DateTime?
   members   ConversationMember[]
   messages  Message[]
 }
@@ -215,7 +227,12 @@ model Report {
   reportedId String
   reason     String
   details    String?
+  /// "profile" | "conversation" | "live" | "crossed" | "introduction"
+  context    String   @default("profile")
+  /// "open" | "reviewed" | "actioned"
+  status     String   @default("open")
   createdAt  DateTime @default(now())
+  @@index([status, createdAt])
 }
 
 model CallLog {
@@ -226,4 +243,28 @@ model CallLog {
   demo      Boolean
   createdAt DateTime  @default(now())
   endedAt   DateTime?
+}
+
+/// Places where "Croisés" never records anything (home, work…). Stored
+/// snapped to the same grid as sightings and never returned to the app.
+model SensitiveZone {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "home" | "work" | "other"
+  kind      String
+  cell      Unsupported("geography(Point,4326)")
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+/// Optional Shabbat mode (User.shabbatMode is the on/off switch). Private:
+/// never exposed to other members, only used to pause features.
+model ShabbatSettings {
+  userId             String  @id
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  includeHolidays    Boolean @default(true)
+  candleLightingMins Int     @default(18)
+  /// null = nightfall (sun 8.5° below the horizon)
+  havdalahMins       Int?
 }

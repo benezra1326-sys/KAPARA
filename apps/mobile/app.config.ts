@@ -21,8 +21,17 @@ const config: ExpoConfig = {
   android: {
     package: brand.bundleId,
     permissions: ['ACCESS_COARSE_LOCATION', 'CAMERA', 'RECORD_AUDIO'],
+    // Croisés never needs precise or background location.
+    blockedPermissions: ['android.permission.ACCESS_FINE_LOCATION', 'android.permission.ACCESS_BACKGROUND_LOCATION'],
   },
-  plugins: ['expo-router', 'expo-font', 'expo-localization', 'expo-secure-store'],
+  plugins: [
+    'expo-router', 'expo-font', 'expo-localization', 'expo-secure-store',
+    ['expo-location', {
+      locationWhenInUsePermission: `${brand.name} utilise une position approximative uniquement si vous activez « Croisés ».`,
+      isIosBackgroundLocationEnabled: false,
+      isAndroidBackgroundLocationEnabled: false,
+    }],
+  ],
   experiments: { typedRoutes: true },
   extra: { apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000' },
 };

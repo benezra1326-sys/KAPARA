@@ -43,6 +43,14 @@ export const RULES = {
   crossedWindowHours: 72,
   /** Locations are snapped to a grid before storage, never shown precisely. */
   locationPrecisionMeters: 150,
+  /** Crossings appear only after this delay, so nobody can tell when or where. */
+  crossedDisplayDelayHours: 2,
+  /** Two samples count as a crossing only if this close in time. */
+  crossedTimeToleranceMinutes: 60,
+  /** Nothing is recorded within this distance of a member's sensitive zones. */
+  crossedSensitiveZoneMeters: 400,
+  /** Foreground sampling interval on the device (no background location). */
+  crossedPingMinutes: 10,
   /** "Pour toi": curated daily selection instead of infinite swipe. */
   dailyPicks: 8,
   /** Live presence expires without heartbeat. */
