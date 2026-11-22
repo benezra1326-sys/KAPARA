@@ -24,3 +24,7 @@
 | 2026-11-22 | Blocage global (`BlockService`) : ferme les conversations et présentations en cours, sans prévenir ; un signalement bloque par défaut | Un blocage s’applique partout |
 | 2026-11-22 | Nudge de bienveillance par liste courte FR/EN/HE, jamais bloquant, rien stocké | Pas d’IA, la personne décide |
 | 2026-11-22 | Mode Shabbat : horaires @hebcal/core (NOAA) par région, bougies 18 min, fin à la tombée de la nuit, réglables ; jamais visible des autres | Respect du rythme sans exposer la pratique |
+| 2026-11-22 | Live : la caméra est accordée par le serveur LiveKit (canPublishSources) seulement à l’état video_on | Le consentement ne dépend pas que de l’app |
+| 2026-11-22 | Live : « qui peut m’appeler » par défaut = mes contacts ; refus toujours vague (not_available) | Vie privée, pas de déduction possible |
+| 2026-11-22 | Live : anti-harcèlement (24 h après un refus, 5 invitations / 10 min, une seule conversation à la fois) | Sécurité |
+| 2026-11-22 | @livekit/react-native 3.1, react-native-webrtc 150.1, livekit-client 2.23 (versions de plus de 2 semaines) | Stabilité ; development build obligatoire |

@@ -36,8 +36,8 @@
     },
     {
       "nom": "C. Live : présence, invitations, LiveKit, écrans d'appel",
-      "statut": "a_faire",
-      "avancement": 15,
+      "statut": "en_revue",
+      "avancement": 85,
       "responsable": "apps-dev"
     },
     {
@@ -71,6 +71,10 @@
     {
       "quand": "2026-11-22T04:30:00Z",
       "texte": "Chantier B : vraie connexion (code e-mail, Apple, Google), profils et consentements, préférences, sélection « Pour toi » mutuelle et expliquée avec distance PostGIS. PR ouverte."
+    },
+    {
+      "quand": "2026-11-22T03:46:18Z",
+      "texte": "Live (chantier C) en revue : présence, invitations, consentement vidéo appliqué par le serveur LiveKit, écran d'appel, réglage « qui peut m'appeler », mode démo annoncé."
     },
     {
       "quand": "2026-11-22T03:46:43Z",

@@ -31,6 +31,9 @@ const config: ExpoConfig = {
       isIosBackgroundLocationEnabled: false,
       isAndroidBackgroundLocationEnabled: false,
     }],
+    // Live calls (LiveKit / WebRTC): native modules, so a development build is required (not Expo Go).
+    ['@livekit/react-native-expo-plugin', { android: { audioType: 'communication' } }],
+    '@config-plugins/react-native-webrtc',
   ],
   experiments: { typedRoutes: true },
   extra: { apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000' },
