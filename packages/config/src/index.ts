@@ -43,6 +43,14 @@ export const RULES = {
   crossedWindowHours: 72,
   /** Locations are snapped to a grid before storage, never shown precisely. */
   locationPrecisionMeters: 150,
+  /** Crossings appear only after this delay, so nobody can tell when or where. */
+  crossedDisplayDelayHours: 2,
+  /** Two samples count as a crossing only if this close in time. */
+  crossedTimeToleranceMinutes: 60,
+  /** Nothing is recorded within this distance of a member's sensitive zones. */
+  crossedSensitiveZoneMeters: 400,
+  /** Foreground sampling interval on the device (no background location). */
+  crossedPingMinutes: 10,
   /** "Pour toi" home area is snapped to this grid; distances are shown as rounded buckets. */
   homeAreaPrecisionMeters: 1000,
   /** A profile shown in "Pour toi" is not shown again for this many days (unless nothing else is left). */
@@ -52,4 +60,12 @@ export const RULES = {
   /** Live presence expires without heartbeat. */
   livePresenceTtlSeconds: 90,
   liveInviteTtlSeconds: 60,
+  /** "Je suis disponible" lasts this long, then the member is invisible again. */
+  liveAvailabilityMinutes: 15,
+  /** After a declined invitation, the same caller cannot re-invite for this long. */
+  liveDeclineCooldownHours: 24,
+  /** After an unanswered invitation, a shorter pause before trying again. */
+  liveExpiredCooldownMinutes: 10,
+  /** Anti-spam: invitations a member can send per 10 minutes. */
+  liveMaxInvitesPer10Min: 5,
 } as const;

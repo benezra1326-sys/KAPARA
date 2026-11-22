@@ -1,29 +1,209 @@
-import { useState } from 'react';
-import { Switch, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, Switch, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { radius, space } from '@kapara/design';
+import { RULES } from '@kapara/config';
+import type { LiveMember } from '@kapara/shared';
+import { radius, shadow, space } from '@kapara/design';
+import { Icon } from '../../src/live/icons';
+import { useLive, useLiveStore } from '../../src/live/LiveProvider';
+import { Pulse } from '../../src/live/Pulse';
+import { formatDuration, useNow } from '../../src/live/useNow';
 import { useTheme } from '../../src/theme';
-import { EmptyState, Screen, Text } from '../../src/ui';
+import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
+import { photoSource } from '../../src/demo/images';
 
-/** TODO(workstream live): socket.io presence, invitation sheet, LiveKit room, camera consent step. */
+/**
+ * Live: who is available right now. Three consents, never bundled:
+ * being visible, accepting an audio call, then (both) turning cameras on.
+ */
 export default function Live() {
   const { t } = useTranslation();
   const { c } = useTheme();
-  const [available, setAvailable] = useState(false);
+  const router = useRouter();
+  const store = useLiveStore();
+  const s = useLive();
+  const now = useNow(15_000);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => { setRefreshing(true); await store.refresh(); setRefreshing(false); }, [store]);
+  const invite = async (m: LiveMember) => {
+    setInviting(m.userId);
+    const call = await store.invite(m);
+    setInviting(null);
+    if (call) router.push({ pathname: '/call/[id]', params: { id: call.callId } });
+  };
+
+  const available = Boolean(s.availableUntil && s.availableUntil > now);
+  const minutesLeft = available ? Math.min(RULES.liveAvailabilityMinutes, Math.max(1, Math.ceil((s.availableUntil! - Date.now()) / 60_000))) : 0;
+  const enabled = s.settings?.liveEnabled === true;
+
   return (
-    <Screen title={t('live.title')} subtitle={t('live.subtitle')}>
-      <View style={{ marginHorizontal: space.lg, padding: space.xl, borderRadius: radius.lg, backgroundColor: c.surface, gap: space.sm }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text variant="bodyStrong">{t('live.availableToggle')}</Text>
-          <Switch value={available} onValueChange={setAvailable} trackColor={{ true: c.live }} accessibilityLabel={t('live.availableToggle')} />
+    <Screen title={t('live.title')} subtitle={t('live.subtitle')}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.accent} />}>
+      {s.mode === 'demo' ? (
+        <Notice tone="highlight" text={s.local ? t('live.demoLocalNotice') : t('live.demoNotice')} />
+      ) : null}
+      {s.connection === 'offline' && !s.local ? <Notice tone="danger" text={t('live.offline')} /> : null}
+
+      {!s.settings ? (
+        s.settingsError
+          ? <EmptyState title={t('live.offline')} action={{ label: t('common.retry'), onPress: () => void store.refresh() }} />
+          : <ActivityIndicator color={c.accent} style={{ marginTop: space.xxl }} accessibilityLabel={t('common.loading')} />
+      ) : !enabled ? (
+        <Intro onEnable={() => void store.saveSettings({ ...s.settings!, liveEnabled: true })} onSettings={() => router.push('/settings/live')} />
+      ) : (
+        <View style={{ marginHorizontal: space.lg, borderRadius: radius.xl, backgroundColor: c.surface, overflow: 'hidden' }}>
+          <View style={{ padding: space.xl, gap: space.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.lg }}>
+              <View style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
+                <Pulse color={c.live} size={28} active={available} />
+                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: available ? c.live : c.border }} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text variant="bodyStrong">{t('live.availableToggle')}</Text>
+                <Text variant="caption" tone="textMuted">
+                  {available ? t('live.availableFor', { minutes: minutesLeft }) : t('live.availableOff')}
+                </Text>
+              </View>
+              <Switch value={available} onValueChange={(v) => void store.setAvailable(v)}
+                trackColor={{ true: c.live, false: c.border }} accessibilityLabel={t('live.availableToggle')}
+                accessibilityHint={t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })} />
+            </View>
+            <Text variant="caption" tone="textSubtle">{t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })}</Text>
+          </View>
+          <Pressable onPress={() => router.push('/settings/live')} accessibilityRole="button"
+            accessibilityLabel={`${t('live.whoCanCall')} : ${t(`live.whoCanCallValue.${s.settings.liveCallsFrom}`)}`}
+            style={({ pressed }) => ({ minHeight: 52, paddingHorizontal: space.xl, flexDirection: 'row', alignItems: 'center', gap: space.sm,
+              borderTopWidth: 1, borderTopColor: c.border, backgroundColor: pressed ? c.surfaceAlt : 'transparent' })}>
+            <Text variant="label" tone="textMuted" style={{ flex: 1 }}>{t('live.whoCanCall')}</Text>
+            <Text variant="label">{t(`live.whoCanCallValue.${s.settings.liveCallsFrom}`)}</Text>
+            <Icon name="chevron" size={18} color={c.textSubtle} />
+          </Pressable>
         </View>
-        <Text variant="caption" tone="textMuted">{t('live.availableHint')}</Text>
-        <Text variant="caption" tone="textMuted">{t('live.consentSteps')}</Text>
-      </View>
-      <View style={{ margin: space.lg, padding: space.lg, borderRadius: radius.md, backgroundColor: c.accentSoft }}>
-        <Text variant="caption" tone="accent">{t('live.demoNotice')}</Text>
-      </View>
-      <EmptyState title={t('live.empty')} />
+      )}
+
+      {s.lastEnded ? (
+        <Pressable onPress={() => store.clearEnded()} accessibilityRole="button" accessibilityHint={t('call.close')}>
+          <Notice tone="muted" text={t(`live.lastCall.${s.lastEnded.state}`, { name: s.lastEnded.peer.firstName, duration: formatDuration(s.lastEnded.durationSec) })} />
+        </Pressable>
+      ) : null}
+      {s.error && !s.call ? (
+        <Pressable onPress={() => store.clearError()} accessibilityRole="alert">
+          <Notice tone="danger" text={t(`live.errors.${s.error}`, { defaultValue: t('live.errors.unknown') })} />
+        </Pressable>
+      ) : null}
+
+      {enabled || s.local ? (
+        <View style={{ marginTop: space.xl }}>
+          {s.membersStatus === 'loading' && !s.members.length ? (
+            <View style={{ paddingHorizontal: space.lg, gap: space.md }}>{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</View>
+          ) : s.membersStatus === 'error' ? (
+            <EmptyState title={t('live.offline')} action={{ label: t('common.retry'), onPress: () => void store.loadMembers() }} />
+          ) : s.members.length === 0 ? (
+            <EmptyState title={t('live.empty')} body={t('live.emptyBody')} />
+          ) : (
+            <View style={{ gap: space.md }}>
+              <Text variant="overline" tone="textSubtle" style={{ paddingHorizontal: space.xl }}>
+                {`${t('live.subtitle')} · ${s.members.length}`}
+              </Text>
+              {s.members.map((m) => (
+                <MemberRow key={m.userId} m={m} busy={inviting === m.userId} disabled={!!inviting || !!s.call || !enabled}
+                  onInvite={() => void invite(m)} />
+              ))}
+            </View>
+          )}
+        </View>
+      ) : null}
+
+      {s.local && enabled ? (
+        <View style={{ paddingHorizontal: space.xl, marginTop: space.xl }}>
+          <Button kind="ghost" label={t('live.demoIncoming')} onPress={() => store.simulateIncoming()} disabled={!!s.call} />
+        </View>
+      ) : null}
     </Screen>
+  );
+}
+
+function Intro({ onEnable, onSettings }: { onEnable: () => void; onSettings: () => void }) {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  const steps = [t('live.steps.invite'), t('live.steps.accept'), t('live.steps.camera')];
+  return (
+    <View style={[{ marginHorizontal: space.lg, padding: space.xl, borderRadius: radius.xl, backgroundColor: c.surface, gap: space.lg }, shadow.card]}>
+      <Text variant="quote" tone="accent" style={{ fontSize: 26, lineHeight: 32 }}>{t('live.introTitle')}</Text>
+      <Text tone="textMuted">{t('live.introBody')}</Text>
+      <View accessibilityRole="list" style={{ gap: 0 }}>
+        {steps.map((label, i) => (
+          <View key={label} style={{ flexDirection: 'row', gap: space.md, alignItems: 'flex-start' }} accessibilityLabel={`${i + 1}. ${label}`}>
+            <View style={{ alignItems: 'center' }}>
+              <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: c.highlight, alignItems: 'center', justifyContent: 'center' }}>
+                <Text variant="label" tone="highlight">{i + 1}</Text>
+              </View>
+              {i < steps.length - 1 ? <View style={{ width: 1.5, height: 18, backgroundColor: c.border }} /> : null}
+            </View>
+            <Text variant="label" style={{ paddingTop: 4, flex: 1 }}>{label}</Text>
+          </View>
+        ))}
+      </View>
+      <Button label={t('live.enable')} onPress={onEnable} />
+      <Button kind="ghost" label={t('live.settingsLink')} onPress={onSettings} />
+    </View>
+  );
+}
+
+function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: () => void; busy: boolean; disabled: boolean }) {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  return (
+    <View style={[{ marginHorizontal: space.lg, padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }, shadow.card]}>
+      <View style={{ width: 92, height: 122, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
+        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ flex: 1 }} contentFit="cover" transition={250} accessibilityLabel={m.firstName} /> : null}
+        <View style={{ position: 'absolute', top: space.sm, left: space.sm, width: 10, height: 10, borderRadius: 5, backgroundColor: c.live, borderWidth: 2, borderColor: c.surface }} />
+      </View>
+      <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexWrap: 'wrap' }}>
+          <Text variant="heading">{m.firstName}, {m.age}</Text>
+          {m.verified ? <Text variant="caption" tone="live" accessibilityLabel={t('live.verified')}>✓ {t('live.verified')}</Text> : null}
+        </View>
+        {m.headline ? <Text variant="caption" tone="textMuted" numberOfLines={2}>{m.headline}</Text> : null}
+        {m.isDemo ? <View style={{ transform: [{ scale: 0.9 }], marginLeft: -4 }}><DemoBadge /></View> : null}
+        <View style={{ flex: 1 }} />
+        <Pressable onPress={onInvite} disabled={disabled} accessibilityRole="button"
+          accessibilityLabel={`${t('live.invite')} : ${m.firstName}`} accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
+          style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill,
+            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentPressed : c.accent,
+            opacity: disabled && !busy ? 0.45 : 1 })}>
+          {busy ? <ActivityIndicator color={c.onAccent} /> : <Icon name="phone" size={18} color={c.onAccent} />}
+          <Text variant="label" tone="onAccent">{t('live.invite')}</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function SkeletonRow() {
+  const { c } = useTheme();
+  return (
+    <View style={{ padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }} accessibilityElementsHidden>
+      <View style={{ width: 92, height: 122, borderRadius: radius.md, backgroundColor: c.surfaceAlt }} />
+      <View style={{ flex: 1, gap: space.sm, paddingTop: space.sm }}>
+        <View style={{ width: '55%', height: 18, borderRadius: 6, backgroundColor: c.surfaceAlt }} />
+        <View style={{ width: '85%', height: 12, borderRadius: 6, backgroundColor: c.surfaceAlt }} />
+      </View>
+    </View>
+  );
+}
+
+function Notice({ text, tone }: { text: string; tone: 'highlight' | 'danger' | 'muted' }) {
+  const { c } = useTheme();
+  const bg = tone === 'highlight' ? c.accentSoft : tone === 'danger' ? c.surfaceAlt : c.surfaceAlt;
+  return (
+    <View style={{ marginHorizontal: space.lg, marginBottom: space.md, paddingHorizontal: space.lg, paddingVertical: space.md, borderRadius: radius.md, backgroundColor: bg,
+      borderLeftWidth: 3, borderLeftColor: tone === 'highlight' ? c.highlight : tone === 'danger' ? c.danger : c.border }}>
+      <Text variant="caption" tone={tone === 'highlight' ? 'text' : 'textMuted'}>{text}</Text>
+    </View>
   );
 }

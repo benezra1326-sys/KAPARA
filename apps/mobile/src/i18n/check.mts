@@ -6,6 +6,9 @@
 import fr from './fr.ts';
 import en from './en.ts';
 import he from './he.ts';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 type Tree = { [k: string]: string | Tree };
 const flat = (t: Tree, p = ''): Record<string, string> =>
@@ -41,5 +44,20 @@ for (const [lang, cat] of [['en', en], ['he', he]] as const) {
     if (!known) { console.error(`[${lang}] unknown key (not in fr): ${key}`); problems++; }
   }
 }
+// Every literal t('…') key used in the app must exist in fr.ts.
+const mobile = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const walk = (d: string): string[] => readdirSync(d).flatMap((f) => {
+  const p = join(d, f);
+  return statSync(p).isDirectory() ? walk(p) : /\.tsx?$/.test(f) ? [p] : [];
+});
+const bases = new Set(Object.keys(ref).map((k) => k.replace(PLURAL, '')));
+const prefixes = new Set(Object.keys(ref).flatMap((k) => k.split('.').slice(0, -1).map((_, i, a) => a.slice(0, i + 1).join('.'))));
+for (const file of [...walk(join(mobile, 'app')), ...walk(join(mobile, 'src'))]) {
+  for (const m of readFileSync(file, 'utf8').matchAll(/\bt\(\s*(['"`])([\w.-]+)\1/g)) {
+    const k = m[2]!;
+    if (!bases.has(k) && !prefixes.has(k)) { console.error(`[usage] ${file.slice(mobile.length + 1)}: t('${k}') not in fr.ts`); problems++; }
+  }
+}
+
 if (problems) { console.error(`\n${problems} i18n problem(s).`); process.exit(1); }
 console.log(`i18n OK: ${Object.keys(ref).length} keys in fr, complete in en and he.`);

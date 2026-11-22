@@ -59,6 +59,21 @@ npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 
 **Découverte.** Filtres durs en SQL : distance PostGIS (`ST_DWithin` entre zones approximatives, centre de la région à défaut), genre et âge **dans les deux sens**, blocages, déjà aimés, « pas pour moi », profils vus il y a moins de 14 jours. Puis `discovery/scoring.ts` : critères éliminatoires **mutuels**, score = préférences souples du membre 50 %, celles de l’autre sur lui 15 %, proximité 15 % (30 % après deux « trop loin »), ressemblance avec les profils appréciés 20 % (à partir de 3 signaux). Une réponse absente ou non partagée n’élimine jamais et compte comme neutre. Seules les réponses consenties **et** marquées « utilisables pour les suggestions » sont lues (`matchableAnswers`), jamais les champs libres. Chaque suggestion porte 1 à 3 raisons (clés i18n `reason.*`). Distances affichées en tranches (« moins de 5 km »).
 
+## Croisés, présentations, conversations, sécurité, mode Shabbat (chantier D)
+
+| Route | Rôle |
+| --- | --- |
+| `GET/PUT /crossed/settings` | Activer Croisés ; désactiver efface l’historique |
+| `POST /crossed/ping` | Échantillon au premier plan (arrondi sur le téléphone, grille serveur, ignoré près des lieux discrets et pendant Shabbat) |
+| `GET /crossed` | Membres croisés : prénom, âge, photo, « une fois / plusieurs fois », jamais lieu ni heure |
+| `DELETE /crossed/history` · `GET/POST/DELETE /crossed/zones` | Effacer ; lieux discrets (jamais renvoyés en coordonnées) |
+| `POST /introductions` · `GET /introductions/inbox` · `GET /introductions/sent` · `POST /introductions/:id/respond` | Présentations en double consentement ; « connected » ouvre une conversation |
+| `GET /conversations` · `GET/POST /conversations/:id/messages` · `DELETE /conversations/:id` | Sans accusés de lecture ; `422 kindness_check` avant un message blessant, renvoyer avec `confirmed: true` |
+| `GET /safety/blocks` · `POST/DELETE /safety/blocks/:userId` · `POST /safety/reports` | Blocage global ; signalement (bloque par défaut) |
+| `GET/PUT /shabbat` | Mode Shabbat privé, prochain créneau calculé pour la ville |
+
+Services exportés pour les autres modules : `BlockService.hiddenFrom/eitherBlocked`, `ShabbatService.isResting`, `ConversationsService.open`.
+
 ## Architecture
 
 ```
@@ -85,13 +100,34 @@ status/     kapara.json, lu par le back-office
 - **i18n** : FR (référence), EN, HE (RTL). Régions = données (`REGIONS`), fuseau et devise par région.
 - **TypeScript 5.9** : TypeScript 7 est sorti mais l’outillage Expo/Nest n’est pas encore validé dessus.
 
+## Live : comment ça marche
+
+Trois consentements distincts, appliqués côté serveur (`apps/api/src/live`) :
+
+1. **Être visible** : opt-in « Je suis disponible », 15 min maximum, coupé sans battement de cœur (90 s).
+2. **Accepter un appel** : toujours audio d’abord. L’invitation respecte « Qui peut m’appeler » (personne / mes contacts / membres compatibles), les blocages, la pause et les préférences déclarées des deux côtés. Refus toujours vague (`not_available`) pour ne rien révéler. Après un refus, 24 h avant que la même personne puisse rappeler ; 5 invitations max par 10 min.
+3. **Allumer la caméra** : demandée par l’un, acceptée par l’autre. Le jeton LiveKit n’autorise que le micro ; la caméra n’est accordée aux deux participants par le serveur LiveKit (`updateParticipant`, `canPublishSources`) qu’à l’état `video_on`. Chacun peut couper sa caméra ou repasser en audio.
+
+Pendant l’appel : signaler et bloquer en un geste (l’appel s’arrête). Aucun enregistrement ; seul `CallLog` (date, issue, démo ou non) est gardé.
+
+| Contexte | Ce qui se passe |
+| --- | --- |
+| App sans API (`EXPO_PUBLIC_DEMO` ≠ `0`) | Simulation locale avec profils fictifs badgés ; bandeau « appels simulés ». |
+| API sans clés LiveKit | Vraie signalisation (présence, invitations, consentements) mais média simulé, annoncé comme tel. |
+| API + clés LiveKit + *development build* | Vrais appels audio/vidéo. Expo Go ne contient pas WebRTC : l’app l’indique. |
+| Web | Démo uniquement pour l’instant. |
+
+LiveKit en local : `docker compose -f infra/docker-compose.yml --profile live up -d`, puis `LIVEKIT_URL=ws://localhost:7880`, `LIVEKIT_API_KEY=devkey`, `LIVEKIT_API_SECRET=secret` (clés du mode `--dev`). Build natif : `npx expo run:ios` / `run:android` ou EAS.
+
+Limite connue : présence et appels sont en mémoire (une instance d’API). Au-delà, passer `PresenceStore` et `CallRegistry` sur Redis.
+
 ## Données de démo
 
 29 membres fictifs (Paris surtout, plus Londres, Tel-Aviv et New York pour le Live), avec des pratiques, origines, âges (24 à 51 ans), situations familiales et orientations variées, des réponses nuancées dont certaines privées ou « je préfère ne pas répondre ». Autour du membre de démo : 8 suggestions expliquées, 5 croisements, 6 présences Live, 4 conversations, 4 présentations, 3 réactions reçues.
 
 - Source unique : `apps/mobile/src/demo/{people,scenarios}.ts`, utilisée par l’app hors ligne **et** par `npm run db:seed` (mêmes identifiants `demo-<prénom>`).
 - Portraits : `npm run demo:art -w @kapara/mobile` régénère les 87 images (Chromium de Playwright).
-- Traductions : `npm run i18n:check -w @kapara/mobile` vérifie que en et he couvrent toutes les clés de fr.ts (variables et pluriels compris).
+- Traductions : `npm run i18n:check -w @kapara/mobile` vérifie que en et he couvrent toutes les clés de fr.ts (variables et pluriels compris) et que chaque `t('…')` utilisé dans l’app existe. Lancé en CI.
 
 ## Tests
 
