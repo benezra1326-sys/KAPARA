@@ -1,4 +1,4 @@
-import type { CallSnapshot, InviteRefusal, JoinInfo, LiveMember, LiveSettings, LiveStatus, ReportReason } from '@kapara/shared';
+import type { CallSnapshot, InviteRefusal, JoinInfo, LiveMember, LiveSettings, LiveStatus, CallReportReason } from '@kapara/shared';
 
 export type Ack<T = object> = ({ ok: true } & T) | { ok: false; error: InviteRefusal | string };
 
@@ -31,7 +31,7 @@ export interface LiveTransport {
   videoRespond(callId: string, accept: boolean): Promise<Ack>;
   videoStop(callId: string): Promise<Ack>;
   hangup(callId: string): Promise<Ack>;
-  report(callId: string, reason: ReportReason): Promise<Ack>;
+  report(callId: string, reason: CallReportReason): Promise<Ack>;
 
   /** Local demo only: pretend a demo member invites me. */
   simulateIncoming?(): void;

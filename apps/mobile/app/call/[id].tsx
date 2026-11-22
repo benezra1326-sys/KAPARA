@@ -6,7 +6,7 @@ import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { ReportReason, type CallSnapshot } from '@kapara/shared';
+import { CallReportReason, type CallSnapshot } from '@kapara/shared';
 import { palette, radius, space } from '@kapara/design';
 import { CallMedia } from '../../src/live/CallMedia';
 import { Icon, type IconName } from '../../src/live/icons';
@@ -209,9 +209,9 @@ function statusLine(call: CallSnapshot, t: TFunction, secs: number): string {
   }
 }
 
-function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: boolean; name: string; bottom: number; onClose: () => void; onSend: (r: ReportReason) => void }) {
+function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: boolean; name: string; bottom: number; onClose: () => void; onSend: (r: CallReportReason) => void }) {
   const { t } = useTranslation();
-  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [reason, setReason] = useState<CallReportReason | null>(null);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} accessibilityLabel={t('call.close')} />
@@ -219,7 +219,7 @@ function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: bool
         <Text variant="heading" style={{ color: INK }} accessibilityRole="header">{t('call.reportTitle', { name })}</Text>
         <Text variant="caption" style={{ color: INK_MUTED }}>{t('call.reportBody', { name })}</Text>
         <View accessibilityRole="radiogroup" style={{ gap: space.xs }}>
-          {ReportReason.options.map((r) => (
+          {CallReportReason.options.map((r) => (
             <Pressable key={r} onPress={() => setReason(r)} accessibilityRole="radio" accessibilityState={{ checked: reason === r }}
               style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, borderRadius: radius.sm,
                 backgroundColor: reason === r ? GLASS : 'transparent' }}>

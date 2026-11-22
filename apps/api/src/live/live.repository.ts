@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { CallState, LiveCallsFrom, LiveMember, LiveSettings, ReportReason } from '@kapara/shared';
+import type { CallState, LiveCallsFrom, LiveMember, LiveSettings, CallReportReason } from '@kapara/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import type { MemberFacts, Relationship } from './call-policy';
 
@@ -109,7 +109,7 @@ export class LiveRepository {
       .catch((e: Error) => this.log.warn(`call log update failed: ${e.message}`));
   }
 
-  async report(reporterId: string, reportedId: string, reason: ReportReason, callId: string, block: boolean) {
+  async report(reporterId: string, reportedId: string, reason: CallReportReason, callId: string, block: boolean) {
     await this.prisma.report.create({ data: { reporterId, reportedId, reason, details: `live_call:${callId}` } });
     if (block) {
       await this.prisma.block.upsert({

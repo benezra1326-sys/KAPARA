@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { io, type Socket } from 'socket.io-client';
-import { LIVE_EVENTS_V1 as EV, type CallSnapshot, type JoinInfo, type LiveMember, type LiveSettings, type LiveStatus, type ReportReason } from '@kapara/shared';
+import { LIVE_EVENTS_V1 as EV, type CallSnapshot, type JoinInfo, type LiveMember, type LiveSettings, type LiveStatus, type CallReportReason } from '@kapara/shared';
 import { api, API_BASE } from '../api/client';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
@@ -55,7 +55,7 @@ export class SocketTransport implements LiveTransport {
   videoRespond(callId: string, accept: boolean) { return this.ack(EV.videoRespond, { callId, accept }); }
   videoStop(callId: string) { return this.ack(EV.videoStop, { callId }); }
   hangup(callId: string) { return this.ack(EV.hangup, { callId }); }
-  report(callId: string, reason: ReportReason) { return this.ack(EV.report, { callId, reason, block: true }); }
+  report(callId: string, reason: CallReportReason) { return this.ack(EV.report, { callId, reason, block: true }); }
 
   private async ack<T = object>(event: string, payload: unknown): Promise<Ack<T>> {
     if (!this.socket?.connected) return { ok: false, error: 'offline' };
