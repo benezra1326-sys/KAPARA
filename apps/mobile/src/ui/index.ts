@@ -12,3 +12,4 @@ export * from './Progress';
 export * from './SensitiveQuestion';
 export * from './ConsentSheet';
 export * from './BasicsForm';
+export * from './PhotoGrid';

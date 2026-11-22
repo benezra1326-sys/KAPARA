@@ -11,10 +11,10 @@ export default function OnbPrompts() {
   const { t } = useTranslation();
   const prompts = useMe((s) => s.prompts);
   return (
-    <Screen back="back" title={t('onb.promptsTitle')} subtitle={t('onb.step', { n: 3, total: 3 })} footer={
+    <Screen back="back" title={t('onb.promptsTitle')} subtitle={t('onb.step', { n: 4, total: 4 })} footer={
       <Button kind={prompts.length ? 'primary' : 'secondary'} label={prompts.length ? t('onb.continue') : t('onb.promptsLater')} onPress={() => router.push('/onboarding/done')} />
     }>
-      <View style={{ marginBottom: space.xl }}><Progress total={3} current={2} /></View>
+      <View style={{ marginBottom: space.xl }}><Progress total={4} current={3} /></View>
       <View style={{ paddingHorizontal: space.xl, marginBottom: space.xl }}><Text tone="textMuted">{t('onb.promptsIntro')}</Text></View>
       <Section footnote={t('edit.promptsFootnote', { max: MAX_PROMPTS })}>
         {prompts.map((p, i) => (

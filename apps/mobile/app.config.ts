@@ -2,6 +2,8 @@ import type { ExpoConfig } from 'expo/config';
 // Brand is centralised: rename the app in packages/config/src/brand.json.
 import brand from '../../packages/config/src/brand.json';
 
+const CAMERA = `${brand.name} n’utilise l’appareil photo que si vous prenez une photo de profil ou acceptez la vidéo pendant un appel.`;
+
 const config: ExpoConfig = {
   name: brand.name,
   slug: brand.slug,
@@ -14,7 +16,7 @@ const config: ExpoConfig = {
     supportsTablet: false,
     infoPlist: {
       NSLocationWhenInUseUsageDescription: `${brand.name} utilise une position approximative uniquement si vous activez « Croisés ».`,
-      NSCameraUsageDescription: `${brand.name} n’active la caméra que lorsque vous l’acceptez pendant un appel vidéo.`,
+      NSCameraUsageDescription: CAMERA,
       NSMicrophoneUsageDescription: `${brand.name} utilise le micro pendant les appels que vous acceptez.`,
     },
   },
@@ -34,6 +36,12 @@ const config: ExpoConfig = {
     // Live calls (LiveKit / WebRTC): native modules, so a development build is required (not Expo Go).
     ['@livekit/react-native-expo-plugin', { android: { audioType: 'communication' } }],
     '@config-plugins/react-native-webrtc',
+    // Profile photos: system photo picker (no full library access), camera only when the member chooses it.
+    ['expo-image-picker', {
+      photosPermission: `${brand.name} n’accède qu’aux photos que vous choisissez pour votre profil.`,
+      cameraPermission: CAMERA,
+      microphonePermission: false,
+    }],
   ],
   experiments: { typedRoutes: true },
   extra: { apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000' },

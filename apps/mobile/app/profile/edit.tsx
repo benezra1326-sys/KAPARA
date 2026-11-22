@@ -1,33 +1,22 @@
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { radius, space } from '@kapara/design';
+import { space } from '@kapara/design';
 import { FIELD_GROUPS, MAX_PROMPTS, answerLabel, type FieldMeta } from '../../src/me/fields';
 import { ageFrom, useMe, type SensitiveField } from '../../src/me/store';
-import { useTheme } from '../../src/theme';
-import { Button, DemoBadge, Row, Screen, Section, Text, VisibilityTag } from '../../src/ui';
-import { photoSource } from '../../src/demo/images';
+import { Button, PhotoGrid, Row, Screen, Section, Text, VisibilityTag } from '../../src/ui';
 
 /** "Mon profil": everything editable, each sensitive answer with its visibility in plain sight. */
 export default function EditProfile() {
   const { t } = useTranslation();
-  const { c } = useTheme();
   const me = useMe();
   const age = ageFrom(me.birthDate);
 
   return (
     <Screen back="back" title={t('edit.title')} subtitle={me.firstName ? `${me.firstName}${age ? `, ${age}` : ''}` : undefined}
       right={<Button kind="ghost" label={t('edit.preview')} onPress={() => router.push('/profile/preview')} />}>
-      <Section title={t('edit.photos')} footnote={t('edit.photosSoon')}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ padding: space.lg, gap: space.md }}>
-          {me.photos.map((p, i) => (
-            <View key={p.id} style={{ width: 96, height: 128, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-              <Image source={photoSource(p.url)} style={{ flex: 1 }} contentFit="cover" accessibilityLabel={t('edit.photoN', { n: i + 1 })} />
-              {p.isDemo ? <View style={{ position: 'absolute', top: space.xs, start: space.xs, transform: [{ scale: 0.8 }] }}><DemoBadge /></View> : null}
-            </View>
-          ))}
-        </ScrollView>
+      <Section title={t('edit.photos')}>
+        <PhotoGrid />
       </Section>
 
       <Section title={t('edit.essentials')}>

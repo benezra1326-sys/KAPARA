@@ -1,17 +1,21 @@
 import {
-  BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, Module, NotFoundException, Param, Put, Post, UseGuards,
+  BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, Module, NotFoundException, Param, Put, Post, Req, UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import { RULES } from '@kapara/config';
 import {
   AccountSettings, ConsentGrant, JewishLife, JewishLifeField, LocationUpdate, PhotosUpdate, PreferencesInput, ProfileUpdate,
-  SENSITIVE_POLICY_VERSION,
+  PHOTO_LIMITS, SENSITIVE_POLICY_VERSION,
 } from '@kapara/shared';
 import { AccountsService } from '../auth/accounts.service';
 import { AuthGuard, CurrentUser, type AuthUser } from '../auth/auth.guard';
 import { SessionsService } from '../auth/sessions.service';
 import { ageOn } from '../common/age';
 import { ZodPipe } from '../common/zod.pipe';
+import { requestBase, type HttpRequest } from '../media/http';
+import { MediaModule } from '../media/media.module';
+import { planPhotos } from '../media/photo-plan';
+import { PhotoStorage } from '../media/storage';
 import { PrismaService } from '../prisma/prisma.service';
 import { applyJewishLifeUpdate, eraseField } from './jewish-life-update';
 import { ProfilesService } from './profiles.service';
@@ -33,6 +37,7 @@ class ProfilesController {
     private readonly profiles: ProfilesService,
     private readonly accounts: AccountsService,
     private readonly sessions: SessionsService,
+    private readonly storage: PhotoStorage,
   ) {}
 
   /** Everything about me, plus what onboarding still needs. */
@@ -81,14 +86,36 @@ class ProfilesController {
     return this.profiles.view(me.id, me.id);
   }
 
-  /** Replaces the photo list (order = position). Upload storage is a separate service. */
+  /**
+   * Sets the ordered photo list (first = main photo). Entries are existing
+   * photos (`id`) or files just uploaded with a ticket (`key`), checked here:
+   * they must exist, be a real JPEG/PNG/WebP and stay under the size limit.
+   * Photos left out are deleted, stored file included.
+   */
   @Put('me/photos')
-  async photos(@CurrentUser() me: AuthUser, @Body(new ZodPipe(PhotosUpdate)) b: PhotosUpdate) {
+  async photos(@CurrentUser() me: AuthUser, @Body(new ZodPipe(PhotosUpdate)) b: PhotosUpdate, @Req() req: HttpRequest) {
     await this.requireProfile(me.id);
+    const existing = await this.prisma.photo.findMany({ where: { profileId: me.id }, select: { id: true, storageKey: true } });
+    const plan = planPhotos(me.id, existing, b.photos);
+    if (!plan.ok) throw new BadRequestException(plan.error);
+    const created = plan.photos.flatMap((p) => (p.kind === 'create' ? [p] : []));
+    const invalid: string[] = [];
+    for (const p of created) {
+      const f = await this.storage.inspect(p.key);
+      if (!f || !f.type || f.size > PHOTO_LIMITS.maxBytes) invalid.push(p.key);
+    }
+    if (invalid.length) {
+      await this.storage.remove(invalid);
+      throw new BadRequestException({ code: 'photo_upload_invalid', keys: invalid });
+    }
+    const base = requestBase(req);
     await this.prisma.$transaction([
-      this.prisma.photo.deleteMany({ where: { profileId: me.id } }),
-      this.prisma.photo.createMany({ data: b.photos.map((p, position) => ({ profileId: me.id, url: p.url, caption: p.caption, position })) }),
+      this.prisma.photo.deleteMany({ where: { profileId: me.id, id: { in: plan.removeIds } } }),
+      ...plan.photos.map((p) => (p.kind === 'keep'
+        ? this.prisma.photo.update({ where: { id: p.id }, data: { position: p.position, ...(p.caption !== undefined ? { caption: p.caption } : {}) } })
+        : this.prisma.photo.create({ data: { profileId: me.id, url: this.storage.publicUrl(p.key, base), storageKey: p.key, caption: p.caption, position: p.position } }))),
     ]);
+    await this.storage.remove(plan.removeKeys);
     return this.profiles.view(me.id, me.id);
   }
 
@@ -157,7 +184,9 @@ class ProfilesController {
   @Delete('me')
   async deleteAccount(@CurrentUser() me: AuthUser) {
     await this.sessions.revokeAll(me.id);
+    const files = await this.prisma.photo.findMany({ where: { profileId: me.id, storageKey: { not: null } }, select: { storageKey: true } });
     await this.prisma.user.delete({ where: { id: me.id } });
+    await this.storage.remove(files.map((f) => f.storageKey!));
     return { ok: true };
   }
 
@@ -201,6 +230,7 @@ class PreferencesController {
 }
 
 @Module({
+  imports: [MediaModule],
   controllers: [ProfilesController, PreferencesController],
   providers: [ProfilesService],
   exports: [ProfilesService],

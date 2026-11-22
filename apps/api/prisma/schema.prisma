@@ -98,6 +98,8 @@ model Photo {
   profileId String
   profile   Profile @relation(fields: [profileId], references: [userId], onDelete: Cascade)
   url       String
+  /// Object key in photo storage (S3 or local fallback). Null for demo illustrations.
+  storageKey String? @unique
   caption   String?
   position  Int
   isDemo    Boolean @default(false)

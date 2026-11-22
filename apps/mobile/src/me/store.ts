@@ -1,8 +1,10 @@
 import { useSyncExternalStore } from 'react';
 import { LAUNCH_REGION } from '@kapara/config';
-import type { Gender, JewishLife, Photo, Prompt, ProfileUpdate, Visibility } from '@kapara/shared';
+import type { Gender, JewishLife, Prompt, ProfileUpdate, Visibility } from '@kapara/shared';
+import { DEMO_MODE } from '../api/client';
 import { DEMO_VIEWER_KEY, momentUrl, portraitUrl } from '../demo/people';
 import type { JLKey } from './fields';
+import type { MyPhoto } from './photos';
 
 export type SensitiveField = NonNullable<JewishLife[JLKey]>;
 
@@ -15,7 +17,8 @@ export interface MyProfile {
   languages: string[];
   regionCode: string;
   prompts: Prompt[];
-  photos: Photo[];
+  /** Ordered, first = main photo. See src/me/photos.ts for upload states. */
+  photos: MyPhoto[];
   jewishLife: Partial<JewishLife>;
   /** field -> ISO date of explicit consent. Removing an entry = consent withdrawn. */
   consents: Partial<Record<JLKey, string>>;
@@ -31,11 +34,11 @@ export const storesData = (f: Pick<SensitiveField, 'value' | 'preferNotToSay' | 
   !f.preferNotToSay && ((f.value !== null && f.value !== undefined && !(Array.isArray(f.value) && !f.value.length)) || !!f.note?.trim());
 
 /** Demo: the viewer's generated illustrations (src/demo/art), never a real person's photo. */
-const demoPhotos: Photo[] = [portraitUrl(DEMO_VIEWER_KEY), momentUrl(DEMO_VIEWER_KEY, 0)].map((url, n) => ({ id: `me-${n}`, url, isDemo: true }));
+const demoPhotos: MyPhoto[] = [portraitUrl(DEMO_VIEWER_KEY), momentUrl(DEMO_VIEWER_KEY, 0)].map((url, n) => ({ id: `me-${n}`, url, isDemo: true }));
 
 const initial: MyProfile = {
   onboarded: false, firstName: '', headline: '', languages: ['fr'], regionCode: LAUNCH_REGION.code,
-  prompts: [], photos: demoPhotos, jewishLife: {}, consents: {},
+  prompts: [], photos: DEMO_MODE ? demoPhotos : [], jewishLife: {}, consents: {},
 };
 
 /**

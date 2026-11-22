@@ -3,6 +3,7 @@ import {
   ChildrenWish, CommunityAttendance, HolidaysPractice, ImportanceOfJewishPartner, JewishLife,
   KashrutPractice, PracticeRelation, RelationshipIntent, ShabbatPractice, TraditionPlace,
 } from './jewish-life';
+import { PHOTO_LIMITS, PhotoRef } from './media';
 import { Preferences, Prompt, PROMPT_KEYS } from './profile';
 
 export const Gender = z.enum(['woman', 'man', 'nonbinary']);
@@ -50,11 +51,13 @@ export const ProfileUpdate = z.object({
 });
 export type ProfileUpdate = z.infer<typeof ProfileUpdate>;
 
+/**
+ * The full, ordered photo list (first = main photo). Photos left out are
+ * deleted, including the stored file. An empty list is allowed: the profile
+ * is then simply not suggested to anyone.
+ */
 export const PhotosUpdate = z.object({
-  photos: z.array(z.object({
-    url: z.string().url().max(2048).refine((u) => u.startsWith('https://'), 'https_only'),
-    caption: z.string().trim().max(120).optional(),
-  })).min(1).max(6),
+  photos: z.array(PhotoRef).max(PHOTO_LIMITS.maxCount),
 });
 export type PhotosUpdate = z.infer<typeof PhotosUpdate>;
 

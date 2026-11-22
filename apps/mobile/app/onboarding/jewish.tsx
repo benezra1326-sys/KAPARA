@@ -36,13 +36,13 @@ export default function OnbJewish() {
   };
 
   if (phase.kind === 'intro') return (
-    <Screen back="back" title={t('jewishLife.sectionTitle')} subtitle={t('onb.step', { n: 2, total: 3 })} footer={
+    <Screen back="back" title={t('jewishLife.sectionTitle')} subtitle={t('onb.step', { n: 3, total: 4 })} footer={
       <>
         <Button label={t('onb.jlAnswer')} onPress={() => setPhase({ kind: 'question', i: 0 })} />
         <Button kind="ghost" label={t('onb.jlLater')} onPress={() => router.push('/onboarding/prompts')} />
       </>
     }>
-      <View style={{ marginBottom: space.xl }}><Progress total={3} current={1} /></View>
+      <View style={{ marginBottom: space.xl }}><Progress total={4} current={2} /></View>
       <View style={{ paddingHorizontal: space.xl, gap: space.lg }}>
         <Text variant="quote">{t('onb.jlLead')}</Text>
         {(['optional', 'private', 'consent', 'never'] as const).map((k) => (
@@ -77,7 +77,7 @@ export default function OnbJewish() {
 
   // share: storing any answer needs explicit consent; who sees it is a separate choice.
   return (
-    <Screen back="back" title={t('onb.shareTitle')} subtitle={t('onb.step', { n: 2, total: 3 })} footer={
+    <Screen back="back" title={t('onb.shareTitle')} subtitle={t('onb.step', { n: 3, total: 4 })} footer={
       <>
         <Button label={t('onb.continue')} onPress={() => (answeredKeys.length ? setAsking(true) : finish(false))} />
         {answeredKeys.length ? <Button kind="ghost" label={t('onb.discard')} onPress={() => finish(false)} /> : null}
