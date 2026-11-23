@@ -1209,6 +1209,8 @@ export default {
     demoNotice: 'Mode démonstration : vos réponses restent sur ce téléphone, rien n’est envoyé.',
     basicsTitle: 'Faisons connaissance',
     basicsIntro: 'Quelques informations simples. Vous pourrez tout modifier ensuite.',
+    resumeAs: 'Vous êtes connecté avec {{provider}}{{email}}. Votre profil n’est pas encore terminé : reprenons là où vous vous êtes arrêté.',
+    notYou: 'Ce n’est pas vous ? Se déconnecter',
     jlLead: 'Si vous le souhaitez, quelques questions sur votre rapport à la vie juive.',
     jlPoints: {
       optional: 'Chaque question est facultative, avec « Je préfère ne pas répondre ».',

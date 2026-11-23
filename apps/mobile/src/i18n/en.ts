@@ -1207,6 +1207,8 @@ const en: DeepPartial<typeof fr> = {
     demoNotice: 'Demo mode: your answers stay on this phone, nothing is sent.',
     basicsTitle: 'Let’s get to know you',
     basicsIntro: 'A few simple details. You can change everything later.',
+    resumeAs: 'You are signed in with {{provider}}{{email}}. Your profile is not finished yet: let’s pick up where you left off.',
+    notYou: 'Not you? Sign out',
     jlLead: 'If you’d like, a few questions about your relationship to Jewish life.',
     jlPoints: {
       optional: 'Every question is optional, with “I’d rather not say”.',
