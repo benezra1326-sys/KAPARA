@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { space } from '@kapara/design';
 import { useForYou, useSuggestionFeedback } from '../../src/api/hooks';
 import { DEMO_MODE } from '../../src/api/client';
+import { CLOUD } from '../../src/cloud/client';
 import { useHydrateMe } from '../../src/me/api';
 import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
@@ -77,7 +78,7 @@ export default function ForYou() {
         <Progress total={picks.length} current={i} />
         <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.xl }}>
           {rec ? t('pick.counter', { current: i + 1, total: picks.length }) : t('pick.counterDone', { total: picks.length })}
-          {DEMO_MODE ? `  ·  ${t('ux.demoPicks')}` : ''}
+          {DEMO_MODE && !CLOUD ? `  ·  ${t('ux.demoPicks')}` : ''}
         </Text>
       </View>
 
@@ -101,7 +102,7 @@ export default function ForYou() {
       )}
 
       <ReactSheet profile={rec?.profile} target={target} onClose={() => setTarget(null)}
-        onDone={(matched) => { setReacted((n) => n + 1); advance(matched ? t('pick.matched', { name: rec?.profile.firstName }) : t(DEMO_MODE ? 'pick.sentDemo' : 'pick.sent')); }} />
+        onDone={(matched) => { setReacted((n) => n + 1); advance(matched ? t('pick.matched', { name: rec?.profile.firstName }) : t(CLOUD ? (rec?.profile.isDemo ? 'cloud.sentToDemo' : 'pick.sent') : DEMO_MODE ? 'pick.sentDemo' : 'pick.sent')); }} />
     </Screen>
   );
 

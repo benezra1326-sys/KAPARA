@@ -7,6 +7,8 @@ import { space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
 import { Button, Field, Sheet, Text } from '../ui';
 import { demoAccount, type SignInProvider } from './demo-account';
+import { cloudAccount } from '../cloud/account';
+import { CLOUD, enabledProviders } from '../cloud/client';
 import { ProviderButtons } from './ProviderButtons';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -36,11 +38,27 @@ export function SignInChoices() {
   const clean = email.trim().toLowerCase();
   const invalid = !!clean && !EMAIL.test(clean);
 
+  const say = (msg: string) => { if (Platform.OS === 'web') window.alert(msg); else Alert.alert(msg); };
+
   const press = (p: SignInProvider) => {
     if (p === 'email') { router.push('/onboarding/email'); return; }
+    if (CLOUD) { void real(p); return; }
     if (DEMO_MODE) { setEmail(''); setSheet(p); return; }
     const msg = t('signin.notConfigured', { provider: NAME[p] });
     if (Platform.OS === 'web') window.alert(msg); else Alert.alert(msg);
+  };
+
+  /** Real sign-in: Google and Facebook through Supabase once switched on; Apple waits for the Apple Developer account. */
+  const real = async (p: Exclude<SignInProvider, 'email'>) => {
+    if (p === 'apple') { say(t('cloud.appleSoon')); return; }
+    setBusy(p);
+    try {
+      const on = await enabledProviders();
+      if (!on[p]) { say(t('cloud.providerOff', { provider: NAME[p] })); return; }
+      qc.clear();
+      if (!(await cloudAccount.signInWith(p))) say(t('cloud.err.generic'));
+      // Web: the page leaves for the provider and comes back signed in.
+    } finally { setBusy(null); }
   };
 
   const confirm = async () => {

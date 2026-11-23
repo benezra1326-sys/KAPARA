@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { Redirect, useRouter } from 'expo-router';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { REGIONS } from '@kapara/config';
@@ -8,13 +8,15 @@ import { fonts, radius, shadow, space } from '@kapara/design';
 import { useRole } from '../../src/account';
 import { adminStats, adminStore, useAdmin, type AdminMember, type MemberStatus } from '../../src/admin/store';
 import { DEMO_MODE } from '../../src/api/client';
+import { CLOUD } from '../../src/cloud/client';
 import { photoSource } from '../../src/demo/images';
-import { demoUserId, portraitUrl } from '../../src/demo/people';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, Screen, Text, columnsFor, useLayout } from '../../src/ui';
 
-const TABS = ['overview', 'reports', 'photos', 'members'] as const;
-type Tab = (typeof TABS)[number];
+const ALL_TABS = ['overview', 'reports', 'photos', 'members'] as const;
+// Real accounts: no photo review queue yet (photos are visible as soon as they are added).
+const TABS = CLOUD ? ALL_TABS.filter((x) => x !== 'photos') : ALL_TABS;
+type Tab = (typeof ALL_TABS)[number];
 const cityOf = (code: string) => REGIONS.find((r) => r.code === code)?.city ?? code;
 
 /**
@@ -27,12 +29,18 @@ export default function Admin() {
   const role = useRole();
   const [tab, setTab] = useState<Tab>('overview');
   const all = useAdmin((s) => s);
+  useEffect(() => { if (role === 'admin') void adminStore.load(); }, [role]);
   const counts = useMemo(() => ({ reports: all.reports.filter((r) => r.status === 'open').length, photos: all.photos.filter((p) => p.status === 'pending').length }), [all]);
   if (role !== 'admin') return <Redirect href="/" />;
   return (
     <Screen back="back" title={t('admin.title')} subtitle={t('admin.subtitle')} width="wide">
       <View style={{ paddingHorizontal: space.lg, gap: space.xl, paddingBottom: space.xxxl }}>
-        {DEMO_MODE ? (
+        {CLOUD ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
+            <Text variant="caption" tone="textSubtle" style={{ flex: 1, minWidth: 200 }}>{all.error ? t('cloud.adminError') : t('cloud.adminNotice')}</Text>
+            <Button kind="ghost" label={all.loading ? t('cloud.loading') : t('cloud.refresh')} onPress={() => void adminStore.load()} style={{ paddingHorizontal: space.md }} />
+          </View>
+        ) : DEMO_MODE ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
             <DemoBadge compact />
             <Text variant="caption" tone="textSubtle" style={{ flex: 1 }}>{t('admin.demoNotice')}</Text>
@@ -82,7 +90,18 @@ function Overview({ onGo }: { onGo: (t: Tab) => void }) {
   const all = useAdmin((x) => x);
   const s = useMemo(() => adminStats(all), [all]);
   const cols = columnsFor(Math.min(width, 1080) - space.lg * 2, 160, 4);
-  const tiles: { label: string; value: number; tone?: string; go?: Tab }[] = [
+  const cs = all.cloud;
+  const tiles: { label: string; value: number; tone?: string; go?: Tab }[] = cs ? [
+    { label: t('cloud.stats.members'), value: cs.members, go: 'members' },
+    { label: t('cloud.stats.onboarded'), value: cs.onboarded },
+    { label: t('cloud.stats.signups7d'), value: cs.signups7d },
+    { label: t('cloud.stats.demo'), value: cs.demo },
+    { label: t('cloud.stats.likes'), value: cs.likes },
+    { label: t('cloud.stats.conversations'), value: cs.conversations },
+    { label: t('cloud.stats.messages'), value: cs.messages },
+    { label: t('admin.stats.openReports'), value: cs.openReports, tone: cs.openReports ? c.accent : undefined, go: 'reports' },
+    { label: t('admin.stats.suspended'), value: cs.suspended },
+  ] : [
     { label: t('admin.stats.members'), value: s.members, go: 'members' },
     { label: t('admin.stats.activeToday'), value: s.activeToday },
     { label: t('admin.stats.newThisWeek'), value: s.newThisWeek },
@@ -91,7 +110,7 @@ function Overview({ onGo }: { onGo: (t: Tab) => void }) {
     { label: t('admin.stats.pendingPhotos'), value: s.pendingPhotos, tone: s.pendingPhotos ? c.highlight : undefined, go: 'photos' },
     { label: t('admin.stats.suspended'), value: s.suspended },
   ];
-  const max = Math.max(...Object.values(s.byRegion));
+  const max = Math.max(1, ...Object.values(s.byRegion));
   return (
     <View style={{ gap: space.xl }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
@@ -135,15 +154,16 @@ function Overview({ onGo }: { onGo: (t: Tab) => void }) {
 }
 
 function Who({ k, size = 44 }: { k: string; size?: number }) {
+  const { t } = useTranslation();
   const { c } = useTheme();
   const m = useAdmin((s) => s.members.find((x) => x.key === k));
   if (!m) return null;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-      <Image source={photoSource(portraitUrl(k))} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.surfaceAlt }} contentFit="cover" contentPosition="top" accessible={false} />
+      <Image source={m.photoUrl ? photoSource(m.photoUrl) : undefined} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.surfaceAlt }} contentFit="cover" contentPosition="top" accessible={false} />
       <View>
-        <Text variant="bodyStrong">{m.person.firstName}, {m.age}</Text>
-        <Text variant="caption" tone="textMuted">{cityOf(m.person.regionCode)}</Text>
+        <Text variant="bodyStrong">{m.firstName}{m.age ? `, ${m.age}` : ''}{m.isAdmin ? ` · ${t('cloud.adminTag')}` : ''}</Text>
+        <Text variant="caption" tone="textMuted">{m.isDemo ? `${t('cloud.demoTag')} · ` : ''}{cityOf(m.regionCode)}{m.email ? ` · ${m.email}` : ''}</Text>
       </View>
     </View>
   );
@@ -155,7 +175,7 @@ function Reports() {
   const router = useRouter();
   const reports = useAdmin((s) => s.reports);
   const members = useAdmin((s) => s.members);
-  const nameOf = (k: string) => members.find((m) => m.key === k)?.person.firstName ?? '';
+  const nameOf = (k: string) => members.find((m) => m.key === k)?.firstName ?? '';
   const [showAll, setShowAll] = useState(false);
   const list = showAll ? reports : reports.filter((r) => r.status === 'open');
   return (
@@ -177,7 +197,7 @@ function Reports() {
           <Text variant="caption" tone="textSubtle">{t('admin.reportedBy', { name: nameOf(r.reporterKey) })}</Text>
           {r.status === 'open' ? (
             <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
-              <Button kind="secondary" label={t('admin.viewProfile')} onPress={() => router.push(`/profile/${demoUserId(r.reportedKey)}`)} style={{ flexGrow: 1 }} />
+              <Button kind="secondary" label={t('admin.viewProfile')} onPress={() => router.push(`/profile/${r.reportedKey}`)} style={{ flexGrow: 1 }} />
               <Button kind="secondary" label={t('admin.dismiss')} onPress={() => adminStore.decideReport(r.id, 'dismissed')} style={{ flexGrow: 1 }} />
               <Button kind="secondary" label={t('admin.warn')} onPress={() => adminStore.decideReport(r.id, 'warned')} style={{ flexGrow: 1 }} />
               <Button label={t('admin.suspend')} onPress={() => adminStore.decideReport(r.id, 'suspended')} style={{ flexGrow: 1 }} />
@@ -241,8 +261,8 @@ function Members() {
     const needle = q.trim().toLowerCase();
     return members
       .filter((m) => filter === 'all' || m.status === filter)
-      .filter((m) => !needle || m.person.firstName.toLowerCase().includes(needle) || cityOf(m.person.regionCode).toLowerCase().includes(needle))
-      .sort((a, b) => a.lastActiveMinutesAgo - b.lastActiveMinutesAgo);
+      .filter((m) => !needle || m.firstName.toLowerCase().includes(needle) || cityOf(m.regionCode).toLowerCase().includes(needle) || !!m.email?.toLowerCase().includes(needle))
+      .sort((a, b) => Number(a.isDemo) - Number(b.isDemo) || (a.lastActiveMinutesAgo ?? 1e9) - (b.lastActiveMinutesAgo ?? 1e9));
   }, [members, q, filter]);
   return (
     <View style={{ gap: space.lg }}>
@@ -258,7 +278,7 @@ function Members() {
       </View>
       <Text variant="caption" tone="textSubtle">{t('admin.membersCount', { count: list.length })}</Text>
       <Panel style={{ padding: 0, gap: 0 }}>
-        {list.map((m, i) => <MemberRow key={m.key} m={m} first={i === 0} onOpen={() => router.push(`/profile/${demoUserId(m.key)}`)} />)}
+        {list.map((m, i) => <MemberRow key={m.key} m={m} first={i === 0} onOpen={() => router.push(`/profile/${m.key}`)} />)}
       </Panel>
     </View>
   );
@@ -269,7 +289,8 @@ function MemberRow({ m, first, onOpen }: { m: AdminMember; first: boolean; onOpe
   const { c } = useTheme();
   const next: MemberStatus = m.status === 'suspended' ? 'active' : 'suspended';
   const color = m.status === 'active' ? c.live : m.status === 'paused' ? c.highlight : c.danger;
-  const seen = m.lastActiveMinutesAgo < 60 ? t('admin.seenMinutes', { count: m.lastActiveMinutesAgo }) : m.lastActiveMinutesAgo < 60 * 24 ? t('admin.seenHours', { count: Math.floor(m.lastActiveMinutesAgo / 60) }) : t('admin.seenDays', { count: Math.floor(m.lastActiveMinutesAgo / 1440) });
+  const ago = m.lastActiveMinutesAgo;
+  const seen = ago === null ? (m.isDemo ? t('cloud.demoTag') : t('cloud.neverSeen')) : ago < 60 ? t('admin.seenMinutes', { count: ago }) : ago < 60 * 24 ? t('admin.seenHours', { count: Math.floor(ago / 60) }) : t('admin.seenDays', { count: Math.floor(ago / 1440) });
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderTopWidth: first ? 0 : 1, borderTopColor: c.border, flexWrap: 'wrap' }}>
       <Pressable onPress={onOpen} accessibilityRole="button" style={{ flex: 1, minWidth: 180 }}><Who k={m.key} /></Pressable>

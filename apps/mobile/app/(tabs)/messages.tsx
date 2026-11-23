@@ -19,7 +19,7 @@ export default function Messages() {
   return (
     <Screen title={t('messages.title')} subtitle={t('messages.subtitle')}
       refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => { void q.refetch(); void inbox.refetch(); }} tintColor={c.accent} />}>
-      <DemoNotice />
+      <DemoNotice real />
       {pending > 0 ? (
         <Pressable onPress={() => router.push('/introductions')} accessibilityRole="button"
           style={({ pressed }) => ({ marginHorizontal: space.lg, marginBottom: space.lg, padding: space.lg, borderRadius: radius.lg, backgroundColor: c.accentSoft, opacity: pressed ? 0.85 : 1, flexDirection: 'row', alignItems: 'center', gap: space.md })}>

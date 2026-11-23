@@ -6,6 +6,9 @@ import {
 } from '@kapara/shared';
 import { api, DEMO_MODE } from '../api/client';
 import { demo } from './demo';
+import { CLOUD } from '../cloud/client';
+import { cloud } from '../cloud/data';
+import { useEffect } from 'react';
 
 /** Data layer for Croisés, conversations, introductions, safety, Shabbat mode. Demo-aware. */
 const json = (body: unknown) => ({ body: JSON.stringify(body) });
@@ -74,13 +77,14 @@ export function useRemoveZone() {
 
 export const useConversations = () => useQuery({
   queryKey: keys.conversations,
-  queryFn: () => (DEMO_MODE ? demo.conversations() : api<ConversationSummary[]>('/conversations')),
+  queryFn: () => (CLOUD ? cloud.conversations() : DEMO_MODE ? demo.conversations() : api<ConversationSummary[]>('/conversations')),
 });
 
 export const useMessages = (id: string) => useQuery({
   queryKey: keys.messages(id),
-  queryFn: () => (DEMO_MODE ? demo.messages(id) : api<ChatMessage[]>(`/conversations/${id}/messages`)),
-  refetchInterval: DEMO_MODE ? false : 15_000, // TODO(realtime): socket push instead of polling
+  queryFn: () => (CLOUD ? cloud.messages(id) : DEMO_MODE ? demo.messages(id) : api<ChatMessage[]>(`/conversations/${id}/messages`)),
+  // Real accounts: pushed by Realtime (useLiveMessages), with a slow safety refresh.
+  refetchInterval: CLOUD ? 30_000 : DEMO_MODE ? false : 15_000,
 });
 
 /** Kindness nudge: the API answers 422 "kindness_check"; the demo checks a tiny list locally. */
@@ -88,6 +92,10 @@ export function useSend(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ body, confirmed }: { body: string; confirmed?: boolean }) => {
+      if (CLOUD) {
+        if (!confirmed && /\b(connasse|connard|ferme[- ]la|ta gueule|stupid|ugly|idiot)\b/i.test(body)) throw new Error('kindness_check');
+        return cloud.send(id, body);
+      }
       if (DEMO_MODE) {
         if (!confirmed && /\b(connasse|connard|ferme[- ]la|ta gueule|stupid|ugly|idiot)\b/i.test(body)) throw new Error('kindness_check');
         return demo.send(id, body);
@@ -101,17 +109,30 @@ export function useSend(id: string) {
   });
 }
 
+/** Real accounts: refreshes the thread as soon as a new message is written. */
+export function useLiveMessages(id: string) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!CLOUD || !id) return undefined;
+    return cloud.onMessages(id, () => {
+      void qc.invalidateQueries({ queryKey: keys.messages(id) });
+      void qc.invalidateQueries({ queryKey: keys.conversations });
+    });
+  }, [id, qc]);
+}
+
 export function useCloseConversation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => (DEMO_MODE ? demo.closeConversation(id) : noContent(`/conversations/${id}`, { method: 'DELETE' })),
+    mutationFn: (id: string) => (CLOUD ? cloud.close(id) : DEMO_MODE ? demo.closeConversation(id) : noContent(`/conversations/${id}`, { method: 'DELETE' })),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.conversations }),
   });
 }
 
 // ── Introductions ──────────────────────────────────────────────────────────
 
-export const useIntroInbox = () => useQuery({ queryKey: keys.inbox, queryFn: () => (DEMO_MODE ? demo.inbox() : api<IntroductionReceived[]>('/introductions/inbox')) });
+// Real accounts: introductions are not in the database yet, so no fictional ones appear among real conversations.
+export const useIntroInbox = () => useQuery({ queryKey: keys.inbox, queryFn: () => (CLOUD ? Promise.resolve([] as IntroductionReceived[]) : DEMO_MODE ? demo.inbox() : api<IntroductionReceived[]>('/introductions/inbox')) });
 export const useIntroSent = () => useQuery({ queryKey: keys.sent, queryFn: () => (DEMO_MODE ? demo.sent() : api<IntroductionSent[]>('/introductions/sent')) });
 
 export function useRespondIntro() {
@@ -139,13 +160,13 @@ const refreshAll = (qc: ReturnType<typeof useQueryClient>) => qc.invalidateQueri
 
 export const useBlocks = () => useQuery({
   queryKey: keys.blocks,
-  queryFn: () => (DEMO_MODE ? demo.blocks() : api<{ userId: string; firstName: string; blockedAt: string }[]>('/safety/blocks')),
+  queryFn: () => (CLOUD ? cloud.blocks() : DEMO_MODE ? demo.blocks() : api<{ userId: string; firstName: string; blockedAt: string }[]>('/safety/blocks')),
 });
 
 export function useBlock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (userId: string) => (DEMO_MODE ? demo.block(userId) : noContent(`/safety/blocks/${userId}`, { method: 'POST' })),
+    mutationFn: (userId: string) => (CLOUD ? cloud.block(userId) : DEMO_MODE ? demo.block(userId) : noContent(`/safety/blocks/${userId}`, { method: 'POST' })),
     onSuccess: () => refreshAll(qc),
   });
 }
@@ -153,7 +174,7 @@ export function useBlock() {
 export function useUnblock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (userId: string) => (DEMO_MODE ? demo.unblock(userId) : noContent(`/safety/blocks/${userId}`, { method: 'DELETE' })),
+    mutationFn: (userId: string) => (CLOUD ? cloud.unblock(userId) : DEMO_MODE ? demo.unblock(userId) : noContent(`/safety/blocks/${userId}`, { method: 'DELETE' })),
     onSuccess: () => refreshAll(qc),
   });
 }
@@ -161,7 +182,7 @@ export function useUnblock() {
 export function useReport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (r: ReportCreate) => (DEMO_MODE ? demo.report(r.userId, r.alsoBlock) : api('/safety/reports', { method: 'POST', ...json(r) })),
+    mutationFn: (r: ReportCreate) => (CLOUD ? cloud.report(r) : DEMO_MODE ? demo.report(r.userId, r.alsoBlock) : api('/safety/reports', { method: 'POST', ...json(r) })),
     onSuccess: () => refreshAll(qc),
   });
 }

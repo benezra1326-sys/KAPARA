@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, hitSlop, radius, space } from '@kapara/design';
 import type { ChatMessage } from '@kapara/shared';
-import { useBlock, useCloseConversation, useConversations, useMessages, useSend } from '../../src/social/api';
+import { useBlock, useCloseConversation, useConversations, useLiveMessages, useMessages, useSend } from '../../src/social/api';
 import { Avatar, DemoNotice, Loading, StackHeader, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
 import { DemoBadge, EmptyState, Text } from '../../src/ui';
@@ -23,6 +23,7 @@ export default function Conversation() {
   const convs = useConversations();
   const conv = convs.data?.find((x) => x.id === id);
   const q = useMessages(id);
+  useLiveMessages(id);
   const send = useSend(id);
   const block = useBlock();
   const close = useCloseConversation();
@@ -110,7 +111,7 @@ export default function Conversation() {
         }
       />
       {conv.other.isDemo ? <View style={{ paddingHorizontal: space.lg, paddingBottom: space.sm }}><DemoBadge /></View> : null}
-      <DemoNotice />
+      <DemoNotice real />
 
       {q.isLoading ? <Loading /> : (
         <FlatList

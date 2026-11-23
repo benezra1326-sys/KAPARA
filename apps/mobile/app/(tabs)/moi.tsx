@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, shadow, space } from '@kapara/design';
-import { demoAccount, signOut as doSignOut, useDemoAccount, useRole } from '../../src/account';
+import { CLOUD, deleteAccount, signOut as doSignOut, useAccountInfo, useRole } from '../../src/account';
 import { confirm } from '../../src/account/confirm';
 import { DEMO_MODE } from '../../src/api/client';
 import { cityOf, nameAndAge } from '../../src/me/identity';
@@ -29,12 +29,14 @@ export default function Me() {
   const photo = me.photos[0];
   const title = nameAndAge(me) || t('ux.profileIncomplete');
 
-  const account = useDemoAccount();
+  const account = useAccountInfo();
   const isAdmin = useRole() === 'admin';
   // The tabs layout clears cached data and returns to the welcome screen.
-  const signOut = () => confirm(t('me.signOutTitle'), t(DEMO_MODE ? 'signin.signOutDemoBody' : 'me.signOutBody'), t('me.signOut'), t('common.cancel'), () => void doSignOut());
-  const forget = () => confirm(t('signin.forgetTitle'), t('signin.forgetBody'), t('signin.forget'), t('common.cancel'), () => void demoAccount.deleteAccount());
-  const via = account ? t('signin.connectedVia', { provider: t(`signin.provider.${account.provider}`) }) + (account.email ? ` · ${account.email}` : '') : undefined;
+  const signOut = () => confirm(t('me.signOutTitle'), t(CLOUD ? 'cloud.signOutBody' : DEMO_MODE ? 'signin.signOutDemoBody' : 'me.signOutBody'), t('me.signOut'), t('common.cancel'), () => void doSignOut());
+  const forget = () => CLOUD
+    ? confirm(t('cloud.deleteTitle'), t('cloud.deleteBody'), t('cloud.delete'), t('common.cancel'), () => void deleteAccount())
+    : confirm(t('signin.forgetTitle'), t('signin.forgetBody'), t('signin.forget'), t('common.cancel'), () => void deleteAccount());
+  const via = account ? t('signin.connectedVia', { provider: t(`signin.provider.${account.provider ?? 'email'}`) }) + (account.email ? ` · ${account.email}` : '') : undefined;
 
   return (
     <Screen title={t('me.title')}>
@@ -94,7 +96,7 @@ export default function Me() {
         <SwitchRow first title={t('me.pause')} value={paused} onValueChange={setPaused} />
         {via ? <Row title={t('signin.account')} value={via} /> : null}
         <Row title={t('me.signOut')} onPress={signOut} trailing={null} />
-        {DEMO_MODE && account ? <Row title={t('signin.forget')} onPress={forget} trailing={null} /> : null}
+        {CLOUD && account ? <Row title={t('cloud.delete')} onPress={forget} trailing={null} /> : DEMO_MODE && account ? <Row title={t('signin.forget')} onPress={forget} trailing={null} /> : null}
       </Section>
     </Screen>
   );

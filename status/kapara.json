@@ -7,11 +7,11 @@
   "statut": "en_cours",
   "avancement": 70,
   "resume": "Première version complète intégrée sur main : connexion par code e-mail, Apple et Google ; profil avec questions de vie juive privées par défaut et consentement champ par champ ; « Pour toi » en sélection quotidienne expliquée ; Croisés à position floue ; Live avec invitation, acceptation et caméra séparées ; présentations en double accord ; messages, blocage, signalement et mode Shabbat. Écran « Mes préférences » (âge, distance, genres, critères indispensables réciproques et préférences pondérées). Mode connecté réel : connexion par code e-mail dans l’app, session sécurisée avec rafraîchissement automatique, Pour toi, Croisés et Messages sur la vraie API (essayé de bout en bout contre une base PostGIS). Photos de profil réelles : choix ou prise de vue, recadrage, métadonnées GPS retirées, envoi direct vers un stockage S3 par URL signée, classement et suppression (repli local en développement, photos gardées sur le téléphone en démo). App traduite en français, anglais et hébreu, 82 tests verts. Démo web refaite en vraie interface responsive (22/11) : navigation en bas sur téléphone et en barre latérale sur ordinateur, profils en deux colonnes sur grand écran, photos à taille maîtrisée, nouvelle palette accessible, icônes dessinées, profil « Moi » enfin cohérent avec l’éditeur (une seule source, âge calculé).",
-  "prochaine_etape": "Démo web en ligne sur https://motek-demo.vercel.app (ancienne adresse kapara-demo.vercel.app toujours active) (iPhone : Safari, Partager, « Sur l'écran d'accueil »). Ensuite : vraie app iPhone via TestFlight (compte Apple Developer), stockage des photos en production (bucket S3/R2), appels réels LiveKit, envoi des e-mails de code (Resend).",
+  "prochaine_etape": "Démo web sur vraie base Supabase (https://motek-demo.vercel.app) : comptes e-mail + mot de passe, profil, photos, Pour toi, likes, messages et administration réels. À activer par Avishay : Google et Facebook (docs/supabase.md). Ensuite : app iPhone via TestFlight (compte Apple Developer), envoi d'e-mails (Resend), Croisés et Live sur la base.",
   "blocages": [
     "App iPhone native (TestFlight) : compte Apple Developer (99 $/an) à créer par Avishay.",
     "Mise à jour automatique de la démo : l'app Vercel n'a pas accès au dépôt GitHub KAPARA ; la démo est republiée à la main par Claude après chaque évolution.",
-    "Photos en production : un bucket S3 compatible (ex. Cloudflare R2) et ses clés à fournir (variables S3_* de l'API)."
+    "Connexion Google et Facebook : identifiants OAuth à créer par Avishay et coller dans Supabase (pas à pas dans docs/supabase.md)."
   ],
   "chantiers": [
     {

@@ -19,7 +19,7 @@ export default function Blocked() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <StackHeader title={t('safety.blockedTitle')} />
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space.xxxl }}>
-        <DemoNotice />
+        <DemoNotice real />
         <Section title={t('safety.blockedTitle')} hint={t('safety.unblockHint')}>
           {q.isLoading ? <Loading /> : list.length === 0 ? <Card><Text tone="textMuted">{t('safety.blockedEmpty')}</Text></Card> : (
             <RowGroup>

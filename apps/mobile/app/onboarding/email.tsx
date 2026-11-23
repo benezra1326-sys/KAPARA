@@ -9,11 +9,18 @@ import { afterSignIn } from '../../src/account/SignInChoices';
 import { auth, DEMO_MODE } from '../../src/api/client';
 import { authErrorMessage } from '../../src/api/auth-errors';
 import { Button, Field, Screen, Text } from '../../src/ui';
+import { EmailPassword } from '../../src/account/EmailPassword';
+import { CLOUD } from '../../src/cloud/client';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** Connected mode, step 0: email address. A 6-digit code is sent; no password. */
+/** Real accounts: e-mail and password. Other modes: e-mail address, then a 6-digit code (or the demo account). */
 export default function OnbEmail() {
+  return CLOUD ? <EmailPassword /> : <OnbEmailCode />;
+}
+
+/** Connected mode (own API), step 0: email address. A 6-digit code is sent; no password. */
+function OnbEmailCode() {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [email, setEmail] = useState('');

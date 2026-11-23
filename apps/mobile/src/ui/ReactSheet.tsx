@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { ProfilePublic } from '@kapara/shared';
 import { radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
+import { CLOUD } from '../cloud/client';
 import { useSendLike } from '../api/hooks';
 import { useTheme } from '../theme';
 import { Button } from './Button';
@@ -48,7 +49,7 @@ export function ReactSheet({ profile, target, onClose, onDone }: { profile?: Pro
       <Field label={t('pick.commentLabel')} placeholder={t('forYou.commentPlaceholder')} value={comment} onChangeText={setComment}
         maxLength={200} multiline counter hint={t('pick.commentHint')} />
       {send.isError ? <Text variant="caption" style={{ color: c.danger }}>{t('pick.sendError')}</Text> : null}
-      {DEMO_MODE ? <Text variant="caption" tone="textSubtle">{t('pick.demoSend')}</Text> : null}
+      {DEMO_MODE && !CLOUD ? <Text variant="caption" tone="textSubtle">{t('pick.demoSend')}</Text> : null}
       <Button label={t('pick.send')} onPress={submit} loading={send.isPending} />
     </Sheet>
   );

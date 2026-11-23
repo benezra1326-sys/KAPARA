@@ -33,7 +33,7 @@ export default function Report() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StackHeader title={t('safety.reportTitle', { name })} />
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space.xxxl }} keyboardShouldPersistTaps="handled">
-        <DemoNotice />
+        <DemoNotice real />
         <View style={{ marginHorizontal: space.lg, marginBottom: space.xl, gap: space.md }}>
           <Card>
             <Text tone="textMuted">{t('safety.reportIntro', { name })}</Text>

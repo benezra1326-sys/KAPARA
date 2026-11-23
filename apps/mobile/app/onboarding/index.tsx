@@ -9,6 +9,7 @@ import { space } from '@kapara/design';
 import { useAuthStatus } from '../../src/account';
 import { SignInChoices } from '../../src/account/SignInChoices';
 import { DEMO_MODE } from '../../src/api/client';
+import { CLOUD } from '../../src/cloud/client';
 import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
 import { BrandMark, MeetWays, Text, Wordmark } from '../../src/ui';
@@ -76,7 +77,7 @@ export default function Welcome() {
           <Text variant="overline" tone="textSubtle" accessibilityRole="header" style={{ textAlign: 'center' }}>{t('signin.title')}</Text>
           <SignInChoices />
           <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center', fontSize: 11.5, lineHeight: 15 }}>
-            {t('signin.terms')}{DEMO_MODE ? `\n${t('signin.demoNotice')}` : ''}
+            {t('signin.terms')}{DEMO_MODE && !CLOUD ? `\n${t('signin.demoNotice')}` : ''}
           </Text>
         </Reveal>
       </View>

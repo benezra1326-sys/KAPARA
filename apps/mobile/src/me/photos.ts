@@ -5,6 +5,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { PHOTO_LIMITS, type Photo, type PhotoRef, type PhotoUploadTicket, type ProfilePublic } from '@kapara/shared';
 import { api, ApiError, DEMO_MODE } from '../api/client';
 import { meStore } from './store';
+import { CLOUD, sb } from '../cloud/client';
 
 /**
  * A photo of the member's own profile, as the app holds it:
@@ -116,13 +117,43 @@ let seq = 0;
 export async function addPhoto(uri: string) {
   if (photos().length >= PHOTO_LIMITS.maxCount) return;
   const id = `local-${Date.now()}-${seq++}`;
+  if (CLOUD) {
+    setPhotos((list) => [...list, { id, url: uri, localUri: uri, isDemo: false, status: 'uploading' }]);
+    await sendCloud(id, uri);
+    return;
+  }
   setPhotos((list) => [...list, { id, url: uri, localUri: uri, isDemo: false, ...(DEMO_MODE ? {} : { status: 'uploading' as const }) }]);
   if (!DEMO_MODE) await send(id, uri);
 }
 
 export async function retryPhoto(id: string) {
   const p = photos().find((x) => x.id === id);
-  if (p?.localUri) { patch(id, { status: 'uploading' }); await send(id, p.localUri); }
+  if (p?.localUri) { patch(id, { status: 'uploading' }); await (CLOUD ? sendCloud(id, p.localUri) : send(id, p.localUri)); }
+}
+
+/**
+ * Real storage (Supabase bucket `photos`, folder = the member's id). The
+ * profile row keeps the public URL; the order is saved with the profile.
+ */
+async function sendCloud(id: string, uri: string) {
+  try {
+    const blob = await (await fetch(uri)).blob();
+    if (blob.size > PHOTO_LIMITS.maxBytes) throw new ApiError(413, 'photo_too_large');
+    const { data: u } = await sb.auth.getUser();
+    if (!u.user) throw new ApiError(401, 'signed_out');
+    const path = `${u.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.jpg`;
+    const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    if (error) throw new ApiError(500, 'photo_upload_failed');
+    const url = sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
+    patch(id, { id: path, url, status: undefined });
+  } catch {
+    patch(id, { status: 'error' });
+  }
+}
+
+/** Removes the file from storage too (real accounts). */
+function forgetCloudFile(id: string) {
+  if (CLOUD && id.includes('/')) void sb.storage.from('photos').remove([id]);
 }
 
 async function send(id: string, uri: string) {
@@ -136,6 +167,7 @@ async function send(id: string, uri: string) {
 }
 
 export function removePhoto(id: string) {
+  forgetCloudFile(id);
   setPhotos((list) => list.filter((p) => p.id !== id));
   commitIfLive();
 }
