@@ -31,7 +31,7 @@ export interface PlanState {
   liveFiltersAllowed: boolean;
 }
 
-export type PaywallReason = 'like' | 'liveFilters' | 'picks' | 'seeLikes' | 'rewind' | 'discreet' | 'browse';
+export type PaywallReason = 'like' | 'liveFilters' | 'picks' | 'seeLikes' | 'rewind' | 'discreet' | 'otherCity' | 'browse';
 export const openPaywall = (reason: PaywallReason = 'browse') => router.push({ pathname: '/premium', params: { reason } });
 
 const KEY = ['plan'] as const;

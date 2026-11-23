@@ -13,7 +13,8 @@ import { useMe } from '../../src/me/store';
 import { openPaywall, usePlan } from '../../src/premium/store';
 import { photoSource } from '../../src/demo/images';
 import { appearance, useAppearance, useTheme } from '../../src/theme';
-import { Button, DemoBadge, Icon, Screen, Text } from '../../src/ui';
+import { Button, CitySheet, DemoBadge, Icon, Screen, Text } from '../../src/ui';
+import { useBrowseRegion } from '../../src/me/browse';
 import { Row, Section, SwitchRow } from '../../src/ui/Rows';
 
 /**
@@ -27,6 +28,8 @@ export default function Me() {
   const router = useRouter();
   const me = useMe();
   const [paused, setPausedState] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const browse = useBrowseRegion();
   // With real accounts the pause is saved: a paused profile disappears from everyone's selection.
   useEffect(() => { if (CLOUD) void loadPaused().then(setPausedState); }, []);
   const setPaused = (v: boolean) => {
@@ -88,8 +91,9 @@ export default function Me() {
         <Row first title={t(`premium.plan.${plan.data?.isAdmin ? 'cercle' : sub}`)}
           value={plan.data?.isAdmin ? t('premium.adminShort') : sub === 'free' ? t('premium.freeHint') : t('premium.manage')}
           onPress={() => openPaywall('browse')} />
-        <Row title={t('premium.cityTitle')} value={t('premium.cityHint')} onPress={go('/city')} />
+        <Row title={t('browse.title')} value={t('browse.moiHint', { city: cityOf(browse.code) })} onPress={() => setCityOpen(true)} />
       </Section>
+      <CitySheet visible={cityOpen} onClose={() => setCityOpen(false)} />
 
       <Section title={t('ux.sectionProfile')}>
         <Row first title={t('me.editProfile')} onPress={go('/profile/edit')} />

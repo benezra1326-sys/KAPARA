@@ -6,7 +6,8 @@
  * purchases are set up (Apple Developer account).
  *
  * Rule from the benchmark: safety (block, report), values-based criteria and
- * messages with one's matches are never paid. Changing city is free.
+ * messages with one's matches are never paid. One's own city is free;
+ * looking at another city in "Pour toi" is Plus and Cercle (Avishay, 23/11).
  */
 export type PlanId = 'free' | 'plus' | 'cercle';
 export type Months = 1 | 3 | 6;
@@ -27,12 +28,14 @@ export interface PlanLimits {
   discreet: boolean;
   /** Live: choose gender and city. Free Live is a random worldwide match. Women always have it. */
   liveFilters: boolean;
+  /** "Pour toi" in another city than one's own (travel, a move to come). */
+  otherCity: boolean;
 }
 
 export const LIMITS: Record<PlanId, PlanLimits> = {
-  free: { likesPerDay: 20, picksPerDay: 8, liveCallsPerDay: null, seeLikes: false, rewind: false, discreet: false, liveFilters: false },
-  plus: { likesPerDay: 60, picksPerDay: 20, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: false, liveFilters: true },
-  cercle: { likesPerDay: null, picksPerDay: 40, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: true, liveFilters: true },
+  free: { likesPerDay: 20, picksPerDay: 8, liveCallsPerDay: null, seeLikes: false, rewind: false, discreet: false, liveFilters: false, otherCity: false },
+  plus: { likesPerDay: 60, picksPerDay: 20, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: false, liveFilters: true, otherCity: true },
+  cercle: { likesPerDay: null, picksPerDay: 40, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: true, liveFilters: true, otherCity: true },
 };
 
 /** Monthly price in euros for each commitment (total = monthly × months). */
@@ -57,7 +60,7 @@ export function remaining(limits: PlanLimits, used: Record<QuotaKind, number>, k
 }
 
 /** The cheapest plan that lifts a given limit or unlocks a feature. */
-export function planFor(need: QuotaKind | 'seeLikes' | 'rewind' | 'discreet' | 'picks' | 'liveFilters', from: PlanId): PlanId {
+export function planFor(need: QuotaKind | 'seeLikes' | 'rewind' | 'discreet' | 'picks' | 'liveFilters' | 'otherCity', from: PlanId): PlanId {
   for (const p of PLAN_ORDER.slice(rank(from) + 1)) {
     const l = LIMITS[p], f = LIMITS[from];
     const better =
@@ -78,3 +81,6 @@ export const canFilterLive = (plan: PlanId, gender: string | undefined, isAdmin 
 
 /** The database refuses with "quota_exceeded" once a daily limit is reached. */
 export const isQuotaError = (e: unknown) => e instanceof Error && /quota_exceeded/.test(e.message);
+
+/** May look at another city in "Pour toi". The database's limits don't carry it yet: decided by the plan. */
+export const canBrowseOtherCity = (plan: PlanId, isAdmin = false) => isAdmin || LIMITS[plan].otherCity;

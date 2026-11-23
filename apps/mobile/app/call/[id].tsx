@@ -96,8 +96,15 @@ export default function CallScreen() {
         ) : (
           <Chip icon={videoAllowed ? 'video' : 'audio'} label={videoAllowed ? t('call.videoOnBadge') : t('call.audioOnly')} color={videoAllowed ? OLIVE : INK} />
         )}
-        {demoCall ? <Chip label={t('call.demoBanner')} color="#D4A866" /> : s.join?.mode === 'webrtc' ? <Chip icon="shield" label={t('call.direct')} color={INK_MUTED} /> : null}
+        {demoCall ? <Chip label={t('call.demoBanner')} color={palette.grenatRose} /> : s.join?.mode === 'webrtc' ? <Chip icon="shield" label={t('call.direct')} color={INK_MUTED} /> : null}
       </View>
+      {/* My own microphone and camera, always stated in words (not only by an icon). */}
+      {call.state !== 'invited' && !incomingInvite ? (
+        <View accessibilityLiveRegion="polite" style={{ position: 'absolute', top: insets.top + space.md + 44, left: space.lg, right: space.lg, flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
+          <Chip icon={micOn ? 'mic' : 'micOff'} label={t(micOn ? 'call.micState' : 'call.micOffState')} color={micOn ? INK : palette.grenatRose} />
+          <Chip icon={videoAllowed && cameraOn ? 'video' : 'videoOff'} label={t(!videoAllowed ? 'call.camNever' : cameraOn ? 'call.camState' : 'call.camOffState')} color={videoAllowed && cameraOn ? OLIVE : INK} />
+        </View>
+      ) : null}
 
       {/* Center: the person. Hidden behind real video when it is on. */}
       {!videoAllowed ? (

@@ -156,7 +156,7 @@ function PlanCard({ id, selected, onPress, price, recommended }: { id: Paid; sel
   const lines = [
     l.likesPerDay == null ? t('premium.f.likesUnlimited') : t('premium.f.likes', { count: l.likesPerDay }),
     t('premium.f.picks', { count: l.picksPerDay }),
-    t('premium.f.liveFilters'),
+    t('premium.f.liveFilters'), t('premium.f.otherCity'),
     t('premium.f.seeLikes'), t('premium.f.rewind'),
     ...(l.discreet ? [t('premium.f.discreet')] : []),
   ];
@@ -205,7 +205,7 @@ function Compare({ current }: { current: PlanId }) {
     [t('premium.row.seeLikes'), (id) => LIMITS[id].seeLikes],
     [t('premium.row.rewind'), (id) => LIMITS[id].rewind],
     [t('premium.row.discreet'), (id) => LIMITS[id].discreet],
-    [t('premium.row.city'), () => true],
+    [t('premium.row.city'), (id) => LIMITS[id].otherCity],
     [t('premium.row.messages'), () => true],
   ];
   const ids: PlanId[] = ['free', 'plus', 'cercle'];

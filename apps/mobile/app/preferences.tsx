@@ -13,7 +13,10 @@ import {
   type Criterion, type Prefs,
 } from '../src/me/preferences';
 import { useTheme } from '../src/theme';
-import { Button, ChoiceList, Chips, EmptyState, Row, Screen, Section, Sheet, Text } from '../src/ui';
+import { Button, ChoiceList, Chips, CitySheet, EmptyState, Row, Screen, Section, Sheet, Text } from '../src/ui';
+import { useBrowseRegion } from '../src/me/browse';
+import { cityOf } from '../src/me/identity';
+import { useMe } from '../src/me/store';
 
 /**
  * "Mes préférences": who the member wants to meet. Hard limits (age,
@@ -28,6 +31,9 @@ export default function PreferencesScreen() {
   const save = useSavePreferences();
   const [draft, setDraft] = useState<Prefs | null>(null);
   const [editing, setEditing] = useState<MatchableField | null>(null);
+  const [cityOpen, setCityOpen] = useState(false);
+  const browse = useBrowseRegion();
+  const languages = useMe((s) => s.languages);
 
   useEffect(() => { if (q.data && !draft) setDraft(q.data); }, [q.data, draft]);
 
@@ -61,6 +67,7 @@ export default function PreferencesScreen() {
   }
 
   const set = (patch: Partial<Prefs>) => setDraft({ ...draft, ...patch });
+  const intent = criterionOf(draft, 'relationshipIntent' as MatchableField);
   const toggleGender = (g: string) => set({ genders: draft.genders.includes(g as Prefs['genders'][number]) ? draft.genders.filter((x) => x !== g) : [...draft.genders, g as Prefs['genders'][number]] });
 
   return (
@@ -84,6 +91,12 @@ export default function PreferencesScreen() {
         ) : null}
       </View>
 
+      <Block title={t('preferences.cityBlock')} value={cityOf(browse.code)}>
+        <Text variant="caption" tone="textMuted">{t('preferences.cityNote', { home: cityOf(browse.home) })}</Text>
+        <Button kind="secondary" icon="pin" label={t('preferences.change')} onPress={() => setCityOpen(true)} style={{ alignSelf: 'flex-start' }} />
+        <CitySheet visible={cityOpen} onClose={() => setCityOpen(false)} />
+      </Block>
+
       <Block title={t('profile.seeking')}>
         <Chips label={t('profile.seeking')} values={draft.genders} onToggle={toggleGender}
           options={GENDERS.map((g) => ({ id: g, label: t(`profile.gender.${g}`) }))} />
@@ -100,6 +113,18 @@ export default function PreferencesScreen() {
         <Chips label={t('preferences.distance')} values={[String(draft.maxDistanceKm)]}
           onToggle={(id) => set({ maxDistanceKm: Number(id) })}
           options={DISTANCE_STEPS.map((km) => ({ id: String(km), label: t('preferences.km', { km }) }))} />
+      </Block>
+
+      {CRITERIA.includes('relationshipIntent' as MatchableField) ? (
+        <Block title={t('preferences.intentBlock')}>
+          <Text>{intent.mode === 'none' ? t('preferences.intentNone') : summary(t, 'relationshipIntent' as MatchableField, intent)}</Text>
+          <Button kind="secondary" label={t('preferences.change')} onPress={() => setEditing('relationshipIntent' as MatchableField)} style={{ alignSelf: 'flex-start' }} />
+        </Block>
+      ) : null}
+
+      <Block title={t('preferences.languagesBlock')}>
+        <Text variant="caption" tone="textMuted">{t('preferences.languagesNote', { list: languages.map((l) => t(`lang.${l}`, { defaultValue: l })).join(', ') })}</Text>
+        <Button kind="ghost" label={t('preferences.editLanguages')} onPress={() => router.push('/profile/basics')} style={{ alignSelf: 'flex-start', paddingHorizontal: 0 }} />
       </Block>
 
       <View style={{ paddingHorizontal: space.xl, gap: space.xs, marginBottom: space.md }}>
@@ -133,7 +158,7 @@ function summary(t: TFunction, key: MatchableField, cr: Criterion) {
 function Block({ title, value, hint, children }: { title: string; value?: string; hint?: string; children: React.ReactNode }) {
   const { c } = useTheme();
   return (
-    <View style={{ marginHorizontal: space.lg, marginBottom: space.xl, padding: space.xl, gap: space.md, borderRadius: radius.lg, backgroundColor: c.surface }}>
+    <View style={{ marginHorizontal: space.lg, marginBottom: space.lg, padding: space.xl, gap: space.md, borderRadius: radius.lg, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border }}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md }}>
         <Text variant="overline" tone="textSubtle" accessibilityRole="header">{title}</Text>
         {value ? <Text variant="quote">{value}</Text> : null}
