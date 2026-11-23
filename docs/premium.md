@@ -3,17 +3,19 @@
 ## Principe
 Tout l'essentiel est gratuit, pour toujours : profil, questions, préférences et critères de valeurs, **changer de ville**, écrire à ses matchs, recevoir des appels Live, Croisés, et toute la sécurité (blocage, signalement, mode Shabbat). On ne fait jamais payer la sécurité ni les valeurs (benchmark, point 11).
 
-Ce qui est limité, **par jour** (remise à zéro à minuit, heure locale du membre) : les réactions envoyées, la taille de la sélection « Pour toi », les appels Live lancés.
+Ce qui est limité, **par jour** (remise à zéro à minuit, heure locale du membre) : les réactions envoyées et la taille de la sélection « Pour toi ».
 
 | | Gratuit | Plus | Cercle |
 |---|---|---|---|
-| Réactions par jour | 5 | 25 | illimitées |
+| Réactions par jour | 20 | 60 | illimitées |
 | Profils par jour dans Pour toi | 8 | 20 | 40 |
-| Appels Live lancés par jour | 3 | 15 | illimités |
+| Live : choisir le sexe et la ville | non (hasard, monde entier) | oui | oui |
 | Voir qui vous a remarqué | nombre seulement | oui | oui |
 | Revenir sur un profil passé | non | oui | oui |
 | Mode discret (visible seulement des personnes remarquées) | non | non | oui |
 | Prix par mois (1 / 3 / 6 mois) | 0 € | 14,99 / 11,99 / 9,99 € | 29,99 / 23,99 / 19,99 € |
+
+Le Live est gratuit et illimité pour tous, en appariement aléatoire mondial. Choisir le sexe et la ville est inclus dans Plus et Cercle, pour tout le monde sans exception selon le sexe (`can_filter_live()`, choix d'Avishay du 23/11 : un prix selon le sexe pose un risque juridique dans l'UE).
 
 L'administrateur (Avishay) a tout, sans limite.
 

@@ -47,9 +47,9 @@ export default function Premium() {
   const buy = () => subscribe.mutate({ plan: choice, months }, { onSuccess: () => setDone(true) });
 
   const headline = p && p.plan === 'free' && reason !== 'browse'
-    ? t(`premium.reason.${reason}`, { count: reason === 'like' ? LIMITS.free.likesPerDay ?? 0 : reason === 'liveCall' ? LIMITS.free.liveCallsPerDay ?? 0 : LIMITS.free.picksPerDay })
+    ? t(`premium.reason.${reason}`, { count: reason === 'like' ? LIMITS.free.likesPerDay ?? 0 : LIMITS.free.picksPerDay })
     : t('premium.title');
-  const sub = p && p.plan === 'free' && (reason === 'like' || reason === 'liveCall' || reason === 'picks')
+  const sub = p && p.plan === 'free' && (reason === 'like' || reason === 'picks')
     ? t('premium.resetsAt') : t('premium.subtitle');
 
   return (
@@ -114,6 +114,7 @@ export default function Premium() {
               ) : null}
 
               <Compare current={current} />
+              <Text variant="caption" style={{ color: N.muted, marginHorizontal: space.xl, marginTop: space.md, fontSize: 14, lineHeight: 20 }}>{t('premium.liveNote')}</Text>
 
               <View style={{ paddingHorizontal: space.xl, marginTop: space.xl, gap: space.sm }}>
                 <Text variant="overline" style={{ color: N.subtle }}>{t('premium.alwaysFreeTitle')}</Text>
@@ -155,7 +156,7 @@ function PlanCard({ id, selected, onPress, price, recommended }: { id: Paid; sel
   const lines = [
     l.likesPerDay == null ? t('premium.f.likesUnlimited') : t('premium.f.likes', { count: l.likesPerDay }),
     t('premium.f.picks', { count: l.picksPerDay }),
-    l.liveCallsPerDay == null ? t('premium.f.liveUnlimited') : t('premium.f.live', { count: l.liveCallsPerDay }),
+    t('premium.f.liveFilters'),
     t('premium.f.seeLikes'), t('premium.f.rewind'),
     ...(l.discreet ? [t('premium.f.discreet')] : []),
   ];
@@ -200,7 +201,7 @@ function Compare({ current }: { current: PlanId }) {
   const rows: [string, (id: PlanId) => number | null | boolean][] = [
     [t('premium.row.likes'), (id) => LIMITS[id].likesPerDay],
     [t('premium.row.picks'), (id) => LIMITS[id].picksPerDay],
-    [t('premium.row.live'), (id) => LIMITS[id].liveCallsPerDay],
+    [t('premium.row.liveFilters'), (id) => LIMITS[id].liveFilters],
     [t('premium.row.seeLikes'), (id) => LIMITS[id].seeLikes],
     [t('premium.row.rewind'), (id) => LIMITS[id].rewind],
     [t('premium.row.discreet'), (id) => LIMITS[id].discreet],

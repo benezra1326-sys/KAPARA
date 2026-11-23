@@ -25,12 +25,14 @@ export interface PlanLimits {
   rewind: boolean;
   /** Discreet mode: only people you noticed can see you. */
   discreet: boolean;
+  /** Live: choose gender and city. Free Live is a random worldwide match. */
+  liveFilters: boolean;
 }
 
 export const LIMITS: Record<PlanId, PlanLimits> = {
-  free: { likesPerDay: 5, picksPerDay: 8, liveCallsPerDay: 3, seeLikes: false, rewind: false, discreet: false },
-  plus: { likesPerDay: 25, picksPerDay: 20, liveCallsPerDay: 15, seeLikes: true, rewind: true, discreet: false },
-  cercle: { likesPerDay: null, picksPerDay: 40, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: true },
+  free: { likesPerDay: 20, picksPerDay: 8, liveCallsPerDay: null, seeLikes: false, rewind: false, discreet: false, liveFilters: false },
+  plus: { likesPerDay: 60, picksPerDay: 20, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: false, liveFilters: true },
+  cercle: { likesPerDay: null, picksPerDay: 40, liveCallsPerDay: null, seeLikes: true, rewind: true, discreet: true, liveFilters: true },
 };
 
 /** Monthly price in euros for each commitment (total = monthly × months). */
@@ -55,7 +57,7 @@ export function remaining(limits: PlanLimits, used: Record<QuotaKind, number>, k
 }
 
 /** The cheapest plan that lifts a given limit or unlocks a feature. */
-export function planFor(need: QuotaKind | 'seeLikes' | 'rewind' | 'discreet' | 'picks', from: PlanId): PlanId {
+export function planFor(need: QuotaKind | 'seeLikes' | 'rewind' | 'discreet' | 'picks' | 'liveFilters', from: PlanId): PlanId {
   for (const p of PLAN_ORDER.slice(rank(from) + 1)) {
     const l = LIMITS[p], f = LIMITS[from];
     const better =
@@ -67,6 +69,12 @@ export function planFor(need: QuotaKind | 'seeLikes' | 'rewind' | 'discreet' | '
   }
   return 'cercle';
 }
+
+/**
+ * Live: choosing gender and city. Paid plans and the administrator, for
+ * everyone alike (Avishay, 23/11). Same rule as can_filter_live() in the database.
+ */
+export const canFilterLive = (plan: PlanId, isAdmin = false) => isAdmin || LIMITS[plan].liveFilters;
 
 /** The database refuses with "quota_exceeded" once a daily limit is reached. */
 export const isQuotaError = (e: unknown) => e instanceof Error && /quota_exceeded/.test(e.message);

@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { isQuotaError, LIMITS, planFor, remaining, saving, total } from '../premium/plans';
+import { canFilterLive, isQuotaError, LIMITS, planFor, remaining, saving, total } from '../premium/plans';
 
-test('free plan: 5 reactions and 3 Live calls a day, then nothing left', () => {
-  assert.equal(remaining(LIMITS.free, { like: 0, liveCall: 0 }, 'like'), 5);
-  assert.equal(remaining(LIMITS.free, { like: 7, liveCall: 3 }, 'like'), 0);
-  assert.equal(remaining(LIMITS.free, { like: 0, liveCall: 3 }, 'liveCall'), 0);
+test('free plan: 20 reactions a day, then nothing left; Live never capped', () => {
+  assert.equal(remaining(LIMITS.free, { like: 0, liveCall: 0 }, 'like'), 20);
+  assert.equal(remaining(LIMITS.free, { like: 25, liveCall: 0 }, 'like'), 0);
+  assert.equal(remaining(LIMITS.free, { like: 0, liveCall: 99 }, 'liveCall'), null);
+});
+
+test('Live gender and city: paid plans only, the same for everyone', () => {
+  assert.equal(canFilterLive('free'), false);
+  assert.equal(canFilterLive('plus'), true);
+  assert.equal(canFilterLive('free', true), true);
+  assert.equal(planFor('liveFilters', 'free'), 'plus');
 });
 
 test('Cercle is unlimited for reactions and Live', () => {
