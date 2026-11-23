@@ -1321,7 +1321,7 @@ const en: DeepPartial<typeof fr> = {
       city: 'Change city',
       messages: 'Write to your matches',
     },
-    liveNote: 'Live is free for everyone: a random match, worldwide. Choosing gender and city is included in Plus and Cercle, and always free for women.',
+    liveNote: 'Live is free for everyone: a random match, worldwide. Choosing gender and city is included in Plus and Cercle.',
     alwaysFreeTitle: 'Always free',
     alwaysFree: 'Your profile, your questions and values-based criteria, changing city, writing to your matches, random Live, Crossed paths and all of safety (block, report, Shabbat mode). What matters to you is never paid for.',
     admin: 'Administrator account: every feature is open, with no limits.',

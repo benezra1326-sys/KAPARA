@@ -15,7 +15,7 @@ Ce qui est limité, **par jour** (remise à zéro à minuit, heure locale du mem
 | Mode discret (visible seulement des personnes remarquées) | non | non | oui |
 | Prix par mois (1 / 3 / 6 mois) | 0 € | 14,99 / 11,99 / 9,99 € | 29,99 / 23,99 / 19,99 € |
 
-Le Live est gratuit et illimité pour tous, en appariement aléatoire mondial. Choisir le sexe et la ville est payant pour les hommes et toujours offert aux femmes (`can_filter_live()`), choix d'Avishay du 23/11 : c'est surtout les hommes qu'on amène à payer pour le Live.
+Le Live est gratuit et illimité pour tous, en appariement aléatoire mondial. Choisir le sexe et la ville est inclus dans Plus et Cercle, pour tout le monde sans exception selon le sexe (`can_filter_live()`, choix d'Avishay du 23/11 : un prix selon le sexe pose un risque juridique dans l'UE).
 
 L'administrateur (Avishay) a tout, sans limite.
 
