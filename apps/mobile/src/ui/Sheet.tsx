@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { radius, space } from '@kapara/design';
 import { useTheme } from '../theme';
 
-/** Bottom sheet over a dimmed backdrop. Tap outside or system back to dismiss. */
+/** Bottom sheet over a dimmed backdrop. Tap outside or system back to dismiss. Never wider than 600. */
 export function Sheet({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: ReactNode }) {
   const { c } = useTheme();
   const { t } = useTranslation();
@@ -14,7 +14,9 @@ export function Sheet({ visible, onClose, children }: { visible: boolean; onClos
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(26,17,24,0.48)' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('ui.close')} />
-        <View accessibilityViewIsModal style={{ backgroundColor: c.bg, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xl, paddingBottom: insets.bottom + space.xl, gap: space.lg, maxHeight: '90%' }}>
+        <View accessibilityViewIsModal style={{ backgroundColor: c.bg, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xl, paddingBottom: insets.bottom + space.xl, gap: space.lg, maxHeight: '90%',
+          // Tablet and desktop: a centred sheet of readable width, not a full-width band.
+          width: '100%', maxWidth: 600, alignSelf: 'center' }}>
           <View style={{ alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: c.border }} />
           {children}
         </View>

@@ -10,7 +10,7 @@ import { useLiveStore } from '../../src/live/LiveProvider';
 import { useBlock, useCloseConversation, useConversations, useLiveMessages, useMessages, useSend } from '../../src/social/api';
 import { Avatar, DemoNotice, Loading, StackHeader, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { DemoBadge, EmptyState, Text } from '../../src/ui';
+import { DemoBadge, EmptyState, fontFor, Text } from '../../src/ui';
 
 const HAS_TOUCH = Platform.OS === 'web' && typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
@@ -170,7 +170,7 @@ export default function Conversation() {
             if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { e.preventDefault(); if (draft.trim() && !send.isPending) submit(draft); }
           } : undefined}
           placeholder={t('messages.placeholder')} placeholderTextColor={c.textSubtle} accessibilityLabel={t('messages.placeholder')}
-          style={{ flex: 1, minHeight: hitSlop, maxHeight: 140, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, paddingHorizontal: space.lg, paddingTop: 13, paddingBottom: 13, color: c.text, fontFamily: fonts.body, fontSize: 16, textAlign: 'auto' }}
+          style={{ flex: 1, minHeight: hitSlop, maxHeight: 140, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, paddingHorizontal: space.lg, paddingTop: 13, paddingBottom: 13, color: c.text, fontFamily: fontFor(fonts.body), fontSize: 16, textAlign: 'auto' }}
         />
         <Pressable onPress={() => submit(draft)} disabled={!draft.trim() || send.isPending} accessibilityRole="button" accessibilityLabel={t('messages.send')}
           accessibilityState={{ disabled: !draft.trim(), busy: send.isPending }}

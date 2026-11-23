@@ -15,7 +15,7 @@ import { Heebo_500Medium } from '@expo-google-fonts/heebo/500Medium';
 import { Heebo_600SemiBold } from '@expo-google-fonts/heebo/600SemiBold';
 import { isHebrew } from '../src/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -57,11 +57,17 @@ function Root() {
   const column = isPhone ? full : { backgroundColor: c.bg, width: '100%' as const, maxWidth: 760, alignSelf: 'center' as const };
   // Profiles (photos + words side by side) get a wider column.
   const wide = isPhone ? full : { ...column, maxWidth: 1080 };
+  // Navigation surfaces (behind narrow columns on a desktop) take the page colour, never a default grey.
+  const base = dark ? DarkTheme : DefaultTheme;
+  const navTheme = { ...base, colors: { ...base.colors, background: c.bg, card: c.bg, border: c.border, text: c.text, primary: c.accent } };
   return (
+    <NavThemeProvider value={navTheme}>
     <LiveProvider>
       <StatusBar style={dark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: column }}>
         <Stack.Screen name="(tabs)" options={{ contentStyle: full }} />
+        {/* Welcome has its own desktop layout; the steps inside keep a readable column. */}
+        <Stack.Screen name="onboarding" options={{ contentStyle: full }} />
         <Stack.Screen name="profile/[id]" options={{ presentation: 'modal', contentStyle: wide }} />
         <Stack.Screen name="profile/preview" options={{ contentStyle: wide }} />
         <Stack.Screen name="admin/index" options={{ contentStyle: wide }} />
@@ -71,5 +77,6 @@ function Root() {
         <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: full }} />
       </Stack>
     </LiveProvider>
+    </NavThemeProvider>
   );
 }
