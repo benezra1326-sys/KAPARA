@@ -18,6 +18,7 @@ import { Button } from './Button';
 import { DemoBadge } from './DemoBadge';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
+import { imageFade } from './imageFade';
 
 const GAP = space.sm;
 type Panel = { kind: 'add' } | { kind: 'denied'; canAskAgain: boolean } | { kind: 'photo'; id: string } | null;
@@ -135,7 +136,7 @@ function Tile({ photo, index, count, size, onPress }: { photo: MyPhoto; index: n
           if (a === 'remove') removePhoto(photo.id);
         }}
         style={({ pressed }) => ({ width: size, aspectRatio: 4 / 5, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-        <Image source={photoSource(photo.url)} style={{ flex: 1 }} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
+        <Image source={photoSource(photo.url)} style={{ flex: 1 }} contentFit="cover" transition={imageFade(200)} accessibilityIgnoresInvertColors />
         {photo.isDemo ? <View style={{ position: 'absolute', top: space.xs, start: space.xs, end: space.xs }}><DemoBadge compact /></View> : null}
         {index === 0 ? (
           <View style={{ position: 'absolute', bottom: space.xs, start: space.xs, backgroundColor: 'rgba(20,17,24,0.62)', borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 }}>

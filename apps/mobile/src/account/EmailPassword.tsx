@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, space } from '@kapara/design';
@@ -30,7 +30,13 @@ export function EmailPassword() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  useEffect(() => { setError(null); setInfo(null); setTouched(false); }, [mode]);
+  // Switching tabs clears the messages, except when the app switches itself
+  // to keep a message visible ("an account already exists: sign in").
+  const keepMessage = useRef(false);
+  useEffect(() => {
+    if (keepMessage.current) { keepMessage.current = false; return; }
+    setError(null); setInfo(null); setTouched(false);
+  }, [mode]);
 
   const clean = email.trim().toLowerCase();
   const emailOk = EMAIL.test(clean);
@@ -60,7 +66,7 @@ export function EmailPassword() {
       if (r.ok === 'confirm') { setInfo(t('cloud.confirmSent')); return; }
       if (!r.ok) {
         setError(t(`cloud.err.${r.code}`, { defaultValue: t('cloud.err.generic') }));
-        if (r.code === 'already_registered') setMode('signin');
+        if (r.code === 'already_registered') { keepMessage.current = true; setMode('signin'); }
         return;
       }
       afterSignIn(r.hasProfile);

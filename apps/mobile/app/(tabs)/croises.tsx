@@ -15,6 +15,7 @@ import { useTheme } from '../../src/theme';
 import { Button, columnsFor, DemoBadge, EmptyState, Icon, Screen, Text, useLayout } from '../../src/ui';
 import { DEMO_MODE } from '../../src/api/client';
 import { photoSource } from '../../src/demo/images';
+import { imageFade } from '../../src/ui/imageFade';
 
 type Perm = 'unknown' | 'granted' | 'denied';
 
@@ -130,7 +131,7 @@ function CrossedCard({ item, width }: { item: CrossedItem; width: number }) {
       style={({ pressed }) => [{ width, aspectRatio: 3 / 4, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, overflow: 'hidden',
         transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow.card,
         Platform.OS === 'web' ? ({ transitionDuration: '200ms', transitionProperty: 'transform' } as object) : null]}>
-      {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300} accessible={false} /> : null}
+      {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)} accessible={false} /> : null}
       <LinearGradient colors={['transparent', 'rgba(10,10,12,0.78)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }} pointerEvents="none" />
       {item.isDemo ? <View style={{ position: 'absolute', top: space.sm, start: space.sm }}><DemoBadge compact /></View> : null}
       <View style={{ position: 'absolute', start: space.md, end: space.md, bottom: space.md, gap: 2 }}>

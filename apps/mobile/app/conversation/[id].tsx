@@ -10,6 +10,8 @@ import { Avatar, DemoNotice, Loading, StackHeader, useFormat } from '../../src/s
 import { useTheme } from '../../src/theme';
 import { DemoBadge, EmptyState, Text } from '../../src/ui';
 
+const HAS_TOUCH = Platform.OS === 'web' && typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
 /**
  * One conversation. No read receipts, no typing indicator, no "seen".
  * A gentle "read it again?" appears before a message that may hurt; the
@@ -136,6 +138,11 @@ export default function Conversation() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: insets.bottom + space.sm, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.surface }}>
         <TextInput
           value={draft} onChangeText={setDraft} multiline maxLength={2000}
+          // Computer keyboard on the web: Enter sends, Shift+Enter goes to a new line. Phones keep Enter for a new line.
+          onKeyPress={Platform.OS === 'web' && !HAS_TOUCH ? (e) => {
+            const ev = e.nativeEvent as unknown as { key: string; shiftKey?: boolean; isComposing?: boolean };
+            if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { e.preventDefault(); if (draft.trim() && !send.isPending) submit(draft); }
+          } : undefined}
           placeholder={t('messages.placeholder')} placeholderTextColor={c.textSubtle} accessibilityLabel={t('messages.placeholder')}
           style={{ flex: 1, minHeight: hitSlop, maxHeight: 140, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, paddingHorizontal: space.lg, paddingTop: 13, paddingBottom: 13, color: c.text, fontFamily: fonts.body, fontSize: 16, textAlign: 'auto' }}
         />

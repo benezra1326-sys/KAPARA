@@ -6,13 +6,14 @@ import type { LiveMember } from '@kapara/shared';
 import { radius, space } from '@kapara/design';
 import { Text } from '../ui';
 import { photoSource } from '../demo/images';
+import { imageFade } from '../ui/imageFade';
 
 /** Full-bleed portrait of the other person, used whenever there is no live video. */
 export function StageBackdrop({ peer, dim = 0.55 }: { peer: LiveMember; dim?: number }) {
   return (
     <View style={{ position: 'absolute', inset: 0, backgroundColor: '#141118' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {peer.photoUrl ? (
-        <Image source={photoSource(peer.photoUrl)} style={{ position: 'absolute', inset: 0 }} contentFit="cover" blurRadius={28} transition={400} />
+        <Image source={photoSource(peer.photoUrl)} style={{ position: 'absolute', inset: 0 }} contentFit="cover" blurRadius={28} transition={imageFade(400)} />
       ) : null}
       <LinearGradient colors={[`rgba(20,17,24,${dim - 0.2})`, `rgba(20,17,24,${dim})`, 'rgba(20,17,24,0.92)']} locations={[0, 0.5, 1]} style={{ position: 'absolute', inset: 0 }} />
     </View>
@@ -33,7 +34,7 @@ export function DemoStage({ peer, videoOn, cameraOn, top }: { peer: LiveMember; 
       <StageBackdrop peer={peer} dim={videoOn ? 0.35 : 0.6} />
       {videoOn ? (
         <>
-          {peer.photoUrl ? <Image source={photoSource(peer.photoUrl)} style={{ position: 'absolute', inset: 0, opacity: 0.85 }} contentFit="cover" transition={500} accessibilityIgnoresInvertColors /> : null}
+          {peer.photoUrl ? <Image source={photoSource(peer.photoUrl)} style={{ position: 'absolute', inset: 0, opacity: 0.85 }} contentFit="cover" transition={imageFade(500)} accessibilityIgnoresInvertColors /> : null}
           <LinearGradient colors={['rgba(20,17,24,0.55)', 'transparent', 'rgba(20,17,24,0.9)']} locations={[0, 0.35, 1]} style={{ position: 'absolute', inset: 0 }} />
           <View style={[pipStyle, { top: top + 64, alignItems: 'center', justifyContent: 'center', padding: space.sm }]}>
             <Text variant="caption" style={{ color: 'rgba(255,255,255,0.8)', textAlign: 'center' }}>
