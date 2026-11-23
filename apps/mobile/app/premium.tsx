@@ -13,14 +13,14 @@ import { Icon, Text, useLayout } from '../src/ui';
 import { BRAND_NAME, WORDMARK } from '../src/ui/brandPaths';
 
 /**
- * The membership page. Always on night, whatever the app theme: one calm
- * page, serif titles, sand for the one action. Opens on what the member was
+ * The membership page. Always on aubergine night, whatever the app theme:
+ * one calm page, serif titles, the MOTEK garnet for the one action. Opens on what the member was
  * trying to do (reason), shows the two plans, the commitment, and plainly
  * what stays free. Payment is simulated in the demo and says so.
  */
 const N = {
-  bg: palette.night, card: '#141417', cardOn: '#1B1A17', line: '#2A2A2E', text: palette.cream, muted: palette.creamSoft,
-  subtle: palette.dune, sand: palette.sand, sandPressed: palette.sandPressed, onSand: palette.black,
+  bg: palette.night, card: palette.plum, cardOn: palette.grenatNight, line: palette.plumLine, text: palette.cream, muted: palette.creamSoft,
+  subtle: palette.mauve, sand: palette.grenatRose, sandPressed: '#F5C4D0', onSand: palette.aubergine,
 };
 type Paid = Exclude<PlanId, 'free'>;
 const MONTHS: Months[] = [1, 3, 6];
@@ -104,7 +104,7 @@ export default function Premium() {
                             accessibilityLabel={`${t('premium.months', { count: m })}${off ? `, −${off} %` : ''}`}
                             style={{ flex: 1, minHeight: hitSlop, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? N.text : 'transparent' }}>
                             <Text variant="label" style={{ color: on ? N.onSand : N.text, fontFamily: fonts.bodySemibold }}>{t('premium.months', { count: m })}</Text>
-                            {off ? <Text variant="caption" style={{ color: on ? '#4A4438' : N.sand, fontSize: 11.5, lineHeight: 14 }}>−{off} %</Text> : null}
+                            {off ? <Text variant="caption" style={{ color: on ? '#3A1A28' : N.sand, fontSize: 11.5, lineHeight: 14 }}>−{off} %</Text> : null}
                           </Pressable>
                         );
                       })}

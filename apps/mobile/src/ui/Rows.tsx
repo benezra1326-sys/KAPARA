@@ -11,7 +11,7 @@ export function Section({ title, footnote, children }: { title?: string; footnot
   return (
     <View style={{ marginHorizontal: space.lg, marginBottom: space.xl, gap: space.sm }}>
       {title ? <Text variant="overline" tone="textMuted" style={{ marginHorizontal: space.sm }} accessibilityRole="header">{title}</Text> : null}
-      <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, overflow: 'hidden' }}>{children}</View>
+      <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: c.border, overflow: 'hidden' }}>{children}</View>
       {footnote ? <Text variant="caption" tone="textSubtle" style={{ marginHorizontal: space.sm }}>{footnote}</Text> : null}
     </View>
   );

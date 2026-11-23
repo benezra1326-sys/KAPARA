@@ -1,6 +1,6 @@
 import '../src/i18n';
 import { useFonts } from 'expo-font';
-// Typography after Raya: light Fraunces (the logo's face) for titles, Inter for text.
+// Typography: Fraunces (the logo's face) for titles, Inter for text; Hebrew: Frank Ruhl Libre and Heebo.
 // Subpath imports so only these weights are bundled.
 import { Fraunces_300Light } from '@expo-google-fonts/fraunces/300Light';
 import { Fraunces_300Light_Italic } from '@expo-google-fonts/fraunces/300Light_Italic';
@@ -8,6 +8,12 @@ import { Fraunces_400Regular } from '@expo-google-fonts/fraunces/400Regular';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { FrankRuhlLibre_400Regular } from '@expo-google-fonts/frank-ruhl-libre/400Regular';
+import { FrankRuhlLibre_500Medium } from '@expo-google-fonts/frank-ruhl-libre/500Medium';
+import { Heebo_400Regular } from '@expo-google-fonts/heebo/400Regular';
+import { Heebo_500Medium } from '@expo-google-fonts/heebo/500Medium';
+import { Heebo_600SemiBold } from '@expo-google-fonts/heebo/600SemiBold';
+import { isHebrew } from '../src/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -24,7 +30,9 @@ void SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } });
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ Fraunces_300Light, Fraunces_300Light_Italic, Fraunces_400Regular, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
+  // Hebrew faces are only loaded when the app is in Hebrew.
+  const [loaded, error] = useFonts({ Fraunces_300Light, Fraunces_300Light_Italic, Fraunces_400Regular, Inter_400Regular, Inter_500Medium, Inter_600SemiBold,
+    ...(isHebrew ? { FrankRuhlLibre_400Regular, FrankRuhlLibre_500Medium, Heebo_400Regular, Heebo_500Medium, Heebo_600SemiBold } : {}) });
   useEffect(() => { if (loaded || error) void SplashScreen.hideAsync(); }, [loaded, error]);
   if (!loaded && !error) return null;
   return (

@@ -113,11 +113,12 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
           accessibilityLabel={`${p.firstName}, ${p.age}`}>{p.firstName}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
           <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{[String(p.age), p.city].filter(Boolean).join('  ·  ')}</Text>
-          {p.verified ? (
+          {/* "Verified" only after a real check: never on a demo profile. */}
+          {p.verified && !p.isDemo ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Text variant="overline" style={{ color: 'rgba(255,255,255,0.5)' }}>·</Text>
               <Icon name="check" size={13} color="rgba(255,255,255,0.92)" />
-              <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{t(p.isDemo ? 'ux.verifiedDemo' : 'pick.verified')}</Text>
+              <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{t('pick.verified')}</Text>
             </View>
           ) : null}
         </View>

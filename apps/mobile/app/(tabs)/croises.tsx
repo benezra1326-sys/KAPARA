@@ -137,7 +137,7 @@ function CrossedCard({ item, width }: { item: CrossedItem; width: number }) {
       <View style={{ position: 'absolute', start: space.md, end: space.md, bottom: space.md, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text variant="heading" numberOfLines={1} style={{ color: '#FFFFFF', flexShrink: 1, fontSize: 24 }}>{item.firstName}, {item.age}</Text>
-          {item.verified ? <Icon name="check" size={15} color={c.live} /> : null}
+          {item.verified && !item.isDemo ? <Icon name="check" size={15} color={c.live} /> : null}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <Icon name="crossed" size={13} color={c.accent} />
