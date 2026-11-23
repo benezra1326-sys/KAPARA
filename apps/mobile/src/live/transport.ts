@@ -1,4 +1,4 @@
-import type { CallMode, CallSnapshot, InviteRefusal, JoinInfo, LiveMember, LiveSettings, LiveStatus, CallReportReason } from '@kapara/shared';
+import type { CallMode, CallSnapshot, InviteRefusal, JoinInfo, LiveMember, LiveSearchFilters, LiveSettings, LiveStatus, CallReportReason } from '@kapara/shared';
 
 export type Ack<T = object> = ({ ok: true } & T) | { ok: false; error: InviteRefusal | string };
 
@@ -34,6 +34,18 @@ export interface LiveTransport {
   videoStop(callId: string): Promise<Ack>;
   hangup(callId: string): Promise<Ack>;
   report(callId: string, reason: CallReportReason): Promise<Ack>;
+
+  /**
+   * Live "au hasard": keep `want` video requests pending to random members.
+   * `fresh` = a new search (counts in the daily quota). `demo` = fictional
+   * profiles, announced as such. The first person who accepts gets a normal
+   * call (join + state events); the other requests stop.
+   */
+  search?(o: { fresh: boolean; filters: LiveSearchFilters; want: number; demo?: boolean }): Promise<Ack<{ pending: CallSnapshot[] }>>;
+  /** Leave Live: my pending requests stop and nobody can reach me through it. */
+  searchStop?(): Promise<void>;
+  /** May I choose gender and city? (paid plans) */
+  searchFiltersAllowed?(): Promise<boolean>;
 
   /** Local demo only: pretend a demo member invites me. */
   simulateIncoming?(): void;

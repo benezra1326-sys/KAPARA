@@ -99,6 +99,17 @@ export const CallSnapshot = z.object({
 });
 export type CallSnapshot = z.infer<typeof CallSnapshot>;
 
+/**
+ * Live "au hasard" (Azar-style): the app sends a few video requests at once to
+ * random members present in Live. Filters are for paid plans only; the server
+ * ignores them otherwise.
+ */
+export const LiveSearchFilters = z.object({
+  gender: z.enum(['woman', 'man', 'nonbinary']).optional(),
+  regionCode: z.string().max(40).optional(),
+});
+export type LiveSearchFilters = z.infer<typeof LiveSearchFilters>;
+
 export const CallReportReason = z.enum(['inappropriate', 'harassment', 'fake_profile', 'underage', 'other']);
 export type CallReportReason = z.infer<typeof CallReportReason>;
 
