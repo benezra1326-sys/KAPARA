@@ -1,13 +1,13 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { RULES } from '@kapara/config';
-import type { CallMode, CallReportReason, CallSnapshot, LiveSettings } from '@kapara/shared';
+import type { CallMode, CallReportReason, CallSnapshot, LiveSearchFilters, LiveSettings } from '@kapara/shared';
 import { sb } from '../cloud/client';
 import { cloud } from '../cloud/data';
 import { DemoTransport, DEMO_LIVE_MEMBERS } from './demo-transport';
 import { RtcSession, rtcSessions } from './rtc';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
-type Row = { id: string; caller_id: string; callee_id: string; state: string; video_requested_by: string | null };
+type Row = { id: string; caller_id: string; callee_id: string; state: string; video_requested_by: string | null; context?: string };
 const TERMINAL = new Set(['ended', 'declined', 'expired']);
 const ACTIVE = new Set(['connected', 'video_requested', 'video_on']);
 
@@ -15,8 +15,9 @@ const ACTIVE = new Set(['connected', 'video_requested', 'video_on']);
  * Real backend (Supabase) build.
  * - Calls with a real member (someone I have a conversation with) are REAL:
  *   the database keeps the call's state, the phones talk directly (WebRTC).
- * - The Live lobby still lists fictional members (announced as a demo) until
- *   real presence is built; calling one of them stays a simulation.
+ * - Live "au hasard" is real too: present members get random video requests
+ *   (live_here / live_search / live_leave). When nobody is there, the member
+ *   can try it with fictional profiles, announced as a demo.
  */
 export class CloudTransport implements LiveTransport {
   readonly kind = 'server' as const;
@@ -28,6 +29,8 @@ export class CloudTransport implements LiveTransport {
   private session: RtcSession | null = null;
   private ping?: ReturnType<typeof setInterval>;
   private ttl?: ReturnType<typeof setTimeout>;
+  private hereAt = 0;
+  private demoSearch = false;
 
   constructor() { this.demo.on((e) => this.events.emit(e)); }
 
@@ -47,6 +50,7 @@ export class CloudTransport implements LiveTransport {
 
   disconnect() {
     this.demo.disconnect();
+    if (this.hereAt) void this.leave();
     this.endLocal();
     if (this.ch) void sb.removeChannel(this.ch);
     this.ch = null;
@@ -62,6 +66,42 @@ export class CloudTransport implements LiveTransport {
   simulateIncoming() { this.demo.simulateIncoming(); }
 
   private isDemoCall(id: string) { return id.startsWith('demo-'); }
+
+  /* --- Live "au hasard" --- */
+  async search(o: { fresh: boolean; filters: LiveSearchFilters; want: number; demo?: boolean }) {
+    if (o.demo) {
+      if (!this.demoSearch) { this.demoSearch = true; await this.leave(); }
+      return this.demo.search(o);
+    }
+    if (this.demoSearch) { this.demoSearch = false; await this.demo.searchStop(); }
+    // Being present = others may send me requests too. Refreshed every ~15 s.
+    if (o.fresh || Date.now() - this.hereAt > 15_000) {
+      const { data, error } = await sb.rpc('live_here', { want_gender: o.filters.gender ?? null, want_region: o.filters.regionCode ?? null });
+      if (error) return { ok: false as const, error: 'offline' };
+      if (!(data as Ack).ok) return data as Ack<{ pending: CallSnapshot[] }>;
+      this.hereAt = Date.now();
+    }
+    const { data, error } = await sb.rpc('live_search', { want: o.want, fresh: o.fresh });
+    if (error) return { ok: false as const, error: 'offline' };
+    const r = data as { ok: boolean; error?: string; pending?: CallSnapshot[] };
+    if (!r.ok) return { ok: false as const, error: r.error ?? 'unknown' };
+    return { ok: true as const, pending: r.pending ?? [] };
+  }
+
+  async searchStop() {
+    if (this.demoSearch) { this.demoSearch = false; await this.demo.searchStop(); return; }
+    await this.leave();
+  }
+
+  async searchFiltersAllowed() {
+    const { data, error } = await sb.rpc('live_filters_allowed');
+    return !error && data === true;
+  }
+
+  private async leave() {
+    this.hereAt = 0;
+    await sb.rpc('live_leave').then(() => undefined, () => undefined);
+  }
 
   /* --- Calls --- */
   async invite(to: string, mode: CallMode): Promise<Ack<{ call: CallSnapshot }>> {
@@ -135,6 +175,11 @@ export class CloudTransport implements LiveTransport {
         }
       }, RULES.liveInviteTtlSeconds * 1000);
       return;
+    }
+    // Live "au hasard": one of my requests was accepted, the call starts (I make the offer).
+    if (row.caller_id === this.me && row.context === 'live' && ACTIVE.has(row.state) && !this.call) {
+      this.call = { id: row.id, state: 'invited', vrb: null, initiator: true };
+      this.events.emit({ type: 'join', callId: row.id, join: { mode: 'webrtc', room: row.id, initiator: true } });
     }
     if (this.call?.id !== row.id) return;
     // Keep-alive pings only touch updated_at: nothing to show.

@@ -87,7 +87,7 @@
       "responsable": "apps-dev"
     },
     {
-      "nom": "Appels audio ou vidéo (Live et entre matchs)",
+      "nom": "Appels audio ou vidéo (Live au hasard façon Azar, et entre matchs)",
       "statut": "a_valider",
       "avancement": 90,
       "responsable": "apps-dev"
