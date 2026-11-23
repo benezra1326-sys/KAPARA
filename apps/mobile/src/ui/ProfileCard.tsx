@@ -13,6 +13,7 @@ import { DemoBadge } from './DemoBadge';
 import { Icon } from './Icon';
 import { useLayout } from './layout';
 import { Text } from './Text';
+import { imageFade } from './imageFade';
 
 export type ReactTarget = { kind: 'photo' | 'prompt'; id: string };
 
@@ -102,7 +103,7 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
   const { t } = useTranslation();
   return (
     <View style={{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }}>
-      <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300}
+      <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)}
         accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: 1 })} />
       <LinearGradient colors={['transparent', 'rgba(10,10,12,0.30)', 'rgba(10,10,12,0.74)']} locations={[0, 0.45, 1]} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%' }} pointerEvents="none" />
       {p.isDemo ? <View style={{ position: 'absolute', top: space.lg, start: space.lg }}><DemoBadge /></View> : null}
@@ -131,7 +132,7 @@ function PhotoBlock({ profile: p, photo, maxHeight, style, onReact }: { profile:
   const { t } = useTranslation();
   return (
     <View style={[{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }, style]}>
-      <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300}
+      <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)}
         accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: p.photos.indexOf(photo) + 1 })} />
       {photo.caption ? (
         <View style={{ position: 'absolute', start: space.md, end: onReact ? 76 : space.md, bottom: space.md, backgroundColor: 'rgba(10,10,12,0.6)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm }}>

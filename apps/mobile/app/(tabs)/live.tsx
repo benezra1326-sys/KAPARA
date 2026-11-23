@@ -15,6 +15,7 @@ import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
 import { isQuotaError } from '../../src/premium/plans';
 import { openPaywall, startLiveCall, useRefreshPlan } from '../../src/premium/store';
+import { imageFade } from '../../src/ui/imageFade';
 
 /**
  * Live: who is available right now. Three consents, never bundled:
@@ -173,7 +174,7 @@ function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (
   return (
     <View style={[{ marginHorizontal: space.lg, padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }, shadow.card]}>
       <View style={{ width: 84, height: 105, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={250} accessibilityLabel={m.firstName} /> : null}
+        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(250)} accessibilityLabel={m.firstName} /> : null}
         <View style={{ position: 'absolute', top: space.sm, left: space.sm, width: 10, height: 10, borderRadius: 5, backgroundColor: c.live, borderWidth: 2, borderColor: c.surface }} />
       </View>
       <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>
