@@ -133,8 +133,12 @@
     {
       "quand": "2026-11-22T08:34:00Z",
       "texte": "Photos de profil de bout en bout : photothèque ou appareil photo, ré-encodage sans métadonnées GPS, envoi par URL signée S3, classement, suppression et étape d'onboarding."
+    },
+    {
+      "date": "2026-11-23",
+      "texte": "Accueil refait : logo et nom centrés, trois façons de se rencontrer présentées sur une ligne (une à la fois), un titre clair « Se connecter ou créer un compte », tout tient sur un écran d'iPhone."
     }
   ],
-  "maj_le": "2026-11-23",
+  "maj_le": "2026-11-23T09:30:00Z",
   "demo_web": "https://motek-demo.vercel.app"
 }

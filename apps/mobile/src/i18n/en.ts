@@ -1108,6 +1108,7 @@ const en: DeepPartial<typeof fr> = {
         title: 'Crossed',
         body: 'Find members you crossed paths with, if you both turn it on.',
       },
+      next: 'Show the next one',
       live: {
         title: 'Live',
         body: 'An audio call when you’re both available. Camera only if you want.',
@@ -1153,7 +1154,8 @@ const en: DeepPartial<typeof fr> = {
     demoContinue: 'Continue with {{provider}}',
     demoEmailNoCode: 'Demo: no code is sent, the address opens your account on this device directly.',
     continue: 'Continue',
-    terms: 'New or already a member: the same button. Your address is never shown to other members.',
+    title: 'Sign in or create an account',
+    terms: 'New or already a member: the same buttons. Your address is never shown to other members.',
     demoNotice: 'Demo: fictional profiles, simulated sign-in.',
     signOutDemoBody: 'Your profile stays saved on this device. Sign in again to find it.',
     forget: 'Erase this account from the device',
