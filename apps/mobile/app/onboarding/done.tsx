@@ -8,7 +8,7 @@ import { useSaveMe } from '../../src/me/api';
 import type { JLKey } from '../../src/me/fields';
 import { meStore, useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { Button, Text } from '../../src/ui';
+import { Button, Icon, Text } from '../../src/ui';
 
 export default function OnbDone() {
   const { t } = useTranslation();
@@ -24,9 +24,9 @@ export default function OnbDone() {
     );
   };
   return (
-    <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + space.xxxl, paddingBottom: insets.bottom + space.lg, paddingHorizontal: space.xl, justifyContent: 'space-between' }}>
+    <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + space.xxxl, paddingBottom: insets.bottom + space.lg, paddingHorizontal: space.xl, justifyContent: 'space-between', width: '100%', maxWidth: 560, alignSelf: 'center' }}>
       <Animated.View entering={FadeInDown.duration(500)} style={{ gap: space.lg }}>
-        <Text variant="heading" tone="highlight" accessibilityElementsHidden>✦</Text>
+        <Icon name="sparkle" size={28} color={c.highlight} filled />
         <Text variant="hero" accessibilityRole="header">{t('onb.doneTitle', { name: firstName })}</Text>
         <Text tone="textMuted">{t('onb.doneBody')}</Text>
       </Animated.View>

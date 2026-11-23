@@ -3,17 +3,21 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { space } from '@kapara/design';
 import { FIELD_GROUPS, MAX_PROMPTS, answerLabel, type FieldMeta } from '../../src/me/fields';
-import { ageFrom, useMe, type SensitiveField } from '../../src/me/store';
-import { Button, PhotoGrid, Row, Screen, Section, Text, VisibilityTag } from '../../src/ui';
+import { nameAndAge } from '../../src/me/identity';
+import { useMe, type SensitiveField } from '../../src/me/store';
+import { useTheme } from '../../src/theme';
+import { Button, Icon, PhotoGrid, Row, Screen, Section, Text, VisibilityTag } from '../../src/ui';
+
+const formatBirth = (d: string) => d.split('-').reverse().join('/');
 
 /** "Mon profil": everything editable, each sensitive answer with its visibility in plain sight. */
 export default function EditProfile() {
   const { t } = useTranslation();
   const me = useMe();
-  const age = ageFrom(me.birthDate);
+  const { c } = useTheme();
 
   return (
-    <Screen back="back" title={t('edit.title')} subtitle={me.firstName ? `${me.firstName}${age ? `, ${age}` : ''}` : undefined}
+    <Screen back="back" title={t('edit.title')} subtitle={nameAndAge(me) || undefined}
       right={<Button kind="ghost" label={t('edit.preview')} onPress={() => router.push('/profile/preview')} />}>
       <Section title={t('edit.photos')}>
         <PhotoGrid />
@@ -23,6 +27,12 @@ export default function EditProfile() {
         <Row first title={t('basics.firstName')} value={me.firstName || t('edit.empty')} onPress={() => router.push('/profile/basics')} />
         <Row title={t('basics.headline')} value={me.headline || t('edit.empty')} onPress={() => router.push('/profile/basics')} />
         <Row title={t('basics.languages')} value={me.languages.map((l) => t(`lang.${l}`)).join(', ') || t('edit.empty')} onPress={() => router.push('/profile/basics')} />
+      </Section>
+      <Section title={t('ux.accountTitle')} footnote={t('ux.accountFootnote')}>
+        <Row first title={t('ux.birthDate')} value={me.birthDate ? `${formatBirth(me.birthDate)} · ${t('ux.onlyAgeShown')}` : t('edit.empty')} onPress={() => router.push('/profile/basics')}
+          trailing={<Icon name="lock" size={18} color={c.textSubtle} />} />
+        <Row title={t('basics.gender')} value={me.gender ? t(`basics.genders.${me.gender}`) : t('edit.empty')} onPress={() => router.push('/profile/basics')}
+          trailing={<Icon name="lock" size={18} color={c.textSubtle} />} />
       </Section>
 
       <Section title={t('edit.prompts')} footnote={t('edit.promptsFootnote', { max: MAX_PROMPTS })}>

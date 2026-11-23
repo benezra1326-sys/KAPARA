@@ -1,77 +1,117 @@
 /**
- * KAPARA design tokens. Platform-agnostic (plain numbers/strings) so the
+ * MOTEK design tokens. Platform-agnostic (plain numbers/strings) so the
  * mobile app, a future web app and email templates share one source.
  *
- * Direction: "candlelight editorial" — warm ivory paper, deep ink,
- * pomegranate accent, a touch of brass. Serif display for intimacy,
- * clean sans for reading. Generous space, few borders, soft depth.
+ * Direction "Blanc": clean and bright like a members' club in daylight.
+ * True white pages, crisp near-black type, black pill for the main action,
+ * and one vivid accent, "motek" rose, for what is about people: hearts,
+ * reactions, the active tab, live presence. No beige, no brown.
+ * Titles in Instrument Serif (fine, editorial), text in DM Sans (light,
+ * friendly). "Noir" (black and sand) is one tap away in Moi.
+ * Every text tone passes WCAG AA (4.5:1) on `bg` and `surface`.
  */
 export const palette = {
-  ivory: '#FBF7F1',
-  sand: '#F2EAE0',
-  linen: '#E7DCCD',
-  ink: '#1E1A24',
-  inkSoft: '#4A4352',
-  mist: '#8C8496',
-  pomegranate: '#B23A48',
-  pomegranateDeep: '#8E2433',
-  blush: '#F4D9D6',
-  brass: '#B88B4A',
-  olive: '#5F7A61',
-  night: '#141118',
-  nightRaised: '#211C27',
   white: '#FFFFFF',
-  danger: '#C2410C',
+  snow: '#F6F6F8',
+  mist: '#EEEEF2',
+  line: '#E6E6EB',
+  ink: '#0E0E12',
+  graphite: '#4A4A55',
+  steel: '#6B6B76',
+  rose: '#E0245E',
+  roseDeep: '#C01A4F',
+  roseMist: '#FDE8EF',
+  violet: '#5B4BDB',
+  green: '#16A34A',
+  red: '#D92D20',
+  // Noir (dark mode): black and sand
+  black: '#0A0A0A',
+  coal: '#151515',
+  coalHigh: '#1E1E1E',
+  coalLine: '#2A2A2A',
+  cream: '#F4EFE6',
+  creamSoft: '#BFB7AA',
+  dune: '#928A7D',
+  sand: '#D9C4A0',
+  sandPressed: '#C6AF88',
+  sandMist: '#29241C',
+  /** Calls stay dark whatever the theme (video first). */
+  night: '#0A0A0C',
 } as const;
 
 export const colors = {
   light: {
-    bg: palette.ivory, surface: palette.white, surfaceAlt: palette.sand, border: palette.linen,
-    text: palette.ink, textMuted: palette.inkSoft, textSubtle: palette.mist,
-    accent: palette.pomegranate, accentPressed: palette.pomegranateDeep, accentSoft: palette.blush,
-    highlight: palette.brass, live: palette.olive, danger: palette.danger, onAccent: palette.white,
+    bg: palette.white, surface: palette.snow, surfaceAlt: palette.mist, border: palette.line,
+    text: palette.ink, textMuted: palette.graphite, textSubtle: palette.steel,
+    accent: palette.rose, accentPressed: palette.roseDeep, accentSoft: palette.roseMist,
+    /** The main action: black pill on white. */
+    primary: palette.ink, primaryPressed: '#2A2A33', onPrimary: palette.white,
+    highlight: palette.rose, live: palette.green, danger: palette.red, onAccent: palette.white,
   },
+  /** "Noir": true black and warm sand, quiet luxury for the evening. */
   dark: {
-    bg: palette.night, surface: palette.nightRaised, surfaceAlt: '#2A2431', border: '#3A3342',
-    text: '#F5EFE8', textMuted: '#C9C0D0', textSubtle: '#8F8799',
-    accent: '#D9596A', accentPressed: palette.pomegranate, accentSoft: '#3D2329',
-    highlight: '#D4A866', live: '#8DB28F', danger: '#F97316', onAccent: palette.white,
+    bg: palette.black, surface: palette.coal, surfaceAlt: palette.coalHigh, border: palette.coalLine,
+    text: palette.cream, textMuted: palette.creamSoft, textSubtle: palette.dune,
+    accent: palette.sand, accentPressed: palette.sandPressed, accentSoft: palette.sandMist,
+    primary: palette.sand, primaryPressed: palette.sandPressed, onPrimary: palette.black,
+    highlight: palette.sand, live: '#7FCF9A', danger: '#FF7A6B', onAccent: palette.black,
   },
 } as const;
 export type ColorScheme = keyof typeof colors;
 export type ThemeColors = { [K in keyof typeof colors.light]: string };
+/** White by default; members can switch to dark in Moi. */
+export const DEFAULT_SCHEME: ColorScheme = 'light';
 
 export const fonts = {
-  display: 'Fraunces_600SemiBold',
-  displayItalic: 'Fraunces_400Regular_Italic',
-  body: 'Inter_400Regular',
-  bodyMedium: 'Inter_500Medium',
-  bodySemibold: 'Inter_600SemiBold',
+  display: 'InstrumentSerif_400Regular',
+  displayItalic: 'InstrumentSerif_400Regular_Italic',
+  displayRegular: 'InstrumentSerif_400Regular',
+  body: 'DMSans_400Regular',
+  bodyMedium: 'DMSans_500Medium',
+  bodySemibold: 'DMSans_600SemiBold',
 } as const;
 
 /** Type scale (pt). Components must allow Dynamic Type / font scaling. */
 export const type = {
-  hero: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, letterSpacing: -0.8 },
-  title: { fontFamily: fonts.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.4 },
-  heading: { fontFamily: fonts.display, fontSize: 21, lineHeight: 27 },
-  quote: { fontFamily: fonts.displayItalic, fontSize: 19, lineHeight: 27 },
+  hero: { fontFamily: fonts.display, fontSize: 46, lineHeight: 50, letterSpacing: -0.5 },
+  title: { fontFamily: fonts.display, fontSize: 36, lineHeight: 40, letterSpacing: -0.3 },
+  heading: { fontFamily: fonts.display, fontSize: 25, lineHeight: 30 },
+  quote: { fontFamily: fonts.display, fontSize: 26, lineHeight: 32 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24 },
-  bodyStrong: { fontFamily: fonts.bodySemibold, fontSize: 16, lineHeight: 24 },
+  bodyStrong: { fontFamily: fonts.bodyMedium, fontSize: 16, lineHeight: 24 },
   label: { fontFamily: fonts.bodyMedium, fontSize: 14, lineHeight: 20 },
   caption: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18 },
-  overline: { fontFamily: fonts.bodySemibold, fontSize: 11, lineHeight: 14, letterSpacing: 1.4, textTransform: 'uppercase' as const },
+  /** Section label: small tracked capitals. */
+  overline: { fontFamily: fonts.bodyMedium, fontSize: 11.5, lineHeight: 16, letterSpacing: 1.4, textTransform: 'uppercase' as const },
 } as const;
 
 export const space = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
-export const radius = { sm: 8, md: 14, lg: 22, xl: 32, pill: 999 } as const;
+export const radius = { sm: 8, md: 12, lg: 16, xl: 22, pill: 999 } as const;
+
+/**
+ * Responsive layout. The web demo is a real web app: phones get one column
+ * and a bottom bar, tablets more air, desktops a sidebar and readable widths.
+ */
+export const breakpoints = { tablet: 640, desktop: 1024 } as const;
+export const layout = {
+  /** Max width of reading content (forms, lists, settings). */
+  readable: 680,
+  /** Max width of richer pages (profile with photo column, grids). */
+  wide: 1080,
+  /** Desktop sidebar width. */
+  sidebar: 248,
+  /** Horizontal page gutter per breakpoint. */
+  gutter: { phone: 16, tablet: 28, desktop: 40 },
+} as const;
 export const motion = {
-  fast: 150, base: 240, slow: 420,
+  /** One motion language (calm, eased, no overshoot): 160 / 240 / 400 ms. */
+  fast: 160, base: 240, slow: 400,
   spring: { damping: 18, stiffness: 180, mass: 1 },
 } as const;
 /** Minimum hit target (iOS HIG 44pt, Material 48dp). */
 export const hitSlop = 48;
 
 export const shadow = {
-  card: { shadowColor: '#2B1A22', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 3 },
-  float: { shadowColor: '#2B1A22', shadowOpacity: 0.16, shadowRadius: 32, shadowOffset: { width: 0, height: 16 }, elevation: 8 },
+  card: { shadowColor: '#0E0E12', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 2 },
+  float: { shadowColor: '#0E0E12', shadowOpacity: 0.16, shadowRadius: 28, shadowOffset: { width: 0, height: 12 }, elevation: 6 },
 } as const;

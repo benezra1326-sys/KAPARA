@@ -1,6 +1,7 @@
 import '../src/i18n';
-import { useFonts, Fraunces_400Regular_Italic, Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
+import { useFonts } from 'expo-font';
+import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
+import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold } from '@expo-google-fonts/dm-sans';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -10,12 +11,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LiveProvider } from '../src/live/LiveProvider';
 import { ThemeProvider, useTheme } from '../src/theme';
+import { useLayout } from '../src/ui/layout';
 
 void SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } });
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ Fraunces_400Regular_Italic, Fraunces_600SemiBold, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
+  const [loaded, error] = useFonts({ InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic, DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold });
   useEffect(() => { if (loaded || error) void SplashScreen.hideAsync(); }, [loaded, error]);
   if (!loaded && !error) return null;
   return (
@@ -33,15 +35,24 @@ export default function RootLayout() {
 
 function Root() {
   const { c, dark } = useTheme();
+  const { isPhone } = useLayout();
+  const full = { backgroundColor: c.bg };
+  // Pages outside the tabs (conversation, settings, onboarding…) keep a
+  // readable column on tablets and desktops instead of spanning the window.
+  const column = isPhone ? full : { backgroundColor: c.bg, width: '100%' as const, maxWidth: 760, alignSelf: 'center' as const };
+  // Profiles (photos + words side by side) get a wider column.
+  const wide = isPhone ? full : { ...column, maxWidth: 1080 };
   return (
     <LiveProvider>
       <StatusBar style={dark ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="profile/[id]" options={{ presentation: 'modal' }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: column }}>
+        <Stack.Screen name="(tabs)" options={{ contentStyle: full }} />
+        <Stack.Screen name="profile/[id]" options={{ presentation: 'modal', contentStyle: wide }} />
+        <Stack.Screen name="profile/preview" options={{ contentStyle: wide }} />
+        <Stack.Screen name="admin/index" options={{ contentStyle: wide }} />
         <Stack.Screen name="settings/privacy" />
         <Stack.Screen name="settings/live" options={{ headerShown: true, title: '' }} />
-        <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: full }} />
       </Stack>
     </LiveProvider>
   );

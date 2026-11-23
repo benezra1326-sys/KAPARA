@@ -53,7 +53,8 @@ export interface DemoPerson {
   gender: Gender;
   seeks: Gender[];
   birthDate: string; // ISO date
-  regionCode: 'fr-paris' | 'gb-london' | 'il-tel-aviv' | 'us-new-york';
+  /** A region code from REGIONS (@kapara/config). */
+  regionCode: string;
   languages: string[];
   headline: string;
   verified: boolean;
@@ -529,6 +530,402 @@ export const DEMO_PEOPLE: DemoPerson[] = [
     portrait: { skin: 0, hair: 'wavy', hairColor: 'blond', outfit: '#C1121F', scene: 'library', earrings: true, lean: 0.1 },
     moments: [{ kind: 'ceramics', caption: 'Wonky but mine.' }, { kind: 'books', caption: 'Galleys, everywhere.' }],
     privacy: open, preferences: { ageMin: 27, ageMax: 38, maxDistanceKm: 25 },
+  },
+  // ——— Monde (démo : MOTEK est pensé pour un lancement mondial) ———
+  {
+    key: 'avigail', firstName: 'Avigail', gender: 'woman', seeks: ['man'], birthDate: '1995-01-12', regionCode: 'il-jerusalem',
+    languages: ['fr', 'he', 'en'], headline: 'Montée de Lyon il y a six ans, guide au musée d’Israël', verified: true,
+    jewishLife: {
+      practice: s('modern_orthodox'), partnerImportance: s('essential'), shabbat: s('full_observance'), holidays: s('all_major'),
+      kashrutHome: s('strict_home_and_out'), community: s('weekly'), traditionPlace: s('central'), culturalBackground: s(['Sépharade', 'Tunisie']),
+      relationshipIntent: s('marriage'), children: s('want'),
+    },
+    prompts: [
+      { id: 'favorite_holiday', answer: 'Yom Yeroushalayim : la ville entière chante, même les pierres.' },
+      { id: 'green_flag', answer: 'Quelqu’un qui appelle sa mère sans qu’on le lui rappelle.' },
+    ],
+    portrait: { skin: 2, hair: 'long', hairColor: 'darkBrown', outfit: '#E8D8C4', scene: 'dusk' },
+    moments: [{ kind: 'rooftops', caption: 'La vieille ville depuis le toit d’une amie.' }, { kind: 'candles', caption: 'Shabbat à Nahlaot.' }],
+    privacy: careful, preferences: { ageMin: 27, ageMax: 36, maxDistanceKm: 40 },
+  },
+  {
+    key: 'yehuda', firstName: 'Yehuda', gender: 'man', seeks: ['woman'], birthDate: '1990-06-02', regionCode: 'il-jerusalem',
+    languages: ['en', 'he'], headline: 'Startup lawyer by day, Talmud study by night', verified: true,
+    jewishLife: {
+      practice: s('orthodox'), partnerImportance: s('essential'), shabbat: s('full_observance'), holidays: s('all_major'),
+      kashrutHome: s('strict_home_and_out'), community: s('weekly'), traditionPlace: s('central'), culturalBackground: s(['Ashkénaze', 'USA']),
+      relationshipIntent: s('marriage'), children: s('want'),
+    },
+    prompts: [
+      { id: 'ideal_shabbat_meal', answer: 'Twelve guests, three languages, and someone always bringing a guitar after havdalah.' },
+      { id: 'currently_learning', answer: 'Tractate Berakhot, and how to make a decent shakshuka.' },
+    ],
+    portrait: { skin: 1, hair: 'short', hairColor: 'brown', outfit: '#2F3E46', scene: 'library', beard: true, glasses: true },
+    moments: [{ kind: 'books', caption: 'My chavruta table.' }, { kind: 'mountains', caption: 'Hiking in the Judean hills.' }],
+    privacy: careful, preferences: { ageMin: 25, ageMax: 34, maxDistanceKm: 60 },
+  },
+  {
+    key: 'shira', firstName: 'Shira', gender: 'woman', seeks: ['man'], birthDate: '1997-08-21', regionCode: 'il-tel-aviv',
+    languages: ['he', 'en', 'fr'], headline: 'Product designer, surfs before stand-up', verified: true,
+    jewishLife: {
+      practice: s('cultural'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('not_kosher'), culturalBackground: s(['Ashkénaze', 'Russie']), relationshipIntent: s('long_term'), children: s('want', 'matches'),
+    },
+    prompts: [
+      { id: 'perfect_sunday', answer: 'Hilton beach at 6am, coffee at Florentin, a nap I won’t apologise for.' },
+      { id: 'together_we_could', answer: 'Find the best hummus in Jaffa. I already have strong opinions.' },
+    ],
+    portrait: { skin: 2, hair: 'wavy', hairColor: 'brown', outfit: '#F4F1DE', scene: 'sea' },
+    moments: [{ kind: 'sea', caption: 'Morning session.' }, { kind: 'coffee', caption: 'Florentin office.' }],
+    privacy: open, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 25 },
+  },
+  {
+    key: 'itay', firstName: 'Itay', gender: 'man', seeks: ['woman'], birthDate: '1991-11-30', regionCode: 'il-tel-aviv',
+    languages: ['he', 'en'], headline: 'Cardiologist, jazz pianist on Thursdays', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('no_pork_seafood'), culturalBackground: s(['Mizrahi', 'Irak']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'family_recipe', answer: 'My grandmother’s kubbeh soup. Winter is officially open when she makes it.' },
+      { id: 'makes_me_laugh', answer: 'Patients who google their symptoms and diagnose me instead.' },
+    ],
+    portrait: { skin: 3, hair: 'short', hairColor: 'black', outfit: '#1D3557', scene: 'night', beard: true },
+    moments: [{ kind: 'vinyl', caption: 'Thursday set list.' }, { kind: 'sea', caption: 'Tel Aviv port at sunset.' }],
+    privacy: open, preferences: { ageMin: 27, ageMax: 37, maxDistanceKm: 30 },
+  },
+  {
+    key: 'liora', firstName: 'Liora', gender: 'woman', seeks: ['man'], birthDate: '1992-05-09', regionCode: 'gb-london',
+    languages: ['en', 'he'], headline: 'Investment analyst, half-marathons, terrible at chess', verified: true,
+    jewishLife: {
+      practice: s('masorti'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), community: s('monthly'), culturalBackground: s(['Ashkénaze', 'Afrique du Sud']),
+      relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'green_flag', answer: 'You know the names of your friends’ kids.' },
+      { id: 'teach_me', answer: 'Chess. Please. My nephew is eight and destroying me.' },
+    ],
+    portrait: { skin: 1, hair: 'ponytail', hairColor: 'brown', outfit: '#264653', scene: 'garden' },
+    moments: [{ kind: 'rooftops', caption: 'Primrose Hill, Sunday run.' }, { kind: 'bread', caption: 'Friday challah from Golders Green.' }],
+    privacy: open, preferences: { ageMin: 29, ageMax: 39, maxDistanceKm: 20 },
+  },
+  {
+    key: 'joshua', firstName: 'Joshua', gender: 'man', seeks: ['woman'], birthDate: '1988-09-17', regionCode: 'gb-london',
+    languages: ['en', 'fr'], headline: 'Architect, restoring a Victorian house one weekend at a time', verified: true,
+    jewishLife: {
+      practice: s('liberal_reform'), partnerImportance: s('open_to_jewish_life'), shabbat: s('sometimes'), holidays: s('high_holidays_and_pesach'),
+      kashrutHome: s('not_kosher'), culturalBackground: s(['Ashkénaze']), relationshipIntent: s('long_term'), children: s('open'),
+    },
+    prompts: [
+      { id: 'project_excited_about', answer: 'A community centre in Hackney with a roof garden for the kids.' },
+      { id: 'perfect_sunday', answer: 'Columbia Road flower market, then a very long lunch.' },
+    ],
+    portrait: { skin: 0, hair: 'wavy', hairColor: 'auburn', outfit: '#6B705C', scene: 'terrace', beard: true },
+    moments: [{ kind: 'flowers', caption: 'Columbia Road haul.' }, { kind: 'rooftops', caption: 'Site visit, Hackney.' }],
+    privacy: open, preferences: { ageMin: 30, ageMax: 40, maxDistanceKm: 15 },
+  },
+  {
+    key: 'chloe', firstName: 'Chloé', gender: 'woman', seeks: ['man'], birthDate: '1996-03-03', regionCode: 'gb-london',
+    languages: ['fr', 'en'], headline: 'Parisienne à Londres, cheffe de projet dans la mode', verified: false,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('no_pork_seafood'), culturalBackground: s(['Sépharade', 'Maroc']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'ideal_shabbat_meal', answer: 'Couscous du vendredi, même à Londres. Surtout à Londres.' },
+      { id: 'makes_me_laugh', answer: 'Les Anglais qui s’excusent quand je leur marche sur le pied.' },
+    ],
+    portrait: { skin: 3, hair: 'long', hairColor: 'black', outfit: '#C9A27E', scene: 'dusk', earrings: true },
+    moments: [{ kind: 'coffee', caption: 'Notting Hill, samedi matin.' }, { kind: 'flowers', caption: 'Pour la table de vendredi.' }],
+    privacy: open, preferences: { ageMin: 27, ageMax: 36, maxDistanceKm: 20 },
+  },
+  {
+    key: 'nathan', firstName: 'Nathan', gender: 'man', seeks: ['woman'], birthDate: '1994-02-14', regionCode: 'us-new-york',
+    languages: ['en', 'fr'], headline: 'Chef de cuisine dans un bistrot de l’Upper West Side', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), culturalBackground: s(['Sépharade', 'Algérie']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'family_recipe', answer: 'Les makrouts de ma tante, que je n’ai jamais osé mettre à la carte.' },
+      { id: 'together_we_could', answer: 'Faire le tour des delis de Manhattan et noter chaque pastrami.' },
+    ],
+    portrait: { skin: 3, hair: 'curly', hairColor: 'black', outfit: '#FFFFFF', scene: 'night', beard: true },
+    moments: [{ kind: 'bread', caption: 'Service du soir.' }, { kind: 'rooftops', caption: 'Brooklyn, mon jour off.' }],
+    privacy: open, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 20 },
+  },
+  {
+    key: 'abby', firstName: 'Abby', gender: 'woman', seeks: ['man'], birthDate: '1991-10-25', regionCode: 'us-new-york',
+    languages: ['en', 'he'], headline: 'ER nurse, Sunday crossword loyalist', verified: true,
+    jewishLife: {
+      practice: s('modern_orthodox'), partnerImportance: s('essential'), shabbat: s('full_observance'), holidays: s('all_major'),
+      kashrutHome: s('strict_home_and_out'), community: s('weekly'), relationshipIntent: s('marriage'), children: s('want'),
+    },
+    prompts: [
+      { id: 'best_advice', answer: 'Eat when you can, sleep when you can, call your grandmother.' },
+      { id: 'favorite_tradition', answer: 'Shabbat afternoon walks in Riverside Park with no phone at all.' },
+    ],
+    portrait: { skin: 1, hair: 'wavy', hairColor: 'auburn', outfit: '#3E5C76', scene: 'garden' },
+    moments: [{ kind: 'books', caption: 'Crossword, in pen.' }, { kind: 'coffee', caption: 'After a night shift.' }],
+    privacy: careful, preferences: { ageMin: 28, ageMax: 38, maxDistanceKm: 25 },
+  },
+  {
+    key: 'jonah', firstName: 'Jonah', gender: 'man', seeks: ['man'], birthDate: '1993-07-11', regionCode: 'us-new-york',
+    languages: ['en'], headline: 'Broadway stage manager, bagel purist', verified: true,
+    jewishLife: {
+      practice: s('cultural'), partnerImportance: s('important'), shabbat: s('sometimes'), holidays: s('high_holidays_and_pesach'),
+      kashrutHome: s('not_kosher'), culturalBackground: s(['Ashkénaze']), relationshipIntent: s('long_term'), children: s('open'),
+    },
+    prompts: [
+      { id: 'makes_me_laugh', answer: 'Actors who swear they know their lines.' },
+      { id: 'perfect_sunday', answer: 'No show, no phone, the Met and dumplings in Chinatown.' },
+    ],
+    portrait: { skin: 1, hair: 'short', hairColor: 'darkBrown', outfit: '#1E1A24', scene: 'studio' },
+    moments: [{ kind: 'rooftops', caption: 'Times Square from the fly gallery.' }, { kind: 'vinyl', caption: 'Cast recordings only.' }],
+    privacy: open, preferences: { ageMin: 27, ageMax: 38, maxDistanceKm: 15 },
+  },
+  {
+    key: 'gabriela', firstName: 'Gabriela', gender: 'woman', seeks: ['man'], birthDate: '1994-12-04', regionCode: 'us-miami',
+    languages: ['en', 'es', 'he'], headline: 'Real estate lawyer, salsa on Fridays after dinner', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), culturalBackground: s(['Sépharade', 'Venezuela']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'ideal_shabbat_meal', answer: 'Arepas and challah on the same table. My family doesn’t do borders.' },
+      { id: 'teach_me', answer: 'How to sail. I’ve lived by the ocean my whole life and never learned.' },
+    ],
+    portrait: { skin: 4, hair: 'long', hairColor: 'darkBrown', outfit: '#E07A5F', scene: 'sea', earrings: true },
+    moments: [{ kind: 'sea', caption: 'Key Biscayne.' }, { kind: 'citrus', caption: 'Abuela’s backyard.' }],
+    privacy: open, preferences: { ageMin: 28, ageMax: 38, maxDistanceKm: 30 },
+  },
+  {
+    key: 'ethan', firstName: 'Ethan', gender: 'man', seeks: ['woman'], birthDate: '1989-04-19', regionCode: 'us-los-angeles',
+    languages: ['en', 'fa'], headline: 'Film editor, Persian-American, makes the best tahdig on the West Coast', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('no_pork_seafood'), culturalBackground: s(['Mizrahi', 'Iran']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'family_recipe', answer: 'Tahdig. I will not share the rice-to-oil ratio until the third date.' },
+      { id: 'project_excited_about', answer: 'A documentary about my grandfather’s journey from Shiraz to LA.' },
+    ],
+    portrait: { skin: 3, hair: 'wavy', hairColor: 'black', outfit: '#2B2D42', scene: 'dusk', beard: true },
+    moments: [{ kind: 'mountains', caption: 'Griffith at golden hour.' }, { kind: 'citrus', caption: 'Pomegranates from the yard.' }],
+    privacy: open, preferences: { ageMin: 28, ageMax: 38, maxDistanceKm: 40 },
+  },
+  {
+    key: 'emma', firstName: 'Emma', gender: 'woman', seeks: ['woman'], birthDate: '1995-09-08', regionCode: 'us-los-angeles',
+    languages: ['en'], headline: 'Music therapist, hiking every canyon in LA', verified: false,
+    jewishLife: {
+      practice: s('spiritual'), partnerImportance: s('open_to_jewish_life'), shabbat: s('sometimes'), holidays: s('some'),
+      kashrutHome: s('vegetarian_for_kashrut'), relationshipIntent: s('see_where_it_goes'), children: s('not_sure'),
+    },
+    prompts: [
+      { id: 'favorite_tradition', answer: 'Havdalah under the stars, out in Joshua Tree.' },
+      { id: 'green_flag', answer: 'You sing in the car and don’t care who sees.' },
+    ],
+    portrait: { skin: 0, hair: 'long', hairColor: 'blond', outfit: '#A8DADC', scene: 'garden' },
+    moments: [{ kind: 'mountains', caption: 'Runyon Canyon, 7am.' }, { kind: 'candles', caption: 'Havdalah, desert edition.' }],
+    privacy: open, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 40 },
+  },
+  {
+    key: 'oceane', firstName: 'Océane', gender: 'woman', seeks: ['man'], birthDate: '1993-06-27', regionCode: 'ca-montreal',
+    languages: ['fr', 'en'], headline: 'Pharmacienne, patineuse l’hiver, cycliste l’été', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), culturalBackground: s(['Sépharade', 'Maroc']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'favorite_holiday', answer: 'Hanouka : beignets, neige et toute la famille de Côte-Saint-Luc.' },
+      { id: 'perfect_sunday', answer: 'Bagels de Saint-Viateur, puis le mont Royal à pied.' },
+    ],
+    portrait: { skin: 2, hair: 'bob', hairColor: 'darkBrown', outfit: '#8E2433', scene: 'studio' },
+    moments: [{ kind: 'mountains', caption: 'Le mont Royal en octobre.' }, { kind: 'bread', caption: 'Saint-Viateur, toujours.' }],
+    privacy: open, preferences: { ageMin: 28, ageMax: 38, maxDistanceKm: 25 },
+  },
+  {
+    key: 'mathieu', firstName: 'Mathieu', gender: 'man', seeks: ['woman'], birthDate: '1987-01-21', regionCode: 'ca-montreal',
+    languages: ['fr', 'en', 'he'], headline: 'Ingénieur en IA, père d’une fille de six ans', verified: true,
+    jewishLife: {
+      practice: s('masorti'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), community: s('monthly'), relationshipIntent: s('long_term'), children: s('have_and_want_more'),
+    },
+    prompts: [
+      { id: 'best_advice', answer: '« Fais les choses lentement, mais fais-les. » Mon grand-père, ébéniste.' },
+      { id: 'together_we_could', answer: 'Construire une cabane à souccot digne de ce nom. Ma fille a déjà les plans.' },
+    ],
+    portrait: { skin: 1, hair: 'short', hairColor: 'brown', outfit: '#3A5A40', scene: 'garden', glasses: true },
+    moments: [{ kind: 'mountains', caption: 'Laurentides en famille.' }, { kind: 'books', caption: 'Lecture du soir, tome 4.' }],
+    privacy: careful, preferences: { ageMin: 30, ageMax: 42, maxDistanceKm: 30 },
+  },
+  {
+    key: 'laura', firstName: 'Laura', gender: 'woman', seeks: ['man'], birthDate: '1990-03-15', regionCode: 'ch-geneve',
+    languages: ['fr', 'en', 'de'], headline: 'Diplomate à l’ONU, toujours entre deux avions', verified: true,
+    jewishLife: {
+      practice: s('liberal_reform'), partnerImportance: s('open_to_jewish_life'), shabbat: s('sometimes'), holidays: s('high_holidays_and_pesach'),
+      kashrutHome: s('not_kosher'), culturalBackground: s(['Ashkénaze', 'Suisse']), relationshipIntent: s('long_term'), children: s('open'),
+    },
+    prompts: [
+      { id: 'together_we_could', answer: 'Faire le tour du lac à vélo et s’arrêter dans chaque village pour un café.' },
+      { id: 'currently_learning', answer: 'L’hébreu, pour comprendre enfin les chansons de mon père.' },
+    ],
+    portrait: { skin: 0, hair: 'bun', hairColor: 'blond', outfit: '#1D3557', scene: 'terrace', earrings: true },
+    moments: [{ kind: 'boat', caption: 'Le Léman un soir de juin.' }, { kind: 'mountains', caption: 'Chamonix, à une heure de la maison.' }],
+    privacy: open, preferences: { ageMin: 32, ageMax: 44, maxDistanceKm: 50 },
+  },
+  {
+    key: 'simon', firstName: 'Simon', gender: 'man', seeks: ['woman'], birthDate: '1986-08-05', regionCode: 'be-anvers',
+    languages: ['fr', 'nl', 'en', 'he'], headline: 'Diamantaire, troisième génération, passionné d’horlogerie', verified: true,
+    jewishLife: {
+      practice: s('orthodox'), partnerImportance: s('essential'), shabbat: s('full_observance'), holidays: s('all_major'),
+      kashrutHome: s('strict_home_and_out'), community: s('weekly'), traditionPlace: s('central'), relationshipIntent: s('marriage'), children: s('want'),
+    },
+    prompts: [
+      { id: 'favorite_tradition', answer: 'Le kiddouch du samedi matin avec mon père et mes frères.' },
+      { id: 'teach_me', answer: 'La cuisine. Je sais tailler une pierre, pas couper un oignon.' },
+    ],
+    portrait: { skin: 1, hair: 'short', hairColor: 'black', outfit: '#1E1A24', scene: 'library', beard: true },
+    moments: [{ kind: 'books', caption: 'Bibliothèque de mon grand-père.' }, { kind: 'rooftops', caption: 'Anvers, quartier de la gare.' }],
+    privacy: careful, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 80 },
+  },
+  {
+    key: 'alessia', firstName: 'Alessia', gender: 'woman', seeks: ['man'], birthDate: '1995-11-11', regionCode: 'it-milan',
+    languages: ['it', 'en', 'fr'], headline: 'Designer textile, collectionne les tissus anciens', verified: true,
+    jewishLife: {
+      practice: s('cultural'), partnerImportance: s('important'), shabbat: s('family_occasions'), holidays: s('high_holidays_and_pesach'),
+      kashrutHome: s('not_kosher'), culturalBackground: s(['Italki', 'Rome']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'family_recipe', answer: 'Les carciofi alla giudia de ma nonna. Rome, quartier du Ghetto, depuis toujours.' },
+      { id: 'perfect_sunday', answer: 'Marché du Naviglio, un aperitivo qui dure trois heures.' },
+    ],
+    portrait: { skin: 2, hair: 'wavy', hairColor: 'darkBrown', outfit: '#B5651D', scene: 'terrace', earrings: true },
+    moments: [{ kind: 'citrus', caption: 'Été à Rome chez ma grand-mère.' }, { kind: 'flowers', caption: 'Atelier, Porta Venezia.' }],
+    privacy: open, preferences: { ageMin: 27, ageMax: 37, maxDistanceKm: 40 },
+  },
+  {
+    key: 'dan', firstName: 'Dan', gender: 'man', seeks: ['woman'], birthDate: '1985-05-28', regionCode: 'es-marbella',
+    languages: ['fr', 'en', 'es', 'he'], headline: 'Entrepreneur dans l’hôtellerie, golf le dimanche', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('no_pork_seafood'), culturalBackground: s(['Sépharade', 'Maroc']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'perfect_sunday', answer: 'Un parcours à Nueva Andalucía, puis un déjeuner face à la mer à Puerto Banús.' },
+      { id: 'together_we_could', answer: 'Aller à Tanger en bateau pour un dîner et revenir au lever du soleil.' },
+    ],
+    portrait: { skin: 3, hair: 'short', hairColor: 'grey', outfit: '#F4F1DE', scene: 'sea' },
+    moments: [{ kind: 'boat', caption: 'Puerto Banús, fin de journée.' }, { kind: 'mountains', caption: 'La Concha vue du green.' }],
+    privacy: open, preferences: { ageMin: 30, ageMax: 42, maxDistanceKm: 60 },
+  },
+  {
+    key: 'lina', firstName: 'Lina', gender: 'woman', seeks: ['man'], birthDate: '1996-04-30', regionCode: 'ma-casablanca',
+    languages: ['fr', 'ar', 'en'], headline: 'Architecte d’intérieur, je restaure les riads de la médina', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), community: s('holidays'), culturalBackground: s(['Sépharade', 'Maroc']),
+      relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'favorite_holiday', answer: 'La Mimouna : la maison ouverte à tout le quartier jusqu’à l’aube.' },
+      { id: 'family_recipe', answer: 'La skhina de ma grand-mère, cuite toute la nuit chez le boulanger.' },
+    ],
+    portrait: { skin: 4, hair: 'curly', hairColor: 'black', outfit: '#E9C46A', scene: 'candlelight', earrings: true },
+    moments: [{ kind: 'ceramics', caption: 'Zelliges d’un riad en chantier.' }, { kind: 'citrus', caption: 'Table de Mimouna.' }],
+    privacy: open, preferences: { ageMin: 27, ageMax: 37, maxDistanceKm: 50 },
+  },
+  {
+    key: 'tomas', firstName: 'Tomás', gender: 'man', seeks: ['woman'], birthDate: '1992-09-09', regionCode: 'ar-buenos-aires',
+    languages: ['es', 'en', 'he'], headline: 'Arquitecto y profesor de tango los miércoles', verified: true,
+    jewishLife: {
+      practice: s('masorti'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('no_pork_seafood'), culturalBackground: s(['Ashkénaze', 'Argentine']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'teach_me', answer: 'Lo que quieras. A cambio, te enseño a bailar tango sin pisarte.' },
+      { id: 'ideal_shabbat_meal', answer: 'Asado kasher en la terraza de mis padres en Belgrano.' },
+    ],
+    portrait: { skin: 2, hair: 'wavy', hairColor: 'darkBrown', outfit: '#1D3557', scene: 'night', beard: true },
+    moments: [{ kind: 'vinyl', caption: 'Milonga del miércoles.' }, { kind: 'rooftops', caption: 'Palermo desde mi oficina.' }],
+    privacy: open, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 30 },
+  },
+  {
+    key: 'kayla', firstName: 'Kayla', gender: 'woman', seeks: ['man'], birthDate: '1993-02-17', regionCode: 'za-johannesburg',
+    languages: ['en', 'he'], headline: 'Wildlife vet, more comfortable with lions than with small talk', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), community: s('monthly'), culturalBackground: s(['Ashkénaze', 'Lituanie']),
+      relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'project_excited_about', answer: 'A rhino rehabilitation programme near the Kruger.' },
+      { id: 'green_flag', answer: 'You’re kind to waiters and patient with dogs.' },
+    ],
+    portrait: { skin: 1, hair: 'ponytail', hairColor: 'blond', outfit: '#606C38', scene: 'garden' },
+    moments: [{ kind: 'mountains', caption: 'Magaliesberg weekend.' }, { kind: 'flowers', caption: 'Jacaranda season.' }],
+    privacy: open, preferences: { ageMin: 28, ageMax: 38, maxDistanceKm: 40 },
+  },
+  {
+    key: 'josh', firstName: 'Josh', gender: 'man', seeks: ['woman'], birthDate: '1990-12-08', regionCode: 'au-sydney',
+    languages: ['en'], headline: 'Marine engineer, surf club volunteer at Bondi', verified: false,
+    jewishLife: {
+      practice: s('cultural'), partnerImportance: s('important'), shabbat: s('family_occasions'), holidays: s('high_holidays_and_pesach'),
+      kashrutHome: s('not_kosher'), culturalBackground: s(['Ashkénaze', 'Pologne']), relationshipIntent: s('see_where_it_goes'), children: s('open'),
+    },
+    prompts: [
+      { id: 'makes_me_laugh', answer: 'Celebrating Pesach in autumn and Hanukkah in a heatwave.' },
+      { id: 'perfect_sunday', answer: 'Dawn patrol at Bondi, bacon-free brekkie, a nap under a tree.' },
+    ],
+    portrait: { skin: 1, hair: 'wavy', hairColor: 'blond', outfit: '#00838F', scene: 'sea' },
+    moments: [{ kind: 'sea', caption: 'Bondi, 6am.' }, { kind: 'boat', caption: 'Harbour on a Sunday.' }],
+    privacy: open, preferences: { ageMin: 27, ageMax: 37, maxDistanceKm: 30 },
+  },
+  {
+    key: 'julie', firstName: 'Julie', gender: 'woman', seeks: ['man'], birthDate: '1992-07-24', regionCode: 'fr-marseille',
+    languages: ['fr', 'en'], headline: 'Kiné, plongée dans les calanques dès que possible', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('kosher_home_flexible_out'), culturalBackground: s(['Sépharade', 'Tunisie']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'ideal_shabbat_meal', answer: 'Le poisson à la tunisienne de ma mère, et tout le monde qui parle en même temps.' },
+      { id: 'perfect_sunday', answer: 'Sormiou le matin, panisse au Vallon des Auffes le soir.' },
+    ],
+    portrait: { skin: 3, hair: 'long', hairColor: 'brown', outfit: '#E07A5F', scene: 'sea' },
+    moments: [{ kind: 'sea', caption: 'Calanque de Sormiou.' }, { kind: 'boat', caption: 'Le Vieux-Port un soir d’été.' }],
+    privacy: open, preferences: { ageMin: 28, ageMax: 38, maxDistanceKm: 30 },
+  },
+  {
+    key: 'kevin', firstName: 'Kevin', gender: 'man', seeks: ['woman'], birthDate: '1991-03-26', regionCode: 'fr-nice',
+    languages: ['fr', 'en', 'it'], headline: 'Pilote d’hélicoptère, entre Nice et Monaco', verified: true,
+    jewishLife: {
+      practice: s('traditional'), partnerImportance: s('important'), shabbat: s('friday_dinner'), holidays: s('all_major'),
+      kashrutHome: s('no_pork_seafood'), culturalBackground: s(['Sépharade', 'Algérie']), relationshipIntent: s('long_term'), children: s('want'),
+    },
+    prompts: [
+      { id: 'together_we_could', answer: 'Un déjeuner à San Remo et un dîner à Nice, le même jour.' },
+      { id: 'green_flag', answer: 'Quelqu’un qui n’a pas peur de prendre de la hauteur.' },
+    ],
+    portrait: { skin: 2, hair: 'buzz', hairColor: 'darkBrown', outfit: '#264653', scene: 'sea' },
+    moments: [{ kind: 'sea', caption: 'La baie des Anges vue d’en haut.' }, { kind: 'citrus', caption: 'Menton, fête du citron.' }],
+    privacy: open, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 50 },
+  },
+  {
+    key: 'manon', firstName: 'Manon', gender: 'woman', seeks: ['man'], birthDate: '1997-10-02', regionCode: 'fr-lyon',
+    languages: ['fr', 'en'], headline: 'Sommelière (vins casher compris), toujours curieuse', verified: true,
+    jewishLife: {
+      practice: s('exploring'), partnerImportance: s('important'), shabbat: s('sometimes'), holidays: s('some'),
+      kashrutHome: s('other', 'members', 'J’apprends, à mon rythme.'), relationshipIntent: s('long_term'), children: s('open'),
+    },
+    prompts: [
+      { id: 'currently_learning', answer: 'Les fêtes juives, une par une, avec un carnet de notes.' },
+      { id: 'teach_me', answer: 'Ta recette préférée. Je trouverai le vin qui va avec.' },
+    ],
+    portrait: { skin: 0, hair: 'bob', hairColor: 'auburn', outfit: '#6D597A', scene: 'candlelight' },
+    moments: [{ kind: 'citrus', caption: 'Dégustation du jeudi.' }, { kind: 'rooftops', caption: 'Fourvière au coucher du soleil.' }],
+    privacy: open, preferences: { ageMin: 26, ageMax: 36, maxDistanceKm: 25 },
   },
 ];
 

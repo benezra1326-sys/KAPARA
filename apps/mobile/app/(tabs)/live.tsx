@@ -69,7 +69,7 @@ export default function Live() {
                 </Text>
               </View>
               <Switch value={available} onValueChange={(v) => void store.setAvailable(v)}
-                trackColor={{ true: c.live, false: c.border }} accessibilityLabel={t('live.availableToggle')}
+                trackColor={{ true: c.live, false: c.textSubtle }} accessibilityLabel={t('live.availableToggle')}
                 accessibilityHint={t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })} />
             </View>
             <Text variant="caption" tone="textSubtle">{t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })}</Text>
@@ -127,29 +127,35 @@ export default function Live() {
   );
 }
 
+/**
+ * Compact intro: what Live is in one line, the three consent steps as
+ * small chips, then the one action. Details live in Live settings.
+ */
 function Intro({ onEnable, onSettings }: { onEnable: () => void; onSettings: () => void }) {
   const { t } = useTranslation();
   const { c } = useTheme();
-  const steps = [t('live.steps.invite'), t('live.steps.accept'), t('live.steps.camera')];
+  const steps: { label: string; icon: 'phone' | 'audio' | 'video' }[] = [
+    { label: t('live.steps.invite'), icon: 'phone' }, { label: t('live.steps.accept'), icon: 'audio' }, { label: t('live.steps.camera'), icon: 'video' },
+  ];
   return (
     <View style={[{ marginHorizontal: space.lg, padding: space.xl, borderRadius: radius.xl, backgroundColor: c.surface, gap: space.lg }, shadow.card]}>
-      <Text variant="quote" tone="accent" style={{ fontSize: 26, lineHeight: 32 }}>{t('live.introTitle')}</Text>
-      <Text tone="textMuted">{t('live.introBody')}</Text>
-      <View accessibilityRole="list" style={{ gap: 0 }}>
-        {steps.map((label, i) => (
-          <View key={label} style={{ flexDirection: 'row', gap: space.md, alignItems: 'flex-start' }} accessibilityLabel={`${i + 1}. ${label}`}>
-            <View style={{ alignItems: 'center' }}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: c.highlight, alignItems: 'center', justifyContent: 'center' }}>
-                <Text variant="label" tone="highlight">{i + 1}</Text>
-              </View>
-              {i < steps.length - 1 ? <View style={{ width: 1.5, height: 18, backgroundColor: c.border }} /> : null}
-            </View>
-            <Text variant="label" style={{ paddingTop: 4, flex: 1 }}>{label}</Text>
+      <View style={{ gap: space.xs }}>
+        <Text variant="heading">{t('live.introTitle')}</Text>
+        <Text tone="textMuted">{t('ux.liveIntroShort')}</Text>
+      </View>
+      <View accessibilityRole="list" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+        {steps.map((s, i) => (
+          <View key={s.label} accessibilityLabel={`${i + 1}. ${s.label}`}
+            style={{ maxWidth: '100%', flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.lg, backgroundColor: c.surfaceAlt }}>
+            <Icon name={s.icon} size={16} color={c.textMuted} />
+            <Text variant="caption" style={{ flexShrink: 1 }}>{`${i + 1}. ${s.label}`}</Text>
           </View>
         ))}
       </View>
-      <Button label={t('live.enable')} onPress={onEnable} />
-      <Button kind="ghost" label={t('live.settingsLink')} onPress={onSettings} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+        <Button label={t('live.enable')} onPress={onEnable} style={{ flexGrow: 1 }} />
+        <Button kind="secondary" icon="settings" label={t('live.settingsLink')} onPress={onSettings} style={{ flexGrow: 1 }} />
+      </View>
     </View>
   );
 }
@@ -159,25 +165,25 @@ function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (
   const { c } = useTheme();
   return (
     <View style={[{ marginHorizontal: space.lg, padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }, shadow.card]}>
-      <View style={{ width: 92, height: 122, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ flex: 1 }} contentFit="cover" transition={250} accessibilityLabel={m.firstName} /> : null}
+      <View style={{ width: 84, height: 105, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
+        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={250} accessibilityLabel={m.firstName} /> : null}
         <View style={{ position: 'absolute', top: space.sm, left: space.sm, width: 10, height: 10, borderRadius: 5, backgroundColor: c.live, borderWidth: 2, borderColor: c.surface }} />
       </View>
       <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexWrap: 'wrap' }}>
           <Text variant="heading">{m.firstName}, {m.age}</Text>
-          {m.verified ? <Text variant="caption" tone="live" accessibilityLabel={t('live.verified')}>✓ {t('live.verified')}</Text> : null}
+          {m.verified ? <Text variant="caption" tone="live">{m.isDemo ? t('ux.verifiedDemo') : t('live.verified')}</Text> : null}
         </View>
         {m.headline ? <Text variant="caption" tone="textMuted" numberOfLines={2}>{m.headline}</Text> : null}
-        {m.isDemo ? <View style={{ transform: [{ scale: 0.9 }], marginLeft: -4 }}><DemoBadge /></View> : null}
+        {m.isDemo ? <DemoBadge compact /> : null}
         <View style={{ flex: 1 }} />
         <Pressable onPress={onInvite} disabled={disabled} accessibilityRole="button"
           accessibilityLabel={`${t('live.invite')} : ${m.firstName}`} accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
           style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill,
-            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentPressed : c.accent,
+            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentSoft : 'transparent', borderWidth: 1, borderColor: c.accent,
             opacity: disabled && !busy ? 0.45 : 1 })}>
-          {busy ? <ActivityIndicator color={c.onAccent} /> : <Icon name="phone" size={18} color={c.onAccent} />}
-          <Text variant="label" tone="onAccent">{t('live.invite')}</Text>
+          {busy ? <ActivityIndicator color={c.accent} /> : <Icon name="phone" size={18} color={c.accent} />}
+          <Text variant="label" tone="accent">{t('live.invite')}</Text>
         </Pressable>
       </View>
     </View>
@@ -188,7 +194,7 @@ function SkeletonRow() {
   const { c } = useTheme();
   return (
     <View style={{ padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }} accessibilityElementsHidden>
-      <View style={{ width: 92, height: 122, borderRadius: radius.md, backgroundColor: c.surfaceAlt }} />
+      <View style={{ width: 84, height: 105, borderRadius: radius.md, backgroundColor: c.surfaceAlt }} />
       <View style={{ flex: 1, gap: space.sm, paddingTop: space.sm }}>
         <View style={{ width: '55%', height: 18, borderRadius: 6, backgroundColor: c.surfaceAlt }} />
         <View style={{ width: '85%', height: 12, borderRadius: 6, backgroundColor: c.surfaceAlt }} />

@@ -6,7 +6,7 @@ import type { ShabbatSettings, ShabbatStatus } from '@kapara/shared';
 import { useSetShabbat, useShabbat } from '../../src/social/api';
 import { Card, DemoNotice, Loading, Row, RowGroup, Section, StackHeader, ToggleRow, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { Button, EmptyState, Text } from '../../src/ui';
+import { Button, EmptyState, Text, Icon } from '../../src/ui';
 
 const CANDLES = [18, 20, 30, 40];
 const HAVDALAH: (number | null)[] = [null, 42, 50, 72];
@@ -59,7 +59,7 @@ export default function Shabbat() {
               <Card>
                 {(['effect1', 'effect2', 'effect3', 'effect4'] as const).map((k) => (
                   <View key={k} style={{ flexDirection: 'row', gap: space.md }}>
-                    <Text tone="highlight" accessibilityElementsHidden>✦</Text>
+                    <View style={{ paddingTop: 4 }}><Icon name="sparkle" size={14} color={c.highlight} filled /></View>
                     <Text tone="textMuted" style={{ flex: 1 }}>{t(`shabbat.${k}`)}</Text>
                   </View>
                 ))}

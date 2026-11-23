@@ -9,7 +9,7 @@ import { DEMO_MODE } from '../../src/api/client';
 import { useHydrateMe } from '../../src/me/api';
 import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { Button, EmptyState, Progress, Screen, Text } from '../../src/ui';
+import { Button, EmptyState, Progress, Screen, Text, useLayout } from '../../src/ui';
 import { ProfileCard, type ReactTarget } from '../../src/ui/ProfileCard';
 import { ReactSheet } from '../../src/ui/ReactSheet';
 
@@ -28,6 +28,8 @@ export default function ForYou() {
   const [reacted, setReacted] = useState(0);
   const [target, setTarget] = useState<ReactTarget | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const { isPhone, width } = useLayout();
+  const narrow = width < 360; // 320 px phones: text only, so both labels fit
 
   if (!DEMO_MODE && hydrate.isLoading) return <Loading />;
   if (!DEMO_MODE && hydrate.isError) return (
@@ -35,7 +37,8 @@ export default function ForYou() {
       <EmptyState title={t('pick.errorTitle')} body={t('common.offline')} action={{ label: t('common.retry'), onPress: () => void hydrate.refetch() }} />
     </Screen>
   );
-  if (!onboarded) return <Redirect href="/onboarding" />;
+  // Signed in but the profile isn't finished: carry on with it, don't start over.
+  if (!onboarded) return <Redirect href="/onboarding/basics" />;
   if (q.isLoading) return <Loading />;
   if (q.isError) return (
     <Screen title={t('forYou.title')}>
@@ -54,12 +57,27 @@ export default function ForYou() {
     </Screen>
   );
 
+  const pass = () => { if (!rec) return; feedback.mutate({ subjectId: rec.profile.id, signal: 'not_for_me' }); advance(t('pick.passed')); };
+  const main = rec?.profile.photos[0];
+  // The two decisions stay in reach at every width: pinned under the page.
+  const actions = rec ? (
+    <View style={{ gap: space.xs, width: '100%', maxWidth: 560, alignSelf: 'center' }}>
+      <View style={{ flexDirection: 'row', gap: space.sm }}>
+        <Button kind="secondary" icon={narrow ? undefined : 'close'} label={t('pick.pass')} accessibilityHint={t('pick.passHint')} onPress={pass} style={{ flex: 1, paddingHorizontal: space.md }} />
+        <Button kind="accent" icon={narrow ? undefined : 'heart'} label={t('ux.react')} accessibilityHint={t('ux.reactHint')} style={{ flex: 1, paddingHorizontal: space.md }}
+          onPress={() => setTarget(rec.profile.prompts[0] ? { kind: 'prompt', id: rec.profile.prompts[0].id } : main ? { kind: 'photo', id: main.id } : null)} />
+      </View>
+      {isPhone ? null : <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('pick.passFootnote')}</Text>}
+    </View>
+  ) : null;
+
   return (
-    <Screen title={t('forYou.title')} subtitle={date}>
+    <Screen title={t('forYou.title')} subtitle={date} width="wide" footer={actions}>
       <View style={{ gap: space.sm, marginBottom: space.lg }}>
         <Progress total={picks.length} current={i} />
         <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.xl }}>
           {rec ? t('pick.counter', { current: i + 1, total: picks.length }) : t('pick.counterDone', { total: picks.length })}
+          {DEMO_MODE ? `  ·  ${t('ux.demoPicks')}` : ''}
         </Text>
       </View>
 
@@ -70,13 +88,8 @@ export default function ForYou() {
       ) : null}
 
       {rec ? (
-        <Animated.View key={rec.profile.id} entering={FadeInDown.duration(420)}>
+        <Animated.View key={rec.profile.id} entering={FadeInDown.duration(400)}>
           <ProfileCard profile={rec.profile} reasons={rec.reasons} onReact={setTarget} />
-          <View style={{ paddingHorizontal: space.xl, paddingTop: space.xl, gap: space.sm }}>
-            <Button kind="secondary" label={t('pick.pass')} accessibilityHint={t('pick.passHint')}
-              onPress={() => { feedback.mutate({ subjectId: rec.profile.id, signal: 'not_for_me' }); advance(t('pick.passed')); }} />
-            <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('pick.passFootnote')}</Text>
-          </View>
         </Animated.View>
       ) : (
         <Animated.View entering={FadeIn.duration(420)}>

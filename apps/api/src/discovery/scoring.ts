@@ -1,6 +1,5 @@
 import type { JewishLife } from '@kapara/shared';
 import { isMatchableField } from '@kapara/shared';
-import { distanceBucket } from '../common/distance';
 
 /** Answers a member shared for matching: consented, useForMatching, not "prefer not to say". */
 export type Answers = Partial<Record<string, string>>;
@@ -138,7 +137,8 @@ export function score(s: Seeker, c: Candidate, seed = ''): Scored {
     reasons.push({ key: 'reason.same_intent', params: { value: c.answers.relationshipIntent! } });
   }
   if (aff.strongest) reasons.push({ key: 'reason.like_profiles_you_appreciated', params: { field: aff.strongest } });
-  if (proximity >= 0.7) reasons.push({ key: 'reason.nearby', params: { km: String(distanceBucket(c.distanceKm)) } });
+  // Shown as "Nearby", never as a number of km: a precise distance would reveal too much.
+  if (proximity >= 0.7) reasons.push({ key: 'reason.nearby' });
   const common = c.languages.filter((l) => s.languages.includes(l) && l !== 'fr' && l !== 'en');
   if (common.length) reasons.push({ key: 'reason.shared_language', params: { language: common[0]! } });
   if (!reasons.length) reasons.push({ key: 'reason.fits_your_criteria' });

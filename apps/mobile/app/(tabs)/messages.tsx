@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { Pressable, RefreshControl, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { space } from '@kapara/design';
+import { radius, space } from '@kapara/design';
 import type { ConversationSummary } from '@kapara/shared';
 import { useConversations, useIntroInbox } from '../../src/social/api';
 import { Avatar, DemoNotice, Loading, Pill, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { EmptyState, Screen, Text } from '../../src/ui';
+import { EmptyState, Icon, Screen, Text } from '../../src/ui';
 
 /** Conversations. No read receipts, no unread pressure: just who and what was said last. */
 export default function Messages() {
@@ -22,13 +22,15 @@ export default function Messages() {
       <DemoNotice />
       {pending > 0 ? (
         <Pressable onPress={() => router.push('/introductions')} accessibilityRole="button"
-          style={({ pressed }) => ({ marginHorizontal: space.lg, marginBottom: space.lg, padding: space.lg, borderRadius: 22, backgroundColor: pressed ? c.accentPressed : c.accent, flexDirection: 'row', alignItems: 'center', gap: space.md })}>
-          <Text variant="heading" tone="onAccent" accessibilityElementsHidden>✦</Text>
-          <View style={{ flex: 1 }}>
-            <Text variant="bodyStrong" tone="onAccent">{t('intro.received')}</Text>
-            <Text variant="caption" tone="onAccent">{t('intro.subtitle')}</Text>
+          style={({ pressed }) => ({ marginHorizontal: space.lg, marginBottom: space.lg, padding: space.lg, borderRadius: radius.lg, backgroundColor: c.accentSoft, opacity: pressed ? 0.85 : 1, flexDirection: 'row', alignItems: 'center', gap: space.md })}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="sparkle" size={20} color={c.accent} filled />
           </View>
-          <Text variant="heading" tone="onAccent" accessibilityElementsHidden>›</Text>
+          <View style={{ flex: 1 }}>
+            <Text variant="bodyStrong">{t('intro.received')}</Text>
+            <Text variant="caption" tone="textMuted">{t('intro.subtitle')}</Text>
+          </View>
+          <Icon name="chevron" size={20} color={c.textMuted} />
         </Pressable>
       ) : null}
 
@@ -37,7 +39,7 @@ export default function Messages() {
       ) : (q.data ?? []).length === 0 ? (
         <EmptyState title={t('messages.empty')} />
       ) : (
-        <View style={{ marginHorizontal: space.lg, backgroundColor: c.surface, borderRadius: 22, overflow: 'hidden' }}>
+        <View style={{ marginHorizontal: space.lg, backgroundColor: c.surface, borderRadius: radius.lg, overflow: 'hidden' }}>
           {(q.data ?? []).map((conv, i) => <ConversationRow key={conv.id} conv={conv} first={i === 0} />)}
         </View>
       )}
@@ -56,7 +58,7 @@ function ConversationRow({ conv, first }: { conv: ConversationSummary; first: bo
   return (
     <Pressable onPress={() => router.push({ pathname: '/conversation/[id]', params: { id: conv.id } })} accessibilityRole="button"
       accessibilityLabel={`${conv.other.firstName}. ${preview}`}
-      style={({ pressed }) => ({ flexDirection: 'row', gap: space.md, padding: space.lg, alignItems: 'center', backgroundColor: pressed ? c.surfaceAlt : 'transparent', borderTopWidth: first ? 0 : 1, borderTopColor: c.border })}>
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ flexDirection: 'row', gap: space.md, padding: space.lg, alignItems: 'center', backgroundColor: pressed || hovered ? c.surfaceAlt : 'transparent', borderTopWidth: first ? 0 : 1, borderTopColor: c.border })}>
       <Avatar uri={conv.other.photoUrl} name={conv.other.firstName} />
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>

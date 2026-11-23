@@ -30,7 +30,7 @@ export default function LiveSettingsScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
               <Text variant="bodyStrong" style={{ flex: 1 }}>{t('liveSettings.enableLabel')}</Text>
               <Switch value={settings.liveEnabled} onValueChange={(v) => void store.saveSettings({ ...settings, liveEnabled: v })}
-                trackColor={{ true: c.live, false: c.border }} accessibilityLabel={t('liveSettings.enableLabel')} />
+                trackColor={{ true: c.live, false: c.textSubtle }} accessibilityLabel={t('liveSettings.enableLabel')} />
             </View>
             <Text variant="caption" tone="textMuted">{t('liveSettings.enableHint')}</Text>
           </View>

@@ -39,7 +39,7 @@ test('picks are ranked and explained', () => {
   const r = rank(seeker(), [cand({ id: 'x', distanceKm: 15 }), cand({ id: 'y', distanceKm: 2, answers: { shabbat: 'friday_dinner' } })], 8);
   assert.equal(r[0]!.id, 'y');
   assert.equal(r[0]!.reasons[0]!.key, 'reason.shared.shabbat');
-  assert.ok(r[0]!.reasons.some((x) => x.key === 'reason.nearby' && x.params?.km === '2'));
+  assert.ok(r[0]!.reasons.some((x) => x.key === 'reason.nearby' && !x.params));
 });
 test('every pick has at least one reason', () => {
   const s = seeker({ criteria: { ...criteria } });

@@ -7,7 +7,8 @@ import type { Visibility } from '@kapara/shared';
 import { space } from '@kapara/design';
 import { answerLabel, fieldMeta, ONBOARDING_FIELDS, type JLKey } from '../../src/me/fields';
 import { emptyField, meStore, storesData, type SensitiveField } from '../../src/me/store';
-import { Button, ConsentSheet, Progress, Row, Screen, Section, SensitiveQuestion, SwitchRow, Text, VisibilityPicker } from '../../src/ui';
+import { useTheme } from '../../src/theme';
+import { Button, ConsentSheet, Progress, Row, Screen, Section, SensitiveQuestion, SwitchRow, Text, VisibilityPicker, Icon } from '../../src/ui';
 
 type Phase = { kind: 'intro' } | { kind: 'question'; i: number } | { kind: 'share' };
 
@@ -18,6 +19,7 @@ type Phase = { kind: 'intro' } | { kind: 'question'; i: number } | { kind: 'shar
  */
 export default function OnbJewish() {
   const { t } = useTranslation();
+  const { c } = useTheme();
   const [phase, setPhase] = useState<Phase>({ kind: 'intro' });
   const [answers, setAnswers] = useState<Partial<Record<JLKey, SensitiveField>>>({});
   const [visibility, setVisibility] = useState<Visibility>('private');
@@ -47,7 +49,7 @@ export default function OnbJewish() {
         <Text variant="quote">{t('onb.jlLead')}</Text>
         {(['optional', 'private', 'consent', 'never'] as const).map((k) => (
           <View key={k} style={{ flexDirection: 'row', gap: space.md }}>
-            <Text tone="highlight" accessibilityElementsHidden>✦</Text>
+            <View style={{ paddingTop: 4 }}><Icon name="sparkle" size={14} color={c.highlight} filled /></View>
             <Text tone="textMuted" style={{ flex: 1 }}>{t(`onb.jlPoints.${k}`)}</Text>
           </View>
         ))}
