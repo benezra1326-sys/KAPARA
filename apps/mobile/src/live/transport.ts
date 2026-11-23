@@ -1,4 +1,4 @@
-import type { CallSnapshot, InviteRefusal, JoinInfo, LiveMember, LiveSettings, LiveStatus, CallReportReason } from '@kapara/shared';
+import type { CallMode, CallSnapshot, InviteRefusal, JoinInfo, LiveMember, LiveSettings, LiveStatus, CallReportReason } from '@kapara/shared';
 
 export type Ack<T = object> = ({ ok: true } & T) | { ok: false; error: InviteRefusal | string };
 
@@ -25,8 +25,10 @@ export interface LiveTransport {
   heartbeat(): Promise<Ack<{ availableUntil: number | null }>>;
   list(): Promise<Ack<{ members: LiveMember[]; availableUntil: number | null }>>;
 
-  invite(to: string): Promise<Ack<{ call: CallSnapshot }>>;
-  respond(callId: string, accept: boolean): Promise<Ack>;
+  /** `mode`: what I propose. The other person may still answer in audio only. */
+  invite(to: string, mode: CallMode): Promise<Ack<{ call: CallSnapshot }>>;
+  /** `video`: answer a video call with my camera on. */
+  respond(callId: string, accept: boolean, video?: boolean): Promise<Ack>;
   videoRequest(callId: string): Promise<Ack>;
   videoRespond(callId: string, accept: boolean): Promise<Ack>;
   videoStop(callId: string): Promise<Ack>;

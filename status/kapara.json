@@ -97,6 +97,12 @@
       "statut": "a_valider",
       "avancement": 90,
       "responsable": "apps-produit"
+    },
+    {
+      "nom": "Appels audio ou vidéo (Live et entre matchs)",
+      "statut": "a_valider",
+      "avancement": 90,
+      "responsable": "apps-dev"
     }
   ],
   "liens": [
@@ -149,6 +155,10 @@
     {
       "date": "2026-11-23",
       "texte": "Accueil refait : logo et nom centrés, trois façons de se rencontrer présentées sur une ligne (une à la fois), un titre clair « Se connecter ou créer un compte », tout tient sur un écran d'iPhone."
+    },
+    {
+      "date": "2026-11-23",
+      "fait": "Appels : choix vidéo ou audio, réponse en audio seul possible, caméra coupée à tout moment ; vrais appels directs entre deux membres en contact (WebRTC, signalisation Supabase), essayés entre deux navigateurs."
     }
   ],
   "maj_le": "2026-11-23T13:20:00Z",

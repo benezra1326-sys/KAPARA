@@ -1,5 +1,6 @@
-import type { CallSnapshot, JoinInfo, LiveMember, LiveMode, LiveSettings, CallReportReason } from '@kapara/shared';
+import type { CallMode, CallSnapshot, JoinInfo, LiveMember, LiveMode, LiveSettings, CallReportReason } from '@kapara/shared';
 import type { LiveTransport } from './transport';
+import { callQuota, type CallContext } from './quota';
 
 export interface EndedCall { peer: LiveMember; state: 'ended' | 'declined' | 'expired'; durationSec: number; direction: CallSnapshot['direction'] }
 
@@ -35,6 +36,8 @@ export class LiveStore {
   private state: LiveState;
   private readonly listeners = new Set<() => void>();
   private heartbeatTimer?: ReturnType<typeof setInterval>;
+  private context: CallContext = 'live';
+  private pendingJoinFor: string | null = null;
   private onIncoming?: (call: CallSnapshot) => void;
 
   constructor(private readonly t: LiveTransport) {
@@ -46,11 +49,14 @@ export class LiveStore {
           if (e.status === 'online') void this.refresh();
           break;
         case 'invited':
+          this.context = 'live';
           this.patch({ call: e.call, join: null, lastEnded: null });
           this.onIncoming?.(e.call);
           break;
         case 'state': this.applyCall(e.call); break;
-        case 'join': if (this.state.call?.callId === e.callId) this.patch({ join: e.join }); break;
+        case 'join':
+          if (!this.state.call || this.state.call.callId === e.callId) { this.pendingJoinFor = e.callId; this.patch({ join: e.join }); }
+          break;
         case 'presence':
           if ('selfAvailableUntil' in e) this.patch({ availableUntil: e.selfAvailableUntil ?? null });
           void this.loadMembers();
@@ -108,15 +114,21 @@ export class LiveStore {
     else this.patch({ error: r.error });
   }
 
-  async invite(member: LiveMember) {
+  /** Propose a call. `context` tells quotas where it comes from (Live or a conversation). */
+  async invite(member: LiveMember, mode: CallMode = 'audio', context: CallContext = 'live') {
     this.patch({ error: null, lastEnded: null });
-    const r = await this.t.invite(member.userId);
+    const allowed = await callQuota().check({ mode, context });
+    if (!allowed.ok) { this.patch({ error: allowed.reason }); return null; }
+    this.context = context;
+    const r = await this.t.invite(member.userId, mode);
     if (!r.ok) { this.patch({ error: r.error }); return null; }
-    this.patch({ call: r.call, join: null });
+    // A transport may already have sent the media details (join) for this call: keep them.
+    this.patch({ call: r.call, join: this.state.join && this.pendingJoinFor === r.call.callId ? this.state.join : null });
     return r.call;
   }
 
-  respond(accept: boolean) { return this.withCall((id) => this.t.respond(id, accept)); }
+  /** `video`: answer a video call with my camera on; otherwise audio only, camera off. */
+  respond(accept: boolean, video = false) { return this.withCall((id) => this.t.respond(id, accept, video)); }
   requestVideo() { return this.withCall((id) => this.t.videoRequest(id)); }
   respondVideo(accept: boolean) { return this.withCall((id) => this.t.videoRespond(id, accept)); }
   stopVideo() { return this.withCall((id) => this.t.videoStop(id)); }
@@ -138,6 +150,7 @@ export class LiveStore {
     if (this.state.call && this.state.call.callId !== call.callId) return;
     if (TERMINAL.has(call.state)) {
       const durationSec = this.state.connectedAt ? Math.round((Date.now() - this.state.connectedAt) / 1000) : 0;
+      if (this.state.connectedAt) callQuota().record?.({ mode: call.mode ?? 'audio', context: this.context, durationSec, direction: call.direction });
       this.patch({
         call: null, join: null, connectedAt: null,
         lastEnded: { peer: call.peer, state: call.state as EndedCall['state'], durationSec, direction: call.direction },
@@ -145,7 +158,7 @@ export class LiveStore {
       void this.loadMembers();
       return;
     }
-    const connectedAt = this.state.connectedAt ?? (call.state === 'connected' ? Date.now() : null);
+    const connectedAt = this.state.connectedAt ?? (call.state === 'connected' || call.state === 'video_on' ? Date.now() : null);
     this.patch({ call, connectedAt });
   }
 

@@ -69,7 +69,7 @@ export default function CallScreen() {
               </Text>
             ) : null}
           </Animated.View>
-          <Button label={t('call.backToLive')} onPress={back} />
+          <Button label={t('call.back')} onPress={back} />
         </View>
       </View>
     );
@@ -81,6 +81,9 @@ export default function CallScreen() {
   const incomingInvite = call.state === 'invited' && call.direction === 'incoming';
   const peerAsksVideo = call.state === 'video_requested' && call.videoRequestedBy === 'peer';
   const status = statusLine(call, t, secs);
+  const incomingVideo = incomingInvite && call.mode === 'video';
+  // Simulated only when the media says so (a real call between two members is never a demo).
+  const demoCall = s.join ? s.join.mode === 'demo' : s.mode === 'demo' && call.peer.isDemo;
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.night }} accessibilityViewIsModal>
@@ -88,8 +91,12 @@ export default function CallScreen() {
 
       {/* Top bar: what is being shared right now, always visible. */}
       <View style={{ position: 'absolute', top: insets.top + space.md, left: space.lg, right: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
-        <Chip icon={videoAllowed ? 'video' : 'audio'} label={videoAllowed ? t('call.videoOnBadge') : t('call.audioOnly')} color={videoAllowed ? OLIVE : INK} />
-        {s.mode === 'demo' ? <Chip label={t('call.demoBanner')} color="#D4A866" /> : null}
+        {call.state === 'invited' ? (
+          <Chip icon={call.mode === 'video' ? 'video' : 'audio'} label={call.mode === 'video' ? t('call.videoCall') : t('call.audioCall')} color={INK} />
+        ) : (
+          <Chip icon={videoAllowed ? 'video' : 'audio'} label={videoAllowed ? t('call.videoOnBadge') : t('call.audioOnly')} color={videoAllowed ? OLIVE : INK} />
+        )}
+        {demoCall ? <Chip label={t('call.demoBanner')} color="#D4A866" /> : s.join?.mode === 'webrtc' ? <Chip icon="shield" label={t('call.direct')} color={INK_MUTED} /> : null}
       </View>
 
       {/* Center: the person. Hidden behind real video when it is on. */}
@@ -113,7 +120,7 @@ export default function CallScreen() {
         </View>
       )}
 
-      {videoAllowed && cameraOn && s.mode !== 'demo' ? (
+      {videoAllowed && cameraOn && !demoCall ? (
         <Pressable onPress={() => setFront((v) => !v)} accessibilityRole="button" accessibilityLabel={t('call.flip')} hitSlop={8}
           style={{ position: 'absolute', right: space.lg + 30, top: insets.top + 64 + 152 + space.sm, width: 48, height: 48, borderRadius: 24,
             backgroundColor: 'rgba(20,17,24,0.6)', alignItems: 'center', justifyContent: 'center' }}>
@@ -144,11 +151,23 @@ export default function CallScreen() {
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingBottom: insets.bottom + space.xl, gap: space.xl }}>
         {incomingInvite ? (
           <Animated.View entering={FadeInDown.duration(280)} style={{ gap: space.lg }}>
-            <Text variant="caption" style={{ color: INK_MUTED, textAlign: 'center' }}>{t('call.incomingHint')}</Text>
-            <View style={{ flexDirection: 'row', gap: space.md }}>
-              <PillButton label={t('call.decline')} onPress={() => void store.respond(false)} bg={GLASS} />
-              <PillButton label={t('call.accept')} icon="phone" onPress={() => void store.respond(true)} bg={OLIVE} fg={palette.night} />
-            </View>
+            <Text variant="caption" style={{ color: INK_MUTED, textAlign: 'center' }}>{incomingVideo ? t('call.incomingVideoHint') : t('call.incomingHint')}</Text>
+            {incomingVideo ? (
+              <View style={{ gap: space.md }}>
+                <View style={{ flexDirection: 'row', gap: space.md }}>
+                  <PillButton label={t('call.answerAudio')} icon="audio" onPress={() => void store.respond(true, false)} bg={GLASS} />
+                  <PillButton label={t('call.answerVideo')} icon="video" onPress={() => void store.respond(true, true)} bg={OLIVE} fg={palette.night} />
+                </View>
+                <Pressable onPress={() => void store.respond(false)} accessibilityRole="button" hitSlop={8} style={{ minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text variant="label" style={{ color: INK_MUTED }}>{t('call.decline')}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', gap: space.md }}>
+                <PillButton label={t('call.decline')} onPress={() => void store.respond(false)} bg={GLASS} />
+                <PillButton label={t('call.accept')} icon="phone" onPress={() => void store.respond(true)} bg={OLIVE} fg={palette.night} />
+              </View>
+            )}
           </Animated.View>
         ) : call.state === 'invited' ? (
           <View style={{ alignItems: 'center' }}>
@@ -185,7 +204,7 @@ export default function CallScreen() {
               <Text variant="heading" style={{ color: INK, flex: 1 }} accessibilityRole="header">{t('call.videoRequestTitle', { name: peer.firstName })}</Text>
             </View>
             <Text style={{ color: INK_MUTED }}>{t('call.videoRequestBody')}</Text>
-            {s.mode === 'demo' ? <Text variant="caption" style={{ color: '#D4A866' }}>{t('call.demoBanner')}</Text> : null}
+            {demoCall ? <Text variant="caption" style={{ color: '#D4A866' }}>{t('call.demoBanner')}</Text> : null}
             <View style={{ flexDirection: 'row', gap: space.md }}>
               <PillButton label={t('call.declineVideo')} onPress={() => void store.respondVideo(false)} bg={GLASS} />
               <PillButton label={t('call.acceptVideo')} icon="video" onPress={() => void store.respondVideo(true)} bg={OLIVE} fg={palette.night} />
@@ -204,7 +223,9 @@ export default function CallScreen() {
 function statusLine(call: CallSnapshot, t: TFunction, secs: number): string {
   const name = call.peer.firstName;
   switch (call.state) {
-    case 'invited': return call.direction === 'outgoing' ? t('call.outgoingHint') : t('call.incomingTitle', { name });
+    case 'invited':
+      if (call.direction === 'outgoing') return call.mode === 'video' ? t('call.outgoingVideo') : call.mode === 'audio' ? t('call.outgoingAudio') : t('call.outgoingHint');
+      return call.mode === 'video' ? t('call.incomingVideoTitle', { name }) : t('call.incomingTitle', { name });
     case 'accepted': return t('call.connecting');
     case 'video_requested': return call.videoRequestedBy === 'me' ? t('call.videoPending', { name }) : formatDuration(secs);
     default: return formatDuration(secs);
