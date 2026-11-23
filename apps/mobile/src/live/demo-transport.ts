@@ -1,5 +1,5 @@
 import { RULES } from '@kapara/config';
-import type { CallSnapshot, CallState, LiveMember, LiveSettings, LiveStatus } from '@kapara/shared';
+import type { CallMode, CallSnapshot, CallState, LiveMember, LiveSettings, LiveStatus } from '@kapara/shared';
 import { DEMO_PICKS } from '../demo/profiles';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
@@ -60,11 +60,11 @@ export class DemoTransport implements LiveTransport {
     return { ok: true as const, members: this.call ? DEMO_LIVE_MEMBERS.filter((m) => m.userId !== this.call?.peer.userId) : DEMO_LIVE_MEMBERS, availableUntil: this.availableUntil };
   }
 
-  async invite(to: string): Promise<Ack<{ call: CallSnapshot }>> {
+  async invite(to: string, mode: CallMode = 'audio'): Promise<Ack<{ call: CallSnapshot }>> {
     if (!this.settings.liveEnabled) return { ok: false, error: 'live_disabled' };
     const peer = DEMO_LIVE_MEMBERS.find((m) => m.userId === to);
     if (!peer || this.call) return { ok: false, error: 'not_available' };
-    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'outgoing' };
+    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'outgoing', mode };
     const id = this.call.callId;
     this.later(2600, () => this.peerAccepts(id));
     return { ok: true, call: { ...this.call } };
@@ -73,17 +73,18 @@ export class DemoTransport implements LiveTransport {
   simulateIncoming() {
     if (this.call) return;
     const peer = DEMO_LIVE_MEMBERS[1] ?? DEMO_LIVE_MEMBERS[0]!;
-    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'incoming' };
+    // Live is face to face first: the fictional person proposes video (you can still answer in audio).
+    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'incoming', mode: 'video' };
     const id = this.call.callId;
     this.events.emit({ type: 'invited', call: { ...this.call } });
     this.later(RULES.liveInviteTtlSeconds * 1000, () => { if (this.call?.callId === id && this.call.state === 'invited') this.end('expired'); });
   }
 
-  async respond(callId: string, accept: boolean): Promise<Ack> {
+  async respond(callId: string, accept: boolean, video = false): Promise<Ack> {
     if (this.call?.callId !== callId || this.call.state !== 'invited') return { ok: false, error: 'not_found' };
     if (!accept) { this.end('declined'); return { ok: true }; }
     this.set('accepted');
-    this.connect2(callId);
+    this.connect2(callId, video && this.call.mode === 'video');
     return { ok: true };
   }
 
@@ -120,14 +121,15 @@ export class DemoTransport implements LiveTransport {
   private peerAccepts(callId: string) {
     if (this.call?.callId !== callId || this.call.state !== 'invited') return;
     this.set('accepted');
-    this.connect2(callId);
+    // The fictional person answers a video call in video.
+    this.connect2(callId, this.call.mode === 'video');
   }
 
-  private connect2(callId: string) {
+  private connect2(callId: string, video: boolean) {
     this.later(500, () => {
       if (this.call?.callId !== callId) return;
       this.events.emit({ type: 'join', callId, join: { mode: 'demo', room: callId, notice: 'demo_call_simulated' } });
-      this.set('connected');
+      this.set(video ? 'video_on' : 'connected');
       // Once per call, the fictional person proposes video, to show the consent step.
       this.later(14_000, () => {
         if (this.call?.callId === callId && this.call.state === 'connected' && !this.call.requestedByPeerOnce) {

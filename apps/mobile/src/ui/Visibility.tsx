@@ -21,8 +21,8 @@ export function VisibilityPicker({ value, onChange }: { value: Visibility; onCha
           <Pressable key={v} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={t(`vis.${v}`)} accessibilityHint={t(`vis.${v}Hint`)}
             onPress={() => { void Haptics.selectionAsync(); onChange(v); }}
             style={{ flex: 1, minHeight: hitSlop, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xs,
-              backgroundColor: on ? c.surface : 'transparent' }}>
-            <Text variant="label" tone={on ? 'text' : 'textMuted'} style={{ textAlign: 'center' }}>{t(`vis.${v}`)}</Text>
+              backgroundColor: on ? c.bg : 'transparent', borderWidth: 1, borderColor: on ? c.accent : 'transparent' }}>
+            <Text variant="label" tone={on ? 'accent' : 'textMuted'} style={{ textAlign: 'center' }}>{t(`vis.${v}`)}</Text>
           </Pressable>
         );
       })}

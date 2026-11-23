@@ -11,7 +11,7 @@ import { DEMO_MODE } from '../../src/api/client';
 import { CLOUD } from '../../src/cloud/client';
 import { photoSource } from '../../src/demo/images';
 import { useTheme } from '../../src/theme';
-import { Button, DemoBadge, Screen, Text, columnsFor, useLayout } from '../../src/ui';
+import { Button, DemoBadge, fontFor, Screen, Text, columnsFor, useLayout } from '../../src/ui';
 
 const ALL_TABS = ['overview', 'reports', 'photos', 'members'] as const;
 // Real accounts: no photo review queue yet (photos are visible as soon as they are added).
@@ -267,7 +267,7 @@ function Members() {
   return (
     <View style={{ gap: space.lg }}>
       <TextInput value={q} onChangeText={setQ} placeholder={t('admin.search')} placeholderTextColor={c.textSubtle} accessibilityLabel={t('admin.search')}
-        style={{ minHeight: 48, borderRadius: radius.pill, paddingHorizontal: space.xl, backgroundColor: c.surface, color: c.text, borderWidth: 1, borderColor: c.border, fontFamily: fonts.body, fontSize: 16 }} />
+        style={{ minHeight: 48, borderRadius: radius.pill, paddingHorizontal: space.xl, backgroundColor: c.surface, color: c.text, borderWidth: 1, borderColor: c.border, fontFamily: fontFor(fonts.body), fontSize: 16 }} />
       <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
         {STATUS_FILTERS.map((f) => (
           <Pressable key={f} onPress={() => setFilter(f)} accessibilityRole="button" accessibilityState={{ selected: f === filter }}

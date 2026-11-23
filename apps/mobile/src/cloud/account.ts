@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { LAUNCH_REGION } from '@kapara/config';
 import { meStore, type MyProfile } from '../me/store';
 import type { MyPhoto } from '../me/photos';
-import { CLOUD, sb, signupFn } from './client';
+import { CLOUD, must, sb, signupFn } from './client';
 
 /**
  * Real accounts (Supabase Auth) and the member's own profile, kept in the
@@ -169,12 +169,29 @@ export const cloudAccount = {
     if (!current) return;
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
     loadedFor = null;
-    await sb.from('members').delete().eq('id', current.id);
+    const id = current.id;
+    // Photos first (the member's folder in the bucket), then the account itself.
+    const { data: files } = await sb.storage.from('photos').list(id, { limit: 100 });
+    if (files?.length) await sb.storage.from('photos').remove(files.map((f) => `${id}/${f.name}`));
+    const { error } = await sb.rpc('delete_my_account');
+    if (error) await sb.from('members').delete().eq('id', id);
     await sb.auth.signOut();
   },
 
   subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },
 };
+
+/** "Mettre mon profil en pause": stored in members.privacy; a paused profile is hidden from everyone (visible_members). */
+export async function loadPaused(): Promise<boolean> {
+  if (!current) return false;
+  const { data } = await sb.from('members').select('privacy').eq('id', current.id).maybeSingle();
+  return Boolean((data?.privacy as Record<string, unknown> | null)?.paused);
+}
+export async function savePaused(paused: boolean) {
+  if (!current) return;
+  const { data } = await sb.from('members').select('privacy').eq('id', current.id).maybeSingle();
+  must(await sb.from('members').update({ privacy: { ...((data?.privacy as Record<string, unknown> | null) ?? {}), paused } }).eq('id', current.id));
+}
 
 /** "Mes préférences": stored with the profile; the chosen genders decide who appears in "Pour toi". */
 export async function loadPreferences(): Promise<Record<string, unknown> | null> {

@@ -57,7 +57,7 @@ export default function LiveSettingsScreen() {
                 );
               })}
             </View>
-            {s.error === 'save_failed' ? <Text variant="caption" tone="accent" accessibilityRole="alert">{t('live.errors.save_failed')}</Text> : null}
+            {s.error === 'save_failed' ? <Text variant="caption" tone="danger" accessibilityRole="alert">{t('live.errors.save_failed')}</Text> : null}
           </View>
 
           <View style={{ backgroundColor: c.accentSoft, borderRadius: radius.lg, padding: space.xl, gap: space.md }}>

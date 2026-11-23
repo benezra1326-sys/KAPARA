@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, Switch, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RULES } from '@kapara/config';
-import type { LiveMember } from '@kapara/shared';
+import type { CallMode, LiveMember } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
 import { Icon } from '../../src/live/icons';
 import { useLive, useLiveStore } from '../../src/live/LiveProvider';
@@ -13,6 +13,8 @@ import { formatDuration, useNow } from '../../src/live/useNow';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
+import { openPaywall } from '../../src/premium/store';
+import { imageFade } from '../../src/ui/imageFade';
 
 /**
  * Live: who is available right now. Three consents, never bundled:
@@ -29,9 +31,11 @@ export default function Live() {
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await store.refresh(); setRefreshing(false); }, [store]);
-  const invite = async (m: LiveMember) => {
+  const invite = async (m: LiveMember, mode: CallMode) => {
     setInviting(m.userId);
-    const call = await store.invite(m);
+    // Live is uncapped (premium offer, 23/11). A refusal from the database still opens the offer page.
+    const call = await store.invite(m, mode, 'live');
+    if (!call && store.get().error === 'quota_reached') { setInviting(null); openPaywall('browse'); return; }
     setInviting(null);
     if (call) router.push({ pathname: '/call/[id]', params: { id: call.callId } });
   };
@@ -111,7 +115,7 @@ export default function Live() {
               </Text>
               {s.members.map((m) => (
                 <MemberRow key={m.userId} m={m} busy={inviting === m.userId} disabled={!!inviting || !!s.call || !enabled}
-                  onInvite={() => void invite(m)} />
+                  onInvite={(mode) => void invite(m, mode)} />
               ))}
             </View>
           )}
@@ -160,31 +164,42 @@ function Intro({ onEnable, onSettings }: { onEnable: () => void; onSettings: () 
   );
 }
 
-function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: () => void; busy: boolean; disabled: boolean }) {
+function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (mode: CallMode) => void; busy: boolean; disabled: boolean }) {
   const { t } = useTranslation();
   const { c } = useTheme();
   return (
     <View style={[{ marginHorizontal: space.lg, padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }, shadow.card]}>
       <View style={{ width: 84, height: 105, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={250} accessibilityLabel={m.firstName} /> : null}
+        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(250)} accessibilityLabel={m.firstName} /> : null}
         <View style={{ position: 'absolute', top: space.sm, left: space.sm, width: 10, height: 10, borderRadius: 5, backgroundColor: c.live, borderWidth: 2, borderColor: c.surface }} />
       </View>
       <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexWrap: 'wrap' }}>
           <Text variant="heading">{m.firstName}, {m.age}</Text>
-          {m.verified ? <Text variant="caption" tone="live">{m.isDemo ? t('ux.verifiedDemo') : t('live.verified')}</Text> : null}
+          {/* No identity check exists yet: a demo profile is never shown as verified. */}
+          {m.verified && !m.isDemo ? <Text variant="caption" tone="live">{t('live.verified')}</Text> : null}
         </View>
         {m.headline ? <Text variant="caption" tone="textMuted" numberOfLines={2}>{m.headline}</Text> : null}
         {m.isDemo ? <DemoBadge compact /> : null}
         <View style={{ flex: 1 }} />
-        <Pressable onPress={onInvite} disabled={disabled} accessibilityRole="button"
-          accessibilityLabel={`${t('live.invite')} : ${m.firstName}`} accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
-          style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill,
-            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentSoft : 'transparent', borderWidth: 1, borderColor: c.accent,
-            opacity: disabled && !busy ? 0.45 : 1 })}>
-          {busy ? <ActivityIndicator color={c.accent} /> : <Icon name="phone" size={18} color={c.accent} />}
-          <Text variant="label" tone="accent">{t('live.invite')}</Text>
-        </Pressable>
+        {/* Video first (Live is face to face), audio always offered. The camera stays mine to switch on. */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+          {(['video', 'audio'] as const).map((mode) => {
+            const primary = mode === 'video';
+            return (
+              <Pressable key={mode} onPress={() => onInvite(mode)} disabled={disabled} accessibilityRole="button"
+                accessibilityLabel={`${t('live.invite')} (${mode === 'video' ? t('live.inviteVideo') : t('live.inviteAudio')}) : ${m.firstName}`}
+                accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
+                style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.pill,
+                  flexDirection: 'row', alignItems: 'center', gap: space.sm, borderWidth: 1, borderColor: c.accent,
+                  backgroundColor: primary ? (pressed ? c.accentPressed : c.accent) : pressed ? c.accentSoft : 'transparent',
+                  opacity: disabled && !busy ? 0.45 : 1 })}>
+                {busy && primary ? <ActivityIndicator color={c.onAccent} /> : <Icon name={mode} size={18} color={primary ? (c.onAccent) : c.accent} />}
+                <Text variant="label" style={{ color: primary ? (c.onAccent) : c.accent }}>{mode === 'video' ? t('live.inviteVideo') : t('live.inviteAudio')}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );

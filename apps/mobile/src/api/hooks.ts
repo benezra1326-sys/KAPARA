@@ -1,20 +1,25 @@
+import { useBrowseRegion } from '../me/browse';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Like, ProfilePublic, Recommendation } from '@kapara/shared';
-import { DEMO_PICKS } from '../demo/profiles';
+import { DEMO_PICKS, DEMO_PROFILES, demoPicksIn } from '../demo/profiles';
+import { meStore } from '../me/store';
 import { api, DEMO_MODE } from './client';
 import { CLOUD } from '../cloud/client';
 import { cloud } from '../cloud/data';
 import { consumeLocal } from '../premium/store';
 
+/** Today's picks in the member's current city (changing city is free). */
 export function useForYou() {
+  // Own city by default; another city only after the plan check (see CitySheet).
+  const regionCode = useBrowseRegion().code;
   return useQuery({
-    queryKey: ['for-you'],
+    queryKey: ['for-you', regionCode],
     queryFn: async (): Promise<Recommendation[]> => {
-      if (CLOUD) return cloud.forYou();
-      if (DEMO_MODE) return DEMO_PICKS;
+      if (CLOUD) return cloud.forYou(regionCode);
+      if (DEMO_MODE) return demoPicksIn(regionCode, meStore.get().gender);
       // The API returns today's picks already filtered for the viewer (visibility, consents, blocks).
       const r = await api<{ picks: Recommendation[] }>('/for-you');
-      return r.picks;
+      return r.picks.filter((p) => !p.profile.regionCode || p.profile.regionCode === regionCode);
     },
   });
 }
@@ -52,7 +57,7 @@ export function useProfile(id: string | undefined) {
     enabled: !!id,
     queryFn: async (): Promise<ProfilePublic | null> => {
       if (CLOUD) return cloud.profile(id!);
-      if (DEMO_MODE) return DEMO_PICKS.find((r) => r.profile.id === id)?.profile ?? null;
+      if (DEMO_MODE) return DEMO_PICKS.find((r) => r.profile.id === id)?.profile ?? DEMO_PROFILES[id!] ?? null;
       return api<ProfilePublic>(`/profiles/${id}`);
     },
   });

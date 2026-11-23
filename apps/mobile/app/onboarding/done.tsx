@@ -16,11 +16,12 @@ export default function OnbDone() {
   const insets = useSafeAreaInsets();
   const firstName = useMe((s) => s.firstName);
   const save = useSaveMe();
-  const go = () => {
+  // Then: today's selection, or first a look at one's own profile as others will see it.
+  const go = (to: '/' | '/profile/preview') => {
     const s = meStore.get();
     save.mutate(
       { force: true, basics: true, grant: Object.keys(s.consents) as JLKey[], answers: s.jewishLife, photos: true },
-      { onSuccess: () => { meStore.set({ onboarded: true }); router.replace('/'); } },
+      { onSuccess: () => { meStore.set({ onboarded: true }); router.replace('/'); if (to !== '/') router.push(to); } },
     );
   };
   return (
@@ -32,7 +33,8 @@ export default function OnbDone() {
       </Animated.View>
       <View style={{ gap: space.sm }}>
         {save.isError ? <Text variant="caption" style={{ color: c.danger }}>{t('edit.saveError')}</Text> : null}
-        <Button label={t('onb.doneCta')} onPress={go} loading={save.isPending} />
+        <Button label={t('onb.doneCta')} onPress={() => go('/')} loading={save.isPending} />
+        <Button kind="ghost" label={t('onb.doneSeeProfile')} onPress={() => go('/profile/preview')} disabled={save.isPending} />
       </View>
     </View>
   );

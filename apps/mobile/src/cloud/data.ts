@@ -31,13 +31,15 @@ function reasonsFor(p: ProfilePublic): Recommendation['reasons'] {
   }
   const lang = p.languages.find((l) => me.languages.includes(l) && l !== 'fr') ?? p.languages.find((l) => me.languages.includes(l));
   if (lang) out.push({ key: 'reason.shared_language', params: { language: lang } });
-  if (p.regionCode === me.regionCode) out.push({ key: 'reason.nearby' });
+  if (p.regionCode === me.regionCode) out.push({ key: 'reason.in_city' });
   return out.slice(0, 3);
 }
 
 export const cloud = {
-  async forYou(): Promise<Recommendation[]> {
-    const cards = must(await sb.rpc('for_you', { max_count: 40 })) as Card[];
+  /** Today's picks in the city the member chose (free to change, see CityPicker). */
+  async forYou(regionCode = meStore.get().regionCode): Promise<Recommendation[]> {
+    const all = must(await sb.rpc('for_you', { max_count: 100 })) as Card[];
+    const cards = all.filter((c) => c.regionCode === regionCode).slice(0, 40);
     return cards.map((c, i) => {
       const profile = withCity(c);
       return { profile, score: Math.max(0.5, Math.round((0.95 - i * 0.03) * 100) / 100), reasons: reasonsFor(profile) };
