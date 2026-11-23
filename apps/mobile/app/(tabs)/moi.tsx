@@ -1,11 +1,12 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, shadow, space } from '@kapara/design';
 import { CLOUD, deleteAccount, signOut as doSignOut, useAccountInfo, useRole } from '../../src/account';
 import { confirm } from '../../src/account/confirm';
+import { loadPaused, savePaused } from '../../src/cloud/account';
 import { DEMO_MODE } from '../../src/api/client';
 import { cityOf, nameAndAge } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
@@ -25,7 +26,13 @@ export default function Me() {
   const { c } = useTheme();
   const router = useRouter();
   const me = useMe();
-  const [paused, setPaused] = useState(false);
+  const [paused, setPausedState] = useState(false);
+  // With real accounts the pause is saved: a paused profile disappears from everyone's selection.
+  useEffect(() => { if (CLOUD) void loadPaused().then(setPausedState); }, []);
+  const setPaused = (v: boolean) => {
+    setPausedState(v);
+    if (CLOUD) void savePaused(v).catch(() => setPausedState(!v));
+  };
   const go = (href: Href) => () => router.push(href);
   const photo = me.photos[0];
   const title = nameAndAge(me) || t('ux.profileIncomplete');
