@@ -1,16 +1,19 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { space } from '@kapara/design';
+import { hitSlop, radius, space } from '@kapara/design';
 import { useForYou, useSuggestionFeedback } from '../../src/api/hooks';
 import { DEMO_MODE } from '../../src/api/client';
 import { CLOUD } from '../../src/cloud/client';
 import { useHydrateMe } from '../../src/me/api';
+import { cityOf } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
+import { LIMITS } from '../../src/premium/plans';
+import { openPaywall, usePlan } from '../../src/premium/store';
 import { useTheme } from '../../src/theme';
-import { Button, EmptyState, Progress, Screen, Text, useLayout } from '../../src/ui';
+import { Button, EmptyState, Icon, Progress, Screen, Text, useLayout } from '../../src/ui';
 import { ProfileCard, type ReactTarget } from '../../src/ui/ProfileCard';
 import { ReactSheet } from '../../src/ui/ReactSheet';
 
@@ -22,6 +25,8 @@ export default function ForYou() {
   const { t, i18n } = useTranslation();
   const { c } = useTheme();
   const onboarded = useMe((s) => s.onboarded);
+  const regionCode = useMe((s) => s.regionCode);
+  const plan = usePlan();
   const hydrate = useHydrateMe();
   const q = useForYou();
   const feedback = useSuggestionFeedback();
@@ -29,6 +34,7 @@ export default function ForYou() {
   const [reacted, setReacted] = useState(0);
   const [target, setTarget] = useState<ReactTarget | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [passed, setPassed] = useState<number | null>(null);
   const { isPhone, width } = useLayout();
   const narrow = width < 360; // 320 px phones: text only, so both labels fit
 
@@ -47,18 +53,35 @@ export default function ForYou() {
     </Screen>
   );
 
-  const picks = q.data ?? [];
+  // The database already sizes the selection to the plan; the local demo is cut here.
+  const picks = (q.data ?? []).slice(0, plan.data?.limits.picksPerDay ?? 40);
+  const free = plan.data?.plan === 'free';
   const rec = picks[i];
   const date = new Intl.DateTimeFormat(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   const advance = (msg: string) => { setTarget(null); setNotice(msg); setI((x) => x + 1); };
+  // Going back to a profile one passed: Plus and Cercle.
+  const rewind = () => {
+    if (passed == null) return;
+    if (!plan.data?.limits.rewind) { openPaywall('rewind'); return; }
+    setI(passed); setPassed(null); setNotice(null);
+  };
+  // Changing city is free: the selection then starts with people there.
+  const city = (
+    <Pressable onPress={() => router.push('/city')} accessibilityRole="button" accessibilityLabel={t('premium.cityChange', { city: cityOf(regionCode) })}
+      style={({ pressed }) => ({ minHeight: hitSlop - 8, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, marginRight: space.md,
+        borderRadius: radius.pill, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.surfaceAlt : c.bg })}>
+      <Icon name="pin" size={16} color={c.text} />
+      <Text variant="label">{cityOf(regionCode)}</Text>
+    </Pressable>
+  );
 
   if (!picks.length) return (
-    <Screen title={t('forYou.title')} subtitle={date}>
+    <Screen title={t('forYou.title')} subtitle={date} right={city}>
       <EmptyState title={t('pick.noneTitle')} body={t('pick.noneBody')} action={{ label: t('pick.completeProfile'), onPress: () => router.push('/profile/edit') }} />
     </Screen>
   );
 
-  const pass = () => { if (!rec) return; feedback.mutate({ subjectId: rec.profile.id, signal: 'not_for_me' }); advance(t('pick.passed')); };
+  const pass = () => { if (!rec) return; feedback.mutate({ subjectId: rec.profile.id, signal: 'not_for_me' }); setPassed(i); advance(t('pick.passed')); };
   const main = rec?.profile.photos[0];
   // The two decisions stay in reach at every width: pinned under the page.
   const actions = rec ? (
@@ -73,7 +96,7 @@ export default function ForYou() {
   ) : null;
 
   return (
-    <Screen title={t('forYou.title')} subtitle={date} width="wide" footer={actions}>
+    <Screen title={t('forYou.title')} subtitle={date} width="wide" footer={actions} right={city}>
       <View style={{ gap: space.sm, marginBottom: space.lg }}>
         <Progress total={picks.length} current={i} />
         <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.xl }}>
@@ -83,8 +106,13 @@ export default function ForYou() {
       </View>
 
       {notice ? (
-        <Animated.View key={`n-${i}`} entering={FadeIn} exiting={FadeOut} style={{ marginHorizontal: space.xl, marginBottom: space.lg }} accessibilityLiveRegion="polite">
-          <Text variant="label" tone="live">{notice}</Text>
+        <Animated.View key={`n-${i}`} entering={FadeIn} exiting={FadeOut} style={{ marginHorizontal: space.xl, marginBottom: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.md }} accessibilityLiveRegion="polite">
+          <Text variant="label" tone="live" style={{ flex: 1 }}>{notice}</Text>
+          {passed != null && passed === i - 1 ? (
+            <Pressable onPress={rewind} accessibilityRole="button" accessibilityLabel={t('premium.rewind')} style={{ minHeight: hitSlop, justifyContent: 'center' }}>
+              <Text variant="label" style={{ textDecorationLine: 'underline' }}>{t('premium.rewind')}</Text>
+            </Pressable>
+          ) : null}
         </Animated.View>
       ) : null}
 
@@ -96,6 +124,7 @@ export default function ForYou() {
         <Animated.View entering={FadeIn.duration(420)}>
           <EmptyState title={t('forYou.doneTitle')} body={reacted ? t('pick.doneReacted', { count: reacted }) : t('forYou.doneBody')} />
           <View style={{ paddingHorizontal: space.xl, gap: space.sm }}>
+            {free ? <Button label={t('premium.morePicks', { count: LIMITS.plus.picksPerDay })} onPress={() => openPaywall('picks')} /> : null}
             <Button kind="secondary" label={t('pick.completeProfile')} onPress={() => router.push('/profile/edit')} />
           </View>
         </Animated.View>

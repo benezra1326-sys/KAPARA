@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { palette } from '@kapara/design';
 import { LiveProvider } from '../src/live/LiveProvider';
 import { ThemeProvider, useTheme } from '../src/theme';
 import { useLayout } from '../src/ui/layout';
@@ -52,6 +53,7 @@ function Root() {
         <Stack.Screen name="admin/index" options={{ contentStyle: wide }} />
         <Stack.Screen name="settings/privacy" />
         <Stack.Screen name="settings/live" options={{ headerShown: true, title: '' }} />
+        <Stack.Screen name="premium" options={{ presentation: 'modal', contentStyle: { backgroundColor: palette.night } }} />
         <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: full }} />
       </Stack>
     </LiveProvider>

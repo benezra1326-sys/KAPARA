@@ -37,7 +37,7 @@ function reasonsFor(p: ProfilePublic): Recommendation['reasons'] {
 
 export const cloud = {
   async forYou(): Promise<Recommendation[]> {
-    const cards = must(await sb.rpc('for_you', { max_count: 12 })) as Card[];
+    const cards = must(await sb.rpc('for_you', { max_count: 40 })) as Card[];
     return cards.map((c, i) => {
       const profile = withCity(c);
       return { profile, score: Math.max(0.5, Math.round((0.95 - i * 0.03) * 100) / 100), reasons: reasonsFor(profile) };

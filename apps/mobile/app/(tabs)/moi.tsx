@@ -9,6 +9,7 @@ import { confirm } from '../../src/account/confirm';
 import { DEMO_MODE } from '../../src/api/client';
 import { cityOf, nameAndAge } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
+import { openPaywall, usePlan } from '../../src/premium/store';
 import { photoSource } from '../../src/demo/images';
 import { appearance, useAppearance, useTheme } from '../../src/theme';
 import { Button, DemoBadge, Icon, Screen, Text } from '../../src/ui';
@@ -31,6 +32,8 @@ export default function Me() {
 
   const account = useAccountInfo();
   const isAdmin = useRole() === 'admin';
+  const plan = usePlan();
+  const sub = plan.data?.subscribed ?? 'free';
   // The tabs layout clears cached data and returns to the welcome screen.
   const signOut = () => confirm(t('me.signOutTitle'), t(CLOUD ? 'cloud.signOutBody' : DEMO_MODE ? 'signin.signOutDemoBody' : 'me.signOutBody'), t('me.signOut'), t('common.cancel'), () => void doSignOut());
   const forget = () => CLOUD
@@ -73,6 +76,13 @@ export default function Me() {
           <Row first title={t('admin.open')} value={t('admin.openHint')} onPress={go('/admin')} />
         </Section>
       ) : null}
+
+      <Section title={t('premium.section')}>
+        <Row first title={t(`premium.plan.${plan.data?.isAdmin ? 'cercle' : sub}`)}
+          value={plan.data?.isAdmin ? t('premium.adminShort') : sub === 'free' ? t('premium.freeHint') : t('premium.manage')}
+          onPress={() => openPaywall('browse')} />
+        <Row title={t('premium.cityTitle')} value={t('premium.cityHint')} onPress={go('/city')} />
+      </Section>
 
       <Section title={t('ux.sectionProfile')}>
         <Row first title={t('me.editProfile')} onPress={go('/profile/edit')} />

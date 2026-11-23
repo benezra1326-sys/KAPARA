@@ -14,6 +14,8 @@ import type { ReactTarget } from './ProfileCard';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
 import { photoSource } from '../demo/images';
+import { isQuotaError, remaining } from '../premium/plans';
+import { openPaywall, usePlan } from '../premium/store';
 
 /**
  * Reacting to one photo or one answer, with an optional word.
@@ -24,6 +26,8 @@ export function ReactSheet({ profile, target, onClose, onDone }: { profile?: Pro
   const { c } = useTheme();
   const [comment, setComment] = useState('');
   const send = useSendLike();
+  const plan = usePlan();
+  const left = plan.data ? remaining(plan.data.limits, plan.data.used, 'like') : null;
   useEffect(() => { if (target) { setComment(''); send.reset(); } }, [target]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const prompt = target?.kind === 'prompt' ? profile?.prompts.find((q) => q.id === target.id) : undefined;
@@ -31,7 +35,12 @@ export function ReactSheet({ profile, target, onClose, onDone }: { profile?: Pro
 
   const submit = () => {
     if (!profile || !target) return;
-    send.mutate({ toProfileId: profile.id, target, comment: comment.trim() || undefined }, { onSuccess: (r) => onDone(r.matched) });
+    // Today's reactions are used: the database refused it. Offer more, calmly.
+    if (left === 0) { onClose(); openPaywall('like'); return; }
+    send.mutate({ toProfileId: profile.id, target, comment: comment.trim() || undefined }, {
+      onSuccess: (r) => onDone(r.matched),
+      onError: (e) => { if (isQuotaError(e)) { onClose(); openPaywall('like'); } },
+    });
   };
 
   return (
@@ -48,9 +57,14 @@ export function ReactSheet({ profile, target, onClose, onDone }: { profile?: Pro
       </View>
       <Field label={t('pick.commentLabel')} placeholder={t('forYou.commentPlaceholder')} value={comment} onChangeText={setComment}
         maxLength={200} multiline counter hint={t('pick.commentHint')} />
-      {send.isError ? <Text variant="caption" style={{ color: c.danger }}>{t('pick.sendError')}</Text> : null}
+      {send.isError && !isQuotaError(send.error) ? <Text variant="caption" style={{ color: c.danger }}>{t('pick.sendError')}</Text> : null}
       {DEMO_MODE && !CLOUD ? <Text variant="caption" tone="textSubtle">{t('pick.demoSend')}</Text> : null}
-      <Button label={t('pick.send')} onPress={submit} loading={send.isPending} />
+      {left != null ? (
+        <Text variant="caption" tone="textSubtle" accessibilityLiveRegion="polite">
+          {left > 0 ? t('premium.likesLeft', { count: left }) : t('premium.likesNone')}
+        </Text>
+      ) : null}
+      <Button label={left === 0 ? t('premium.seePlans') : t('pick.send')} onPress={submit} loading={send.isPending} />
     </Sheet>
   );
 }
