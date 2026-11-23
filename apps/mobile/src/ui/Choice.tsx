@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { Pressable, View } from 'react-native';
 import { hitSlop, radius, space } from '@kapara/design';
 import { useTheme } from '../theme';
+import { Icon } from './Icon';
 import { Text } from './Text';
 
 /** One answer among several: stacked rows read better than chips for nuanced labels. */
@@ -52,9 +53,11 @@ export function Chips({ options, values, onToggle, label }: {
             onPress={() => { void Haptics.selectionAsync(); onToggle(o.id); }}
             style={({ pressed }) => ({
               minHeight: hitSlop, justifyContent: 'center', paddingHorizontal: space.lg, borderRadius: radius.pill,
-              backgroundColor: on ? c.text : pressed ? c.surfaceAlt : c.surface, borderWidth: 1, borderColor: on ? c.text : c.border,
+              flexDirection: 'row', alignItems: 'center', gap: 6,
+              backgroundColor: on ? c.accentSoft : pressed ? c.surfaceAlt : c.surface, borderWidth: 1, borderColor: on ? c.accent : c.border,
             })}>
-            <Text variant="label" style={{ color: on ? c.bg : c.text }}>{o.label}</Text>
+            {on ? <Icon name="check" size={14} color={c.accent} /> : null}
+            <Text variant="label" style={{ color: on ? c.accent : c.text }}>{o.label}</Text>
           </Pressable>
         );
       })}

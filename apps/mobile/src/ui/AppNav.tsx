@@ -18,8 +18,8 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>
 export const TAB_ICONS: Record<string, IconName> = { croises: 'crossed', index: 'forYou', live: 'live', messages: 'messages', moi: 'me' };
 
 /**
- * Main navigation. Phone: a fixed bottom bar of icons only (thumb reach,
- * safe area; each icon keeps its spoken name). Tablet: the same bar, labels beside icons, centred. Desktop: a sidebar
+ * Main navigation. Phone: a fixed bottom bar, icon and short label (thumb
+ * reach, safe area), the open tab in garnet. Tablet: the same bar, labels beside icons, centred. Desktop: a sidebar
  * with the wordmark, so pages keep a readable width instead of stretching.
  */
 export function AppNav({ state, descriptors, emitter, navigateToTab }: TabBarProps) {
@@ -38,21 +38,24 @@ export function AppNav({ state, descriptors, emitter, navigateToTab }: TabBarPro
       const e = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
       if (!focused && !e.defaultPrevented) navigateToTab(route.key);
     };
-    const color = focused ? c.text : c.textSubtle;
+    const color = focused ? c.accent : c.textSubtle;
     const icon = <Icon name={TAB_ICONS[route.name] ?? 'sparkle'} size={sidebar ? 22 : 23} color={color} filled={focused} />;
     return (
       <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={label}
         style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => (sidebar ? {
           minHeight: hitSlop, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, borderRadius: radius.md,
-          backgroundColor: focused ? c.surfaceAlt : hovered || pressed ? c.surfaceAlt : 'transparent',
+          backgroundColor: focused ? c.accentSoft : hovered || pressed ? c.surface : 'transparent',
         } : {
-          flex: 1, minHeight: phone ? 54 : 56, alignItems: 'center', justifyContent: 'center', gap: bp === 'tablet' ? space.sm : 5, paddingTop: phone ? 5 : 0,
+          flex: 1, minHeight: phone ? 58 : 56, alignItems: 'center', justifyContent: 'center', gap: bp === 'tablet' ? space.sm : 3, paddingTop: phone ? 6 : 0,
           flexDirection: bp === 'tablet' ? 'row' : 'column', opacity: pressed ? 0.7 : 1,
         })}>
         {icon}
         {phone ? (
-          // Phone, after Raya: icons only; the open tab is marked by a brass dot.
-          <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: focused ? c.highlight : 'transparent' }} />
+          // Phone: icon and a short label, the open tab in garnet with a small bar.
+          <Text numberOfLines={1} maxFontSizeMultiplier={1.2}
+            style={{ color, fontFamily: focused ? fonts.bodySemibold : fonts.bodyMedium, fontSize: 11, lineHeight: 14, letterSpacing: 0 }}>
+            {label}
+          </Text>
         ) : (
           <Text numberOfLines={1} maxFontSizeMultiplier={1.3}
             style={{ color, fontFamily: focused ? fonts.bodySemibold : fonts.bodyMedium, fontSize: sidebar ? 15 : 14, lineHeight: 20 }}>

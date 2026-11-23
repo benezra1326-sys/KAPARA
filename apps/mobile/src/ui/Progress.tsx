@@ -14,7 +14,7 @@ export function Progress({ total, current }: { total: number; current: number })
       accessibilityValue={{ min: 0, max: total, now: Math.min(current + 1, total) }}
       style={{ flexDirection: 'row', gap: space.xs, paddingHorizontal: space.xl }}>
       {Array.from({ length: total }, (_, i) => (
-        <View key={i} style={{ flex: 1, height: 2, borderRadius: 1, backgroundColor: i < current ? c.text : i === current ? c.highlight : c.border }} />
+        <View key={i} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: i < current ? c.textSubtle : i === current ? c.accent : c.border }} />
       ))}
     </View>
   );

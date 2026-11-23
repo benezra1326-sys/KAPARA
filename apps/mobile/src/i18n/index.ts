@@ -1,14 +1,25 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getLocales } from 'expo-localization';
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 import { DEFAULT_LOCALE, RTL_LOCALES, SUPPORTED_LOCALES, type LocaleCode } from '@kapara/config';
 import fr from './fr';
 import en from './en';
 import he from './he';
 
 const device = getLocales()[0]?.languageCode as LocaleCode | undefined;
-const lng = device && SUPPORTED_LOCALES.includes(device) ? device : DEFAULT_LOCALE;
+/** Web: a shared link can pick the language (?lang=he), then the choice is kept on this browser. */
+function webChoice(): LocaleCode | undefined {
+  if (Platform.OS !== 'web' || typeof location === 'undefined') return undefined;
+  try {
+    const q = new URLSearchParams(location.search).get('lang') as LocaleCode | null;
+    if (q && SUPPORTED_LOCALES.includes(q)) { localStorage.setItem('motek.lang', q); return q; }
+    const saved = localStorage.getItem('motek.lang') as LocaleCode | null;
+    return saved && SUPPORTED_LOCALES.includes(saved) ? saved : undefined;
+  } catch { return undefined; }
+}
+const chosen = webChoice();
+const lng = chosen ?? (device && SUPPORTED_LOCALES.includes(device) ? device : DEFAULT_LOCALE);
 
 void i18n.use(initReactI18next).init({
   resources: { fr: { translation: fr }, en: { translation: en }, he: { translation: he } },
@@ -19,6 +30,13 @@ void i18n.use(initReactI18next).init({
 
 I18nManager.allowRTL(true);
 export const isRTL = RTL_LOCALES.includes(lng);
+/** Hebrew swaps Fraunces/Inter for Frank Ruhl Libre/Heebo (see Text). */
+export const isHebrew = lng === 'he';
+// Web: the page itself reads right to left in Hebrew (text, rows, scroll bars).
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  document.documentElement.lang = lng;
+  document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+}
 export default i18n;
 
 /** Option labels are grouped by answer type; both kashrut fields share one list. */

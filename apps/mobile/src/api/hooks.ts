@@ -1,7 +1,8 @@
+import { useBrowseRegion } from '../me/browse';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Like, ProfilePublic, Recommendation } from '@kapara/shared';
 import { DEMO_PICKS, DEMO_PROFILES, demoPicksIn } from '../demo/profiles';
-import { meStore, useMe } from '../me/store';
+import { meStore } from '../me/store';
 import { api, DEMO_MODE } from './client';
 import { CLOUD } from '../cloud/client';
 import { cloud } from '../cloud/data';
@@ -9,7 +10,8 @@ import { consumeLocal } from '../premium/store';
 
 /** Today's picks in the member's current city (changing city is free). */
 export function useForYou() {
-  const regionCode = useMe((s) => s.regionCode);
+  // Own city by default; another city only after the plan check (see CitySheet).
+  const regionCode = useBrowseRegion().code;
   return useQuery({
     queryKey: ['for-you', regionCode],
     queryFn: async (): Promise<Recommendation[]> => {

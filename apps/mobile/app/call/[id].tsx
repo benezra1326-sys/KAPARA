@@ -96,18 +96,25 @@ export default function CallScreen() {
         ) : (
           <Chip icon={videoAllowed ? 'video' : 'audio'} label={videoAllowed ? t('call.videoOnBadge') : t('call.audioOnly')} color={videoAllowed ? OLIVE : INK} />
         )}
-        {demoCall ? <Chip label={t('call.demoBanner')} color="#D4A866" /> : s.join?.mode === 'webrtc' ? <Chip icon="shield" label={t('call.direct')} color={INK_MUTED} /> : null}
+        {demoCall ? <Chip label={t('call.demoBanner')} color={palette.grenatRose} /> : s.join?.mode === 'webrtc' ? <Chip icon="shield" label={t('call.direct')} color={INK_MUTED} /> : null}
       </View>
+      {/* My own microphone and camera, always stated in words (not only by an icon). */}
+      {call.state !== 'invited' && !incomingInvite ? (
+        <View accessibilityLiveRegion="polite" style={{ position: 'absolute', top: insets.top + space.md + 44, left: space.lg, right: space.lg, flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
+          <Chip icon={micOn ? 'mic' : 'micOff'} label={t(micOn ? 'call.micState' : 'call.micOffState')} color={micOn ? INK : palette.grenatRose} />
+          <Chip icon={videoAllowed && cameraOn ? 'video' : 'videoOff'} label={t(!videoAllowed ? 'call.camNever' : cameraOn ? 'call.camState' : 'call.camOffState')} color={videoAllowed && cameraOn ? OLIVE : INK} />
+        </View>
+      ) : null}
 
       {/* Center: the person. Hidden behind real video when it is on. */}
       {!videoAllowed ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, paddingHorizontal: space.xl }}>
           <View style={{ width: 200, height: 200, alignItems: 'center', justifyContent: 'center' }}>
-            <Pulse color={call.state === 'invited' ? '#D4A866' : OLIVE} size={168} rings={3} active={call.state !== 'accepted'} />
+            <Pulse color={call.state === 'invited' ? palette.grenatRose : OLIVE} size={168} rings={3} active={call.state !== 'accepted'} />
             <Avatar url={peer.photoUrl} size={152} />
           </View>
           <View style={{ alignItems: 'center', gap: space.xs }}>
-            {incomingInvite ? <Text variant="overline" style={{ color: '#D4A866' }}>{t('call.incomingOverline')}</Text> : null}
+            {incomingInvite ? <Text variant="overline" style={{ color: palette.grenatRose }}>{t('call.incomingOverline')}</Text> : null}
             <Text variant="hero" style={{ color: INK, textAlign: 'center' }} accessibilityRole="header">{peer.firstName}</Text>
             {peer.isDemo ? <DemoBadge /> : null}
             <Text style={{ color: INK_MUTED, textAlign: 'center' }} accessibilityLiveRegion="polite">{status}</Text>
@@ -134,7 +141,7 @@ export default function CallScreen() {
           <Text variant="caption" style={{ color: INK }}>{t(`call.issues.${issue}`)}</Text>
           {issue === 'mic_denied' || issue === 'camera_denied' ? (
             <Pressable onPress={() => void Linking.openSettings()} accessibilityRole="button" hitSlop={8}>
-              <Text variant="label" style={{ color: '#D4A866' }}>{t('call.openSettings')}</Text>
+              <Text variant="label" style={{ color: palette.grenatRose }}>{t('call.openSettings')}</Text>
             </Pressable>
           ) : null}
         </Animated.View>
@@ -197,14 +204,14 @@ export default function CallScreen() {
       {/* Video consent: asked by the other person, answered by me. My camera stays off until I accept. */}
       <Modal visible={peerAsksVideo} transparent animationType="slide" onRequestClose={() => void store.respondVideo(false)}>
         <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' }}>
-          <View style={{ backgroundColor: '#211C27', borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xl, paddingBottom: insets.bottom + space.xl, gap: space.lg }}
+          <View style={{ backgroundColor: palette.plum, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xl, paddingBottom: insets.bottom + space.xl, gap: space.lg }}
             accessibilityViewIsModal>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
               <Avatar url={peer.photoUrl} size={48} />
               <Text variant="heading" style={{ color: INK, flex: 1 }} accessibilityRole="header">{t('call.videoRequestTitle', { name: peer.firstName })}</Text>
             </View>
             <Text style={{ color: INK_MUTED }}>{t('call.videoRequestBody')}</Text>
-            {demoCall ? <Text variant="caption" style={{ color: '#D4A866' }}>{t('call.demoBanner')}</Text> : null}
+            {demoCall ? <Text variant="caption" style={{ color: palette.grenatRose }}>{t('call.demoBanner')}</Text> : null}
             <View style={{ flexDirection: 'row', gap: space.md }}>
               <PillButton label={t('call.declineVideo')} onPress={() => void store.respondVideo(false)} bg={GLASS} />
               <PillButton label={t('call.acceptVideo')} icon="video" onPress={() => void store.respondVideo(true)} bg={OLIVE} fg={palette.night} />
@@ -238,7 +245,7 @@ function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: bool
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} accessibilityLabel={t('call.close')} />
-      <View style={{ backgroundColor: '#211C27', borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xl, paddingBottom: bottom + space.xl, gap: space.md }} accessibilityViewIsModal>
+      <View style={{ backgroundColor: palette.plum, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xl, paddingBottom: bottom + space.xl, gap: space.md }} accessibilityViewIsModal>
         <Text variant="heading" style={{ color: INK }} accessibilityRole="header">{t('call.reportTitle', { name })}</Text>
         <Text variant="caption" style={{ color: INK_MUTED }}>{t('call.reportBody', { name })}</Text>
         <View accessibilityRole="radiogroup" style={{ gap: space.xs }}>
@@ -246,8 +253,8 @@ function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: bool
             <Pressable key={r} onPress={() => setReason(r)} accessibilityRole="radio" accessibilityState={{ checked: reason === r }}
               style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, borderRadius: radius.sm,
                 backgroundColor: reason === r ? GLASS : 'transparent' }}>
-              <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: reason === r ? '#D4A866' : INK_MUTED, alignItems: 'center', justifyContent: 'center' }}>
-                {reason === r ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#D4A866' }} /> : null}
+              <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: reason === r ? palette.grenatRose : INK_MUTED, alignItems: 'center', justifyContent: 'center' }}>
+                {reason === r ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: palette.grenatRose }} /> : null}
               </View>
               <Text style={{ color: INK }}>{t(`call.reasons.${r}`)}</Text>
             </Pressable>
@@ -261,7 +268,7 @@ function ReportSheet({ visible, name, bottom, onClose, onSend }: { visible: bool
 
 function Avatar({ url, size }: { url?: string; size: number }) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: '#2A2431', borderWidth: 2, borderColor: 'rgba(255,255,255,0.22)' }}>
+    <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: palette.plumHigh, borderWidth: 2, borderColor: 'rgba(255,255,255,0.22)' }}>
       {url ? <Image source={photoSource(url)} style={{ flex: 1 }} contentFit="cover" transition={imageFade(300)} accessibilityIgnoresInvertColors /> : null}
     </View>
   );

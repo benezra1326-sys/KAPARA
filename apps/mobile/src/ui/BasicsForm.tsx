@@ -91,7 +91,7 @@ function BasicsFields(p: {
           <Text variant="label" style={{ textDecorationLine: 'underline' }}>{t('city.changeShort')}</Text>
         </Pressable>
         <Text variant="caption" tone="textSubtle">{t('basics.cityHint')}</Text>
-        <CitySheet visible={cityOpen} onClose={() => setCityOpen(false)} />
+        <CitySheet mode="home" visible={cityOpen} onClose={() => setCityOpen(false)} />
       </View>
     </View>
   );

@@ -103,6 +103,12 @@
       "statut": "a_valider",
       "avancement": 90,
       "responsable": "apps-dev"
+    },
+    {
+      "nom": "Identité Grenat et refonte des écrans (accueil, Pour toi, villes, Croisés, appels, présentations)",
+      "statut": "en_revue",
+      "avancement": 90,
+      "responsable": "apps-design"
     }
   ],
   "liens": [
@@ -161,6 +167,6 @@
       "fait": "Appels : choix vidéo ou audio, réponse en audio seul possible, caméra coupée à tout moment ; vrais appels directs entre deux membres en contact (WebRTC, signalisation Supabase), essayés entre deux navigateurs."
     }
   ],
-  "maj_le": "2026-11-23T13:20:00Z",
+  "maj_le": "2026-11-23T14:30:00Z",
   "demo_web": "https://motek-demo.vercel.app"
 }

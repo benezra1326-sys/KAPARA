@@ -11,6 +11,6 @@ export function RtcVideo({ stream, mirror, cover = true, style }: { stream: Medi
   }, [stream]);
   return createElement('video', {
     ref, autoPlay: true, playsInline: true, muted: true,
-    style: { width: '100%', height: '100%', objectFit: cover ? 'cover' : 'contain', transform: mirror ? 'scaleX(-1)' : undefined, backgroundColor: '#141118', ...style },
+    style: { width: '100%', height: '100%', objectFit: cover ? 'cover' : 'contain', transform: mirror ? 'scaleX(-1)' : undefined, backgroundColor: '#120B10', ...style },
   });
 }

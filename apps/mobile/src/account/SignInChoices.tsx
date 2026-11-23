@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Platform, View } from 'react-native';
@@ -19,19 +19,40 @@ export function afterSignIn(hasProfile: boolean) {
   router.replace(hasProfile ? '/' : '/onboarding/basics');
 }
 
+export type SignInIntent = 'create' | 'signin';
+const SOCIAL = ['apple', 'google', 'facebook'] as const;
+
 /**
- * The sign-in block of the welcome screen. Signing in and creating an
- * account are one gesture: a known account opens the app, a new one goes on
- * to build its profile.
+ * Which sign-in methods really work here. Real accounts (Supabase): e-mail,
+ * plus each provider the project has switched on (read from the server, so
+ * a provider appears the day it is activated). Offline demo: all four,
+ * simulated and labelled so. Own API: e-mail only.
+ */
+export function useSignInMethods() {
+  const q = useQuery({ queryKey: ['auth-providers'], queryFn: enabledProviders, enabled: CLOUD, staleTime: 10 * 60_000 });
+  if (CLOUD) {
+    const on = q.data ?? {};
+    const live = SOCIAL.filter((p) => on[p]);
+    return { methods: [...live, 'email'] as SignInProvider[], soon: q.data ? SOCIAL.filter((p) => !on[p]) : [], checking: q.isLoading, simulated: false };
+  }
+  if (DEMO_MODE) return { methods: [...SOCIAL, 'email'] as SignInProvider[], soon: [], checking: false, simulated: true };
+  return { methods: ['email'] as SignInProvider[], soon: [...SOCIAL], checking: false, simulated: false };
+}
+
+/**
+ * The sign-in methods, for one intent: "Créer mon profil" or "J'ai déjà un
+ * compte". Only methods that work are shown; the others are named as
+ * "bientôt" in one quiet line. A known account opens the app, a new one goes
+ * on to build its profile, whatever the button.
  *
  * Demo: Apple, Google and Facebook are simulated in a sheet that says so;
  * an address can be given to link the account (the same address = the same
- * account). Connected mode: e-mail code works; the three providers need the
- * keys listed in docs/connexion-sociale.md and say so until then.
+ * account).
  */
-export function SignInChoices() {
+export function SignInChoices({ intent = 'create' }: { intent?: SignInIntent }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const { methods, soon, checking, simulated } = useSignInMethods();
   const [sheet, setSheet] = useState<Exclude<SignInProvider, 'email'> | null>(null);
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState<SignInProvider | null>(null);
@@ -41,7 +62,7 @@ export function SignInChoices() {
   const say = (msg: string) => { if (Platform.OS === 'web') window.alert(msg); else Alert.alert(msg); };
 
   const press = (p: SignInProvider) => {
-    if (p === 'email') { router.push('/onboarding/email'); return; }
+    if (p === 'email') { router.push({ pathname: '/onboarding/email', params: { mode: intent === 'create' ? 'signup' : 'signin' } }); return; }
     if (CLOUD) { void real(p); return; }
     if (DEMO_MODE) { setEmail(''); setSheet(p); return; }
     const msg = t('signin.notConfigured', { provider: NAME[p] });
@@ -75,7 +96,10 @@ export function SignInChoices() {
 
   return (
     <View style={{ gap: space.md }}>
-      <ProviderButtons onPress={press} busy={busy} />
+      <ProviderButtons providers={methods} onPress={press} busy={busy} />
+      {checking ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.checking')}</Text> : null}
+      {soon.length ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.soon', { list: soon.map((p) => NAME[p]).join(', ') })}</Text> : null}
+      {simulated ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.demoMethods')}</Text> : null}
       <Sheet visible={!!sheet} onClose={() => setSheet(null)}>
         {sheet ? (
           <View style={{ gap: space.lg }}>

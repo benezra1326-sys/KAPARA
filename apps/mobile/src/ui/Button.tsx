@@ -8,8 +8,8 @@ import { Text } from './Text';
 type Kind = 'primary' | 'accent' | 'secondary' | 'ghost';
 
 /**
- * One button for the whole app. Primary = the one action of a screen (black pill);
- * accent = an action toward a person (react, like), ink like the rest (monochrome, after Raya);
+ * One button for the whole app. Primary = the one action of a screen (garnet pill);
+ * accent = an action toward a person (react): garnet too (rosé on aubergine);
  * secondary = an alternative of equal standing; ghost = a quiet link.
  * Hover and focus are visible on the web; press feedback is a slight scale.
  */
@@ -18,9 +18,10 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
 }) {
   const { c } = useTheme();
   const solid = kind === 'primary' || kind === 'accent';
-  const bg = kind === 'primary' ? c.primary : kind === 'accent' ? c.accent : 'transparent';
-  const pressedBg = kind === 'primary' ? c.primaryPressed : c.accentPressed;
-  const fg = kind === 'primary' ? c.onPrimary : kind === 'accent' ? c.onAccent : c.text;
+  // Both solid kinds wear the garnet signature, in either theme.
+  const bg = solid ? c.primary : 'transparent';
+  const pressedBg = c.primaryPressed;
+  const fg = solid ? c.onPrimary : c.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -36,7 +37,7 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
           borderWidth: kind === 'secondary' ? 1 : 0, borderColor: c.border,
           opacity: rest.disabled ? 0.5 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
-          ...(Platform.OS === 'web' ? { transitionDuration: '160ms', transitionProperty: 'background-color, transform', outlineStyle: focused ? 'solid' : 'none', outlineWidth: 2, outlineColor: c.text, outlineOffset: 2 } as object : {}),
+          ...(Platform.OS === 'web' ? { transitionDuration: '160ms', transitionProperty: 'background-color, transform', outlineStyle: focused ? 'solid' : 'none', outlineWidth: 2, outlineColor: c.accent, outlineOffset: 2 } as object : {}),
         }, style];
       }}
       {...rest}

@@ -13,6 +13,7 @@ import { formatDuration, useNow } from '../../src/live/useNow';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
+import { openPaywall } from '../../src/premium/store';
 import { imageFade } from '../../src/ui/imageFade';
 
 /**
@@ -32,7 +33,9 @@ export default function Live() {
   const onRefresh = useCallback(async () => { setRefreshing(true); await store.refresh(); setRefreshing(false); }, [store]);
   const invite = async (m: LiveMember, mode: CallMode) => {
     setInviting(m.userId);
+    // Live is uncapped (premium offer, 23/11). A refusal from the database still opens the offer page.
     const call = await store.invite(m, mode, 'live');
+    if (!call && store.get().error === 'quota_reached') { setInviting(null); openPaywall('browse'); return; }
     setInviting(null);
     if (call) router.push({ pathname: '/call/[id]', params: { id: call.callId } });
   };
@@ -173,7 +176,8 @@ function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (
       <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexWrap: 'wrap' }}>
           <Text variant="heading">{m.firstName}, {m.age}</Text>
-          {m.verified ? <Text variant="caption" tone="live">{m.isDemo ? t('ux.verifiedDemo') : t('live.verified')}</Text> : null}
+          {/* No identity check exists yet: a demo profile is never shown as verified. */}
+          {m.verified && !m.isDemo ? <Text variant="caption" tone="live">{t('live.verified')}</Text> : null}
         </View>
         {m.headline ? <Text variant="caption" tone="textMuted" numberOfLines={2}>{m.headline}</Text> : null}
         {m.isDemo ? <DemoBadge compact /> : null}

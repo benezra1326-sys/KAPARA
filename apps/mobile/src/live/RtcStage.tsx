@@ -37,7 +37,7 @@ export function RtcStage({ peer, videoAllowed, micOn, cameraOn, frontCamera, top
       ) : videoAllowed ? (
         // Video is on for the call, but the other person keeps their camera off: their portrait, said plainly.
         <View style={{ position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', gap: space.md }} pointerEvents="none">
-          <View style={{ width: 132, height: 132, borderRadius: 66, overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(255,255,255,0.22)', backgroundColor: '#2A2431' }}>
+          <View style={{ width: 132, height: 132, borderRadius: 66, overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(255,255,255,0.22)', backgroundColor: '#30222D' }}>
             {peer.photoUrl ? <Image source={photoSource(peer.photoUrl)} style={{ flex: 1 }} contentFit="cover" /> : null}
           </View>
           <Text variant="caption" style={{ color: 'rgba(245,239,232,0.72)' }}>{t('call.peerCameraOff', { name: peer.firstName })}</Text>

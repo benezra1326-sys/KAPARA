@@ -9,6 +9,8 @@ import { radius, shadow, space } from '@kapara/design';
 import { photoSource } from '../demo/images';
 import { ALL_FIELDS } from '../me/fields';
 import { useTheme } from '../theme';
+import { useMe } from '../me/store';
+import { router } from 'expo-router';
 import { DemoBadge } from './DemoBadge';
 import { Icon } from './Icon';
 import { useLayout } from './layout';
@@ -38,20 +40,23 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
   const twoCol = available >= 700;
   const [first, ...photos] = p.photos;
   const photoMax = Math.max(280, Math.round(height * (height < 700 ? 0.52 : 0.64)));
+  // A suggestion: the main photo leaves room for the first reasons above the pinned actions.
+  const heroMax = reasons ? Math.max(260, Math.round(height * (height < 700 ? 0.40 : 0.46))) : photoMax;
 
   const prompt = (q: ProfilePublic['prompts'][number]) => <PromptBlock key={`q-${q.id}`} q={q} onReact={onReact} />;
   const photo = (ph: ProfilePublic['photos'][number], style?: object) => (
     <PhotoBlock key={`p-${ph.id}`} profile={p} photo={ph} maxHeight={twoCol ? undefined : photoMax} style={style}
       onReact={onReact ? () => onReact({ kind: 'photo', id: ph.id }) : undefined} />
   );
-  const hero = first ? <Hero profile={p} photo={first} maxHeight={twoCol ? undefined : photoMax} onReact={onReact ? () => onReact({ kind: 'photo', id: first.id }) : undefined} /> : null;
+  const hero = first ? <Hero profile={p} photo={first} maxHeight={twoCol ? undefined : heroMax} onReact={onReact ? () => onReact({ kind: 'photo', id: first.id }) : undefined} /> : null;
   const intro = p.headline || p.languages.length ? (
     <View style={{ gap: space.sm }}>
       {p.headline ? <Text variant="heading">{p.headline}</Text> : null}
       {p.languages.length ? <Text variant="caption" tone="textMuted">{t('pick.speaks', { list: p.languages.map((l) => t(`lang.${l}`, { defaultValue: l })).join(', ') })}</Text> : null}
     </View>
   ) : null;
-  const why = reasons?.length ? <Why reasons={reasons} /> : null;
+  // Shown whenever this is a suggestion (reasons given, even an empty list).
+  const why = reasons ? <Why reasons={reasons} profile={p} /> : null;
 
   if (twoCol) {
     const photoCol = Math.min(400, Math.round(available * 0.42));
@@ -113,11 +118,12 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
           accessibilityLabel={`${p.firstName}, ${p.age}`}>{p.firstName}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
           <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{[String(p.age), p.city].filter(Boolean).join('  ·  ')}</Text>
-          {p.verified ? (
+          {/* "Verified" only after a real check: never on a demo profile. */}
+          {p.verified && !p.isDemo ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Text variant="overline" style={{ color: 'rgba(255,255,255,0.5)' }}>·</Text>
               <Icon name="check" size={13} color="rgba(255,255,255,0.92)" />
-              <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{t(p.isDemo ? 'ux.verifiedDemo' : 'pick.verified')}</Text>
+              <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{t('pick.verified')}</Text>
             </View>
           ) : null}
         </View>
@@ -158,29 +164,63 @@ function PromptBlock({ q, onReact }: { q: ProfilePublic['prompts'][number]; onRe
   );
 }
 
-/** "Why this suggestion": built only from answers both people chose to share. */
-function Why({ reasons }: { reasons: Recommendation['reasons'] }) {
+/**
+ * "Why this suggestion": built only from answers both people chose to share
+ * and from the criteria the member set. The first two reasons are shown
+ * plainly; the others on request. What the two have in common (languages)
+ * follows, then how to correct it: the member's own criteria are one tap away.
+ * No score is ever shown.
+ */
+function Why({ reasons, profile: p }: { reasons: Recommendation['reasons']; profile: ProfilePublic }) {
   const { c } = useTheme();
   const { t } = useTranslation();
+  const [all, setAll] = useState(false);
+  const myLanguages = useMe((s) => s.languages);
   // The API sends full keys ("reason.nearby"), the demo data short ones ("nearby").
   const say = (r: Recommendation['reasons'][number]) => {
     const key = r.key.replace(/^reason\./, '');
     return t(`reason.${key}`, { ...(r.params ?? {}), defaultValue: '' }) || t('reason.fits_your_criteria');
   };
+  const shown = all ? reasons : reasons.slice(0, 2);
+  const hidden = reasons.length - shown.length;
+  const common = p.languages.filter((l) => myLanguages.includes(l)).map((l) => t(`lang.${l}`, { defaultValue: l }));
   return (
-    <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm }}
-      accessible accessibilityLabel={`${t('forYou.why')}: ${reasons.map(say).join('. ')}`}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-        <Icon name="sparkle" size={18} color={c.highlight} filled />
-        <Text variant="overline" tone="highlight">{t('forYou.why')}</Text>
+    <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: c.border, padding: space.lg, gap: space.md }}>
+      <View accessible accessibilityRole="header" style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <Icon name="sparkle" size={16} color={c.highlight} filled />
+        <Text variant="overline" tone="highlight">{t('forYou.whyName', { name: p.firstName })}</Text>
       </View>
-      {reasons.map((r) => (
-        <View key={r.key} style={{ flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' }}>
-          <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: c.highlight, marginTop: 10 }} />
-          <Text variant="body" style={{ flex: 1 }}>{say(r)}</Text>
+      <View style={{ gap: space.sm }} accessible accessibilityLabel={shown.map(say).join('. ') || t('forYou.noReason')}>
+        {shown.length ? shown.map((r) => (
+          <View key={r.key + JSON.stringify(r.params ?? {})} style={{ flexDirection: 'row', gap: space.md, alignItems: 'flex-start' }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.accent, marginTop: 9 }} />
+            <Text variant="bodyStrong" style={{ flex: 1 }}>{say(r)}</Text>
+          </View>
+        )) : <Text tone="textMuted">{t('forYou.noReason')}</Text>}
+      </View>
+      {hidden > 0 || all && reasons.length > 2 ? (
+        <Pressable onPress={() => setAll(!all)} accessibilityRole="button" style={{ minHeight: 36, justifyContent: 'center', alignSelf: 'flex-start' }}>
+          <Text variant="label" tone="accent">{all ? t('forYou.lessReasons') : t('forYou.moreReasons', { count: hidden })}</Text>
+        </Pressable>
+      ) : null}
+      {common.length ? (
+        <View style={{ gap: space.xs }}>
+          <Text variant="caption" tone="textMuted">{t('forYou.inCommon')}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
+            {common.map((l) => (
+              <View key={l} style={{ paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: c.accentSoft }}>
+                <Text variant="label" tone="accent">{l}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      ))}
-      <Text variant="caption" tone="textSubtle">{t('pick.whyFootnote')}</Text>
+      ) : null}
+      <View style={{ borderTopWidth: 1, borderTopColor: c.border, paddingTop: space.sm, gap: 2 }}>
+        <Text variant="caption" tone="textSubtle">{t('pick.whyFootnote')}</Text>
+        <Pressable onPress={() => router.push('/preferences')} accessibilityRole="link" style={{ minHeight: 36, justifyContent: 'center', alignSelf: 'flex-start' }}>
+          <Text variant="label" tone="accent" style={{ textDecorationLine: 'underline' }}>{t('forYou.adjust')}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
