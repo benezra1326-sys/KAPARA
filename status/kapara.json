@@ -91,6 +91,12 @@
       "statut": "a_valider",
       "avancement": 90,
       "responsable": "apps-design"
+    },
+    {
+      "nom": "Offre premium (Gratuit, Plus, Cercle) : limites appliquées par la base, page d'abonnement, paiement simulé",
+      "statut": "a_valider",
+      "avancement": 90,
+      "responsable": "apps-produit"
     }
   ],
   "liens": [
@@ -145,6 +151,6 @@
       "texte": "Accueil refait : logo et nom centrés, trois façons de se rencontrer présentées sur une ligne (une à la fois), un titre clair « Se connecter ou créer un compte », tout tient sur un écran d'iPhone."
     }
   ],
-  "maj_le": "2026-11-23T13:10:00Z",
+  "maj_le": "2026-11-23T13:20:00Z",
   "demo_web": "https://motek-demo.vercel.app"
 }

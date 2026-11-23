@@ -13,6 +13,8 @@ import { formatDuration, useNow } from '../../src/live/useNow';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
+import { isQuotaError } from '../../src/premium/plans';
+import { openPaywall, startLiveCall, useRefreshPlan } from '../../src/premium/store';
 
 /**
  * Live: who is available right now. Three consents, never bundled:
@@ -27,10 +29,15 @@ export default function Live() {
   const now = useNow(15_000);
   const [inviting, setInviting] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const refreshPlan = useRefreshPlan();
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await store.refresh(); setRefreshing(false); }, [store]);
   const invite = async (m: LiveMember) => {
     setInviting(m.userId);
+    // Calls started per day depend on the plan (receiving a call is always free). Only a refusal blocks.
+    try { await startLiveCall(); } catch (e) {
+      if (isQuotaError(e)) { setInviting(null); openPaywall('liveCall'); return; }
+    } finally { refreshPlan(); }
     const call = await store.invite(m);
     setInviting(null);
     if (call) router.push({ pathname: '/call/[id]', params: { id: call.callId } });
