@@ -1110,6 +1110,7 @@ export default {
         title: 'Croisés',
         body: 'Retrouver les membres croisés, si vous l’activez tous les deux.',
       },
+      next: 'Passer à la suivante',
       live: {
         title: 'Live',
         body: 'Un appel audio quand vous êtes disponibles. La caméra, seulement si vous le voulez.',

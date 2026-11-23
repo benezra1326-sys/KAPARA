@@ -1108,6 +1108,7 @@ const en: DeepPartial<typeof fr> = {
         title: 'Crossed',
         body: 'Find members you crossed paths with, if you both turn it on.',
       },
+      next: 'Show the next one',
       live: {
         title: 'Live',
         body: 'An audio call when you’re both available. Camera only if you want.',
