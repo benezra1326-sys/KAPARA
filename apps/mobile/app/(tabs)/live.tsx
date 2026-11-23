@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, Switch, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RULES } from '@kapara/config';
-import type { LiveMember } from '@kapara/shared';
+import type { CallMode, LiveMember } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
 import { Icon } from '../../src/live/icons';
 import { useLive, useLiveStore } from '../../src/live/LiveProvider';
@@ -29,9 +29,9 @@ export default function Live() {
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await store.refresh(); setRefreshing(false); }, [store]);
-  const invite = async (m: LiveMember) => {
+  const invite = async (m: LiveMember, mode: CallMode) => {
     setInviting(m.userId);
-    const call = await store.invite(m);
+    const call = await store.invite(m, mode, 'live');
     setInviting(null);
     if (call) router.push({ pathname: '/call/[id]', params: { id: call.callId } });
   };
@@ -111,7 +111,7 @@ export default function Live() {
               </Text>
               {s.members.map((m) => (
                 <MemberRow key={m.userId} m={m} busy={inviting === m.userId} disabled={!!inviting || !!s.call || !enabled}
-                  onInvite={() => void invite(m)} />
+                  onInvite={(mode) => void invite(m, mode)} />
               ))}
             </View>
           )}
@@ -160,7 +160,7 @@ function Intro({ onEnable, onSettings }: { onEnable: () => void; onSettings: () 
   );
 }
 
-function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: () => void; busy: boolean; disabled: boolean }) {
+function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (mode: CallMode) => void; busy: boolean; disabled: boolean }) {
   const { t } = useTranslation();
   const { c } = useTheme();
   return (
@@ -177,14 +177,24 @@ function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (
         {m.headline ? <Text variant="caption" tone="textMuted" numberOfLines={2}>{m.headline}</Text> : null}
         {m.isDemo ? <DemoBadge compact /> : null}
         <View style={{ flex: 1 }} />
-        <Pressable onPress={onInvite} disabled={disabled} accessibilityRole="button"
-          accessibilityLabel={`${t('live.invite')} : ${m.firstName}`} accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
-          style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill,
-            flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: pressed ? c.accentSoft : 'transparent', borderWidth: 1, borderColor: c.accent,
-            opacity: disabled && !busy ? 0.45 : 1 })}>
-          {busy ? <ActivityIndicator color={c.accent} /> : <Icon name="phone" size={18} color={c.accent} />}
-          <Text variant="label" tone="accent">{t('live.invite')}</Text>
-        </Pressable>
+        {/* Video first (Live is face to face), audio always offered. The camera stays mine to switch on. */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+          {(['video', 'audio'] as const).map((mode) => {
+            const primary = mode === 'video';
+            return (
+              <Pressable key={mode} onPress={() => onInvite(mode)} disabled={disabled} accessibilityRole="button"
+                accessibilityLabel={`${t('live.invite')} (${mode === 'video' ? t('live.inviteVideo') : t('live.inviteAudio')}) : ${m.firstName}`}
+                accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
+                style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.pill,
+                  flexDirection: 'row', alignItems: 'center', gap: space.sm, borderWidth: 1, borderColor: c.accent,
+                  backgroundColor: primary ? (pressed ? c.accentPressed : c.accent) : pressed ? c.accentSoft : 'transparent',
+                  opacity: disabled && !busy ? 0.45 : 1 })}>
+                {busy && primary ? <ActivityIndicator color={c.onAccent} /> : <Icon name={mode} size={18} color={primary ? (c.onAccent) : c.accent} />}
+                <Text variant="label" style={{ color: primary ? (c.onAccent) : c.accent }}>{mode === 'video' ? t('live.inviteVideo') : t('live.inviteAudio')}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );

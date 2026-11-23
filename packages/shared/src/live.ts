@@ -13,7 +13,9 @@ export const CallState = z.enum([
 ]);
 export type CallState = z.infer<typeof CallState>;
 
+/** What the caller proposes. The other person can always answer in audio only; each camera stays under its owner's control. */
 export const CallMode = z.enum(['audio', 'video']);
+export type CallMode = z.infer<typeof CallMode>;
 
 /** Socket.io event names shared by app and API. */
 export const LIVE_EVENTS = {
@@ -79,6 +81,8 @@ export type InviteRefusal = z.infer<typeof InviteRefusal>;
 export const JoinInfo = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('livekit'), url: z.string(), token: z.string(), room: z.string() }),
   z.object({ mode: z.literal('demo'), room: z.string(), notice: z.literal('demo_call_simulated') }),
+  /** Direct peer-to-peer call (WebRTC), signalled over the database's private realtime channel. */
+  z.object({ mode: z.literal('webrtc'), room: z.string(), initiator: z.boolean() }),
 ]);
 export type JoinInfo = z.infer<typeof JoinInfo>;
 
@@ -90,6 +94,8 @@ export const CallSnapshot = z.object({
   direction: z.enum(['outgoing', 'incoming']),
   /** Who asked for video, when state is video_requested. */
   videoRequestedBy: z.enum(['me', 'peer']).optional(),
+  /** What the caller proposed (absent = audio, older servers). */
+  mode: CallMode.optional(),
 });
 export type CallSnapshot = z.infer<typeof CallSnapshot>;
 
@@ -99,8 +105,9 @@ export type CallReportReason = z.infer<typeof CallReportReason>;
 /** Socket payloads (client → server), validated on the server. */
 export const LivePayloads = {
   presenceSet: z.object({ available: z.boolean() }),
-  invite: z.object({ to: z.string().min(1) }),
-  respond: z.object({ callId: z.string().min(1), accept: z.boolean() }),
+  invite: z.object({ to: z.string().min(1), mode: CallMode.default('audio') }),
+  /** `video`: answer a video call with my camera on (only if the caller proposed video). */
+  respond: z.object({ callId: z.string().min(1), accept: z.boolean(), video: z.boolean().default(false) }),
   callRef: z.object({ callId: z.string().min(1) }),
   videoRespond: z.object({ callId: z.string().min(1), accept: z.boolean() }),
   report: z.object({ callId: z.string().min(1), reason: CallReportReason, block: z.boolean().default(true) }),
