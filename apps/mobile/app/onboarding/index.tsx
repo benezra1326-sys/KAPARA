@@ -8,6 +8,7 @@ import { space } from '@kapara/design';
 import { useAuthStatus } from '../../src/account';
 import { SignInChoices } from '../../src/account/SignInChoices';
 import { DEMO_MODE } from '../../src/api/client';
+import { CLOUD } from '../../src/cloud/client';
 import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
 import { BrandMark, Icon, Text, Wordmark, useLayout } from '../../src/ui';
@@ -57,7 +58,7 @@ export default function Welcome() {
         </Animated.View>
       </View>
       <View style={{ gap: space.sm }}>
-        {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('signin.demoNotice')}</Text> : null}
+        {DEMO_MODE && !CLOUD ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('signin.demoNotice')}</Text> : null}
         <SignInChoices />
         <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('signin.terms')}</Text>
       </View>

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { hitSlop, radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
+import { CLOUD } from '../cloud/client';
 import { useTheme } from '../theme';
 import { Icon, Text } from '../ui';
 import { photoSource } from '../demo/images';
@@ -94,10 +95,11 @@ export function ToggleRow({ label, detail, value, onChange, first, disabled }: {
   );
 }
 
-export function DemoNotice() {
+/** `real`: the screen is backed by the database for real accounts, so no demo notice there. */
+export function DemoNotice({ real }: { real?: boolean } = {}) {
   const { t } = useTranslation();
   const { c } = useTheme();
-  if (!DEMO_MODE) return null;
+  if (!DEMO_MODE || (real && CLOUD)) return null;
   return (
     <View style={{ marginHorizontal: space.lg, marginBottom: space.lg, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.md, backgroundColor: c.surfaceAlt, flexDirection: 'row', gap: space.sm, alignItems: 'center' }} accessibilityRole="text">
       <Icon name="info" size={16} color={c.textMuted} />

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { PHOTO_LIMITS } from '@kapara/shared';
 import { radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
+import { CLOUD } from '../cloud/client';
 import { photoSource } from '../demo/images';
 import {
   addPhoto, movePhoto, openSettings, pickPhoto, removePhoto, retryPhoto, usePhotoSync, commitPhotos, type MyPhoto,
@@ -75,7 +76,7 @@ export function PhotoGrid() {
           <Text variant="caption" style={{ color: c.danger }}>{t('photos.saveFailed')}</Text>
         </Pressable>
       ) : null}
-      <Text variant="caption" tone="textSubtle">{DEMO_MODE ? t('photos.demoNotice') : t('photos.privacy')}</Text>
+      <Text variant="caption" tone="textSubtle">{DEMO_MODE && !CLOUD ? t('photos.demoNotice') : t('photos.privacy')}</Text>
 
       <Sheet visible={panel?.kind === 'add'} onClose={() => setPanel(null)}>
         <Text variant="heading" accessibilityRole="header">{t('photos.addTitle')}</Text>
@@ -102,7 +103,7 @@ export function PhotoGrid() {
             {selected > 1 ? <Button kind="secondary" label={t('photos.moveEarlier')} onPress={() => act(() => movePhoto(sel.id, selected - 1))} /> : null}
             {selected < photos.length - 1 ? <Button kind="secondary" label={t('photos.moveLater')} onPress={() => act(() => movePhoto(sel.id, selected + 1))} /> : null}
             <Button kind="ghost" label={t('photos.remove')} onPress={() => act(() => removePhoto(sel.id))} />
-            {photos.length === 1 && !DEMO_MODE ? <Text variant="caption" tone="textSubtle">{t('photos.lastHint')}</Text> : null}
+            {photos.length === 1 && (!DEMO_MODE || CLOUD) ? <Text variant="caption" tone="textSubtle">{t('photos.lastHint')}</Text> : null}
           </>
         ) : null}
       </Sheet>

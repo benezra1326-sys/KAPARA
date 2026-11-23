@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { MATCHABLE_FIELDS, type MatchableField } from '@kapara/shared';
 import { hitSlop, radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../src/api/client';
+import { CLOUD } from '../src/cloud/client';
 import {
   AGE_MAX, AGE_MIN, CRITERIA, DISTANCE_STEPS, GENDERS, criterionOf, samePrefs, useSavePreferences, usePreferences, withCriterion,
   type Criterion, type Prefs,
@@ -76,7 +77,7 @@ export default function PreferencesScreen() {
     >
       <View style={{ paddingHorizontal: space.xl, gap: space.md, marginBottom: space.xl }}>
         <Text tone="textMuted">{t('preferences.intro')}</Text>
-        {DEMO_MODE ? (
+        {DEMO_MODE && !CLOUD ? (
           <View style={{ paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.md, backgroundColor: c.surfaceAlt }}>
             <Text variant="caption" tone="textMuted">{t('preferences.demoNotice')}</Text>
           </View>

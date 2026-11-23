@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MATCHABLE_FIELDS, PreferencesInput, type Gender, type MatchableField } from '@kapara/shared';
 import { DEMO_PEOPLE, DEMO_VIEWER_KEY } from '../demo/people';
 import { api, DEMO_MODE } from '../api/client';
+import { loadPreferences, savePreferences } from '../cloud/account';
+import { CLOUD } from '../cloud/client';
+import { meStore } from './store';
 
 /** What the member is looking for. Same shape as PUT /v1/preferences. */
 export type Prefs = PreferencesInput;
@@ -63,6 +66,12 @@ export function usePreferences() {
   return useQuery({
     queryKey: ['preferences'],
     queryFn: async (): Promise<Prefs & { isDefault?: boolean }> => {
+      if (CLOUD) {
+        const saved = await loadPreferences();
+        if (saved) return normalize(saved as Partial<Prefs>);
+        const g = meStore.get().gender;
+        return { ...demoPrefs, soft: {}, genders: g === 'woman' ? ['man'] : g === 'man' ? ['woman'] : ['woman', 'man'], isDefault: true };
+      }
       if (DEMO_MODE) return demoPrefs;
       const r = await api<Prefs & { isDefault: boolean }>('/preferences');
       return { ...normalize(r), isDefault: r.isDefault };
@@ -76,6 +85,7 @@ export function useSavePreferences() {
   return useMutation({
     mutationFn: async (p: Prefs): Promise<Prefs> => {
       const body = PreferencesInput.parse(normalize(p));
+      if (CLOUD) { await savePreferences(body); return body; }
       if (DEMO_MODE) { await new Promise((r) => setTimeout(r, 300)); demoPrefs = body; return body; }
       return normalize(await api<Prefs>('/preferences', { method: 'PUT', body: JSON.stringify(body) }));
     },

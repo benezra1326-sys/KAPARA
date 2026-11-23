@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { space } from '@kapara/design';
 import { DEMO_MODE } from '../../src/api/client';
+import { CLOUD } from '../../src/cloud/client';
 import { useProfile } from '../../src/api/hooks';
 import { useTheme } from '../../src/theme';
 import { EmptyState, Screen, Text } from '../../src/ui';
@@ -29,7 +30,7 @@ export default function Profile() {
       {notice ? <View style={{ marginHorizontal: space.xl, marginBottom: space.lg }} accessibilityLiveRegion="polite"><Text variant="label" tone="live">{notice}</Text></View> : null}
       <ProfileCard profile={p} onReact={setTarget} />
       <ReactSheet profile={p} target={target} onClose={() => setTarget(null)}
-        onDone={(matched) => { setTarget(null); setNotice(matched ? t('pick.matched', { name: p.firstName }) : t(DEMO_MODE ? 'pick.sentDemo' : 'pick.sent')); }} />
+        onDone={(matched) => { setTarget(null); setNotice(matched ? t('pick.matched', { name: p.firstName }) : t(CLOUD ? (p.isDemo ? 'cloud.sentToDemo' : 'pick.sent') : DEMO_MODE ? 'pick.sentDemo' : 'pick.sent')); }} />
     </Screen>
   );
 }

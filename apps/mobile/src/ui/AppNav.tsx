@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, hitSlop, layout, radius, space } from '@kapara/design';
 import { DEMO_MODE } from '../api/client';
+import { CLOUD } from '../cloud/client';
 import { useTheme } from '../theme';
 import { Icon, type IconName } from './Icon';
 import { Logo } from './Logo';
@@ -63,7 +64,7 @@ export function AppNav({ state, descriptors, emitter, navigateToTab }: TabBarPro
         <View style={{ paddingHorizontal: space.lg, marginBottom: space.xl }}><Logo size={36} header /></View>
         {items}
         <View style={{ flex: 1 }} />
-        {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.lg }}>{t('nav.demoFooter')}</Text> : null}
+        {DEMO_MODE ? <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.lg }}>{t(CLOUD ? 'cloud.navFooter' : 'nav.demoFooter')}</Text> : null}
       </View>
     );
   }

@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { LAUNCH_REGION } from '@kapara/config';
 import type { Gender, JewishLife, Prompt, ProfileUpdate, Visibility } from '@kapara/shared';
 import { DEMO_MODE } from '../api/client';
+import { CLOUD } from '../cloud/client';
 import { DEMO_VIEWER_KEY, momentUrl, portraitUrl } from '../demo/people';
 import type { JLKey } from './fields';
 import type { MyPhoto } from './photos';
@@ -38,7 +39,7 @@ const demoPhotos: MyPhoto[] = [portraitUrl(DEMO_VIEWER_KEY), momentUrl(DEMO_VIEW
 
 const initial: MyProfile = {
   onboarded: false, firstName: '', headline: '', languages: ['fr'], regionCode: LAUNCH_REGION.code,
-  prompts: [], photos: DEMO_MODE ? demoPhotos : [], jewishLife: {}, consents: {},
+  prompts: [], photos: DEMO_MODE && !CLOUD ? demoPhotos : [], jewishLife: {}, consents: {},
 };
 
 /**
