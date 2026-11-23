@@ -1110,6 +1110,7 @@ export default {
         title: 'Croisés',
         body: 'Retrouver les membres croisés, si vous l’activez tous les deux.',
       },
+      next: 'Passer à la suivante',
       live: {
         title: 'Live',
         body: 'Un appel audio quand vous êtes disponibles. La caméra, seulement si vous le voulez.',
@@ -1155,7 +1156,8 @@ export default {
     demoContinue: 'Continuer avec {{provider}}',
     demoEmailNoCode: 'Démo : aucun code n’est envoyé, l’adresse ouvre directement votre compte sur cet appareil.',
     continue: 'Continuer',
-    terms: 'Nouveau ou déjà membre : le même bouton. Votre adresse n’est jamais montrée aux autres membres.',
+    title: 'Se connecter ou créer un compte',
+    terms: 'Nouveau ou déjà membre : les mêmes boutons. Votre adresse n’est jamais montrée aux autres membres.',
     demoNotice: 'Démo : profils fictifs, connexions simulées.',
     signOutDemoBody: 'Votre profil reste enregistré sur cet appareil. Vous le retrouverez en vous reconnectant.',
     forget: 'Effacer ce compte de l’appareil',
