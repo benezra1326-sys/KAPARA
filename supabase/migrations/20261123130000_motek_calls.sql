@@ -103,6 +103,16 @@ begin
 
   refusal := public.call_allowance(me, call_mode);
   if refusal is not null then return jsonb_build_object('ok', false, 'error', refusal); end if;
+  -- Plafond quotidien d'appels de l'abonnement (chantier premium : public.consume_quota, 'live_call'),
+  -- appliqué ici côté serveur dès que la fonction existe.
+  if to_regprocedure('public.consume_quota(text,text)') is not null then
+    begin
+      execute 'select public.consume_quota($1, $2)' using me, 'live_call';
+    exception when others then
+      if sqlerrm = 'quota_exceeded' then return jsonb_build_object('ok', false, 'error', 'quota_reached'); end if;
+      raise;
+    end;
+  end if;
 
   -- Un éventuel appel à moi resté ouvert (onglet fermé…) est clos avant d'en lancer un nouveau.
   update public.calls set state = 'ended', ended_at = now(), updated_at = now()
