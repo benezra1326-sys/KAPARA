@@ -5,7 +5,8 @@ import { useRole } from '../account';
 import { kv } from '../account/kv';
 import { CLOUD, must, sb } from '../cloud/client';
 import { DEMO_PICKS } from '../demo/profiles';
-import { LIMITS, type Months, type PlanId, type PlanLimits, type QuotaKind } from './plans';
+import { meStore } from '../me/store';
+import { canFilterLive, LIMITS, type Months, type PlanId, type PlanLimits, type QuotaKind } from './plans';
 
 /**
  * The member's plan, what it allows and what is left today.
@@ -26,9 +27,11 @@ export interface PlanState {
   used: Record<QuotaKind, number>;
   resetsAt: string;
   discreetOn: boolean;
+  /** Live: may choose gender and city (paid plan, women, administrator). */
+  liveFiltersAllowed: boolean;
 }
 
-export type PaywallReason = 'like' | 'liveCall' | 'picks' | 'seeLikes' | 'rewind' | 'discreet' | 'browse';
+export type PaywallReason = 'like' | 'liveFilters' | 'picks' | 'seeLikes' | 'rewind' | 'discreet' | 'browse';
 export const openPaywall = (reason: PaywallReason = 'browse') => router.push({ pathname: '/premium', params: { reason } });
 
 const KEY = ['plan'] as const;
@@ -57,6 +60,7 @@ function localState(v: Local): PlanState {
   return {
     plan, subscribed: v.plan, until: v.until, source: v.plan === 'free' ? null : 'demo', isAdmin: localAdmin,
     limits: LIMITS[plan], used: { like: v.usage.like, liveCall: v.usage.liveCall }, resetsAt: nextMidnight(), discreetOn: v.discreet,
+    liveFiltersAllowed: canFilterLive(plan, meStore.get().gender, localAdmin),
   };
 }
 
@@ -139,6 +143,16 @@ export function useSetDiscreet() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
+}
+
+/**
+ * For the Live screens: can this member choose gender and city? If not,
+ * `ask()` opens the membership page on that reason. Free Live stays a random
+ * worldwide match.
+ */
+export function useLiveFilters() {
+  const plan = usePlan();
+  return { allowed: plan.data?.liveFiltersAllowed ?? false, ask: () => openPaywall('liveFilters') };
 }
 
 /** Before starting a Live call: counts it, or refuses once today's calls are used. */
