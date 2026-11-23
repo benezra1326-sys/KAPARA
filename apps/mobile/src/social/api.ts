@@ -131,7 +131,8 @@ export function useCloseConversation() {
 
 // ── Introductions ──────────────────────────────────────────────────────────
 
-export const useIntroInbox = () => useQuery({ queryKey: keys.inbox, queryFn: () => (DEMO_MODE ? demo.inbox() : api<IntroductionReceived[]>('/introductions/inbox')) });
+// Real accounts: introductions are not in the database yet, so no fictional ones appear among real conversations.
+export const useIntroInbox = () => useQuery({ queryKey: keys.inbox, queryFn: () => (CLOUD ? Promise.resolve([] as IntroductionReceived[]) : DEMO_MODE ? demo.inbox() : api<IntroductionReceived[]>('/introductions/inbox')) });
 export const useIntroSent = () => useQuery({ queryKey: keys.sent, queryFn: () => (DEMO_MODE ? demo.sent() : api<IntroductionSent[]>('/introductions/sent')) });
 
 export function useRespondIntro() {

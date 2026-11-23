@@ -111,7 +111,7 @@ export default function Conversation() {
         }
       />
       {conv.other.isDemo ? <View style={{ paddingHorizontal: space.lg, paddingBottom: space.sm }}><DemoBadge /></View> : null}
-      <DemoNotice />
+      <DemoNotice real />
 
       {q.isLoading ? <Loading /> : (
         <FlatList
