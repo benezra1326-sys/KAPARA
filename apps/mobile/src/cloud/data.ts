@@ -36,10 +36,13 @@ function reasonsFor(p: ProfilePublic): Recommendation['reasons'] {
 }
 
 export const cloud = {
-  /** Today's picks in the city the member chose (free to change, see CityPicker). */
+  /**
+   * Today's picks in the city being looked at: one's own city (free) or another
+   * (Plus, Cercle). The database checks the plan ("premium_required") and sizes
+   * the selection to it; it only returns people from that city.
+   */
   async forYou(regionCode = meStore.get().regionCode): Promise<Recommendation[]> {
-    const all = must(await sb.rpc('for_you', { max_count: 100 })) as Card[];
-    const cards = all.filter((c) => c.regionCode === regionCode).slice(0, 40);
+    const cards = must(await sb.rpc('for_you', { max_count: 40, region: regionCode })) as Card[];
     return cards.map((c, i) => {
       const profile = withCity(c);
       return { profile, score: Math.max(0.5, Math.round((0.95 - i * 0.03) * 100) / 100), reasons: reasonsFor(profile) };
