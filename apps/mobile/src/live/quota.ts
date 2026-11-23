@@ -23,3 +23,11 @@ let current: CallQuota = unlimited;
 
 export function setCallQuota(q: CallQuota | null) { current = q ?? unlimited; }
 export function callQuota(): CallQuota { return current; }
+
+/**
+ * Live filters (gender, city) are for paid plans. The premium module plugs its
+ * paywall here; until then, the Live screen explains it in a short message.
+ */
+let liveUpsell: (() => void) | null = null;
+export function setLiveFiltersUpsell(fn: (() => void) | null) { liveUpsell = fn; }
+export function liveFiltersUpsell() { return liveUpsell; }

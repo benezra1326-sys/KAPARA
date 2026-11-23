@@ -1,23 +1,27 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, Switch, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { RULES } from '@kapara/config';
-import type { CallMode, LiveMember } from '@kapara/shared';
+import { REGIONS } from '@kapara/config';
+import type { CallSnapshot, LiveSearchFilters } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
 import { Icon } from '../../src/live/icons';
 import { useLive, useLiveStore } from '../../src/live/LiveProvider';
 import { Pulse } from '../../src/live/Pulse';
 import { formatDuration, useNow } from '../../src/live/useNow';
+import { liveFiltersUpsell } from '../../src/live/quota';
+import { LIVE_PARALLEL_REQUESTS } from '../../src/live/store';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
-import { imageFade } from '../../src/ui/imageFade';
 
 /**
- * Live: who is available right now. Three consents, never bundled:
- * being visible, accepting an audio call, then (both) turning cameras on.
+ * Live, Azar-style: no list of who is online. The member starts a search and
+ * the app sends a few video requests at once to random members present in
+ * Live; the first one who accepts starts the call, a "no" sends another one.
+ * Free: anyone, anywhere. Paid plans choose gender and city.
+ * Consents stay separate: each person answers, and may keep the camera off.
  */
 export default function Live() {
   const { t } = useTranslation();
@@ -25,24 +29,27 @@ export default function Live() {
   const router = useRouter();
   const store = useLiveStore();
   const s = useLive();
-  const now = useNow(15_000);
-  const [inviting, setInviting] = useState<string | null>(null);
+  const now = useNow(2_000);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await store.refresh(); setRefreshing(false); }, [store]);
-  const invite = async (m: LiveMember, mode: CallMode) => {
-    setInviting(m.userId);
-    const call = await store.invite(m, mode, 'live');
-    setInviting(null);
-    if (call) router.push({ pathname: '/call/[id]', params: { id: call.callId } });
-  };
-
-  const available = Boolean(s.availableUntil && s.availableUntil > now);
-  const minutesLeft = available ? Math.min(RULES.liveAvailabilityMinutes, Math.max(1, Math.ceil((s.availableUntil! - Date.now()) / 60_000))) : 0;
   const enabled = s.settings?.liveEnabled === true;
+  const searching = s.search.status === 'searching';
+
+  useEffect(() => { if (enabled) void store.loadFiltersAllowed(); }, [enabled, store]);
+  // Someone said yes: open the call.
+  useEffect(() => {
+    if (!s.searchMatch) return;
+    router.push({ pathname: '/call/[id]', params: { id: s.searchMatch } });
+    store.clearSearchMatch();
+  }, [s.searchMatch, router, store]);
+  // Leaving Live while searching stops the requests.
+  useFocusEffect(useCallback(() => () => { if (store.get().search.status === 'searching') void store.stopSearch(); }, [store]));
+
+  const nobodyForAWhile = searching && !s.search.demo && s.search.emptySince !== null && now - s.search.emptySince > 6_000;
 
   return (
-    <Screen title={t('live.title')} subtitle={t('live.subtitle')}
+    <Screen title={t('live.title')} subtitle={t('liveRandom.subtitle')}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.accent} />}>
       {s.mode === 'demo' ? (
         <Notice tone="highlight" text={s.local ? t('live.demoLocalNotice') : t('live.demoNotice')} />
@@ -56,33 +63,16 @@ export default function Live() {
       ) : !enabled ? (
         <Intro onEnable={() => void store.saveSettings({ ...s.settings!, liveEnabled: true })} onSettings={() => router.push('/settings/live')} />
       ) : (
-        <View style={{ marginHorizontal: space.lg, borderRadius: radius.xl, backgroundColor: c.surface, overflow: 'hidden' }}>
-          <View style={{ padding: space.xl, gap: space.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.lg }}>
-              <View style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
-                <Pulse color={c.live} size={28} active={available} />
-                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: available ? c.live : c.border }} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text variant="bodyStrong">{t('live.availableToggle')}</Text>
-                <Text variant="caption" tone="textMuted">
-                  {available ? t('live.availableFor', { minutes: minutesLeft }) : t('live.availableOff')}
-                </Text>
-              </View>
-              <Switch value={available} onValueChange={(v) => void store.setAvailable(v)}
-                trackColor={{ true: c.live, false: c.textSubtle }} accessibilityLabel={t('live.availableToggle')}
-                accessibilityHint={t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })} />
+        <View style={{ gap: space.lg }}>
+          <SearchStage pending={s.search.pending} searching={searching} demo={s.search.demo}
+            onStart={() => void store.startSearch(false)} onStop={() => void store.stopSearch()} disabled={!!s.call} />
+          {nobodyForAWhile ? (
+            <View style={{ marginHorizontal: space.lg, gap: space.sm, alignItems: 'center' }}>
+              <Text variant="caption" tone="textMuted" style={{ textAlign: 'center' }}>{t('liveRandom.nobody')}</Text>
+              <Button kind="ghost" label={t('liveRandom.tryDemo')} onPress={() => void store.startSearch(true)} />
             </View>
-            <Text variant="caption" tone="textSubtle">{t('live.availableHint', { minutes: RULES.liveAvailabilityMinutes })}</Text>
-          </View>
-          <Pressable onPress={() => router.push('/settings/live')} accessibilityRole="button"
-            accessibilityLabel={`${t('live.whoCanCall')} : ${t(`live.whoCanCallValue.${s.settings.liveCallsFrom}`)}`}
-            style={({ pressed }) => ({ minHeight: 52, paddingHorizontal: space.xl, flexDirection: 'row', alignItems: 'center', gap: space.sm,
-              borderTopWidth: 1, borderTopColor: c.border, backgroundColor: pressed ? c.surfaceAlt : 'transparent' })}>
-            <Text variant="label" tone="textMuted" style={{ flex: 1 }}>{t('live.whoCanCall')}</Text>
-            <Text variant="label">{t(`live.whoCanCallValue.${s.settings.liveCallsFrom}`)}</Text>
-            <Icon name="chevron" size={18} color={c.textSubtle} />
-          </Pressable>
+          ) : null}
+          <Filters allowed={s.filtersAllowed === true} value={s.search.filters} onChange={(f) => store.setFilters(f)} />
         </View>
       )}
 
@@ -97,34 +87,111 @@ export default function Live() {
         </Pressable>
       ) : null}
 
-      {enabled || s.local ? (
-        <View style={{ marginTop: space.xl }}>
-          {s.membersStatus === 'loading' && !s.members.length ? (
-            <View style={{ paddingHorizontal: space.lg, gap: space.md }}>{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</View>
-          ) : s.membersStatus === 'error' ? (
-            <EmptyState title={t('live.offline')} action={{ label: t('common.retry'), onPress: () => void store.loadMembers() }} />
-          ) : s.members.length === 0 ? (
-            <EmptyState title={t('live.empty')} body={t('live.emptyBody')} />
-          ) : (
-            <View style={{ gap: space.md }}>
-              <Text variant="overline" tone="textSubtle" style={{ paddingHorizontal: space.xl }}>
-                {`${t('live.subtitle')} · ${s.members.length}`}
-              </Text>
-              {s.members.map((m) => (
-                <MemberRow key={m.userId} m={m} busy={inviting === m.userId} disabled={!!inviting || !!s.call || !enabled}
-                  onInvite={(mode) => void invite(m, mode)} />
-              ))}
-            </View>
-          )}
-        </View>
-      ) : null}
-
       {s.local && enabled ? (
         <View style={{ paddingHorizontal: space.xl, marginTop: space.xl }}>
-          <Button kind="ghost" label={t('live.demoIncoming')} onPress={() => store.simulateIncoming()} disabled={!!s.call} />
+          <Button kind="ghost" label={t('live.demoIncoming')} onPress={() => store.simulateIncoming()} disabled={!!s.call || searching} />
         </View>
       ) : null}
     </Screen>
+  );
+}
+
+/** The search: a calm card, one action. While searching, the people being called ring softly. */
+function SearchStage({ pending, searching, demo, onStart, onStop, disabled }: {
+  pending: CallSnapshot[]; searching: boolean; demo: boolean; onStart: () => void; onStop: () => void; disabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  const slots = Array.from({ length: LIVE_PARALLEL_REQUESTS }, (_, i) => pending[i] ?? null);
+  return (
+    <View style={[{ marginHorizontal: space.lg, paddingVertical: space.xxl, paddingHorizontal: space.xl, borderRadius: radius.xl, backgroundColor: c.surface, alignItems: 'center', gap: space.xl }, shadow.card]}>
+      <View style={{ alignItems: 'center', gap: space.sm }}>
+        <Text variant="overline" tone="textSubtle">{searching ? t('liveRandom.searching') : t('liveRandom.overline')}</Text>
+        <Text variant="title" style={{ textAlign: 'center' }}>{t('liveRandom.title')}</Text>
+        <Text tone="textMuted" style={{ textAlign: 'center', maxWidth: 340 }}>
+          {searching ? t('liveRandom.ringing', { count: pending.length }) : t('liveRandom.body', { count: LIVE_PARALLEL_REQUESTS })}
+        </Text>
+      </View>
+
+      <View accessibilityRole="list" accessibilityLabel={t('liveRandom.ringing', { count: pending.length })}
+        style={{ flexDirection: 'row', gap: space.lg, minHeight: 96, alignItems: 'center' }}>
+        {slots.map((p, i) => <Slot key={p?.callId ?? `empty-${i}`} call={p} searching={searching} />)}
+      </View>
+      {demo && searching ? <DemoBadge compact /> : null}
+
+      {searching ? (
+        <Button kind="secondary" label={t('liveRandom.stop')} onPress={onStop} style={{ alignSelf: 'stretch' }} />
+      ) : (
+        <Pressable onPress={onStart} disabled={disabled} accessibilityRole="button" accessibilityLabel={t('liveRandom.start')}
+          accessibilityHint={t('liveRandom.startHint')} accessibilityState={{ disabled }}
+          style={({ pressed }) => ({ alignSelf: 'stretch', minHeight: 56, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm,
+            backgroundColor: pressed ? c.accentPressed : c.accent, opacity: disabled ? 0.45 : 1 })}>
+          <Icon name="video" size={20} color={c.onAccent} />
+          <Text variant="bodyStrong" style={{ color: c.onAccent }}>{t('liveRandom.start')}</Text>
+        </Pressable>
+      )}
+      <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('live.inviteHint')}</Text>
+    </View>
+  );
+}
+
+function Slot({ call, searching }: { call: CallSnapshot | null; searching: boolean }) {
+  const { c } = useTheme();
+  const size = 76;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}
+      accessibilityLabel={call ? `${call.peer.firstName}, ${call.peer.age}` : undefined}>
+      <Pulse color={c.live} size={size} active={searching && !!call} />
+      <View style={{ width: size - 8, height: size - 8, borderRadius: (size - 8) / 2, overflow: 'hidden', backgroundColor: c.surfaceAlt,
+        borderWidth: 1, borderColor: call ? c.live : c.border, alignItems: 'center', justifyContent: 'center' }}>
+        {call?.peer.photoUrl ? (
+          <Image source={photoSource(call.peer.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300} />
+        ) : searching ? <ActivityIndicator color={c.textSubtle} /> : <Icon name="video" size={20} color={c.textSubtle} />}
+      </View>
+    </View>
+  );
+}
+
+const GENDERS = ['woman', 'man', 'nonbinary'] as const;
+
+/** Who I am looking for. Paid plans only; otherwise shown locked with one line of explanation. */
+function Filters({ allowed, value, onChange }: { allowed: boolean; value: LiveSearchFilters; onChange: (f: LiveSearchFilters) => void }) {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  const upsell = () => {
+    const open = liveFiltersUpsell();
+    if (open) open(); else Alert.alert(t('liveRandom.filtersLocked'), t('liveRandom.filtersLockedBody'));
+  };
+  const chip = (key: string, label: string, selected: boolean, onPress: () => void) => (
+    <Pressable key={key} onPress={allowed ? onPress : upsell} accessibilityRole="button" accessibilityState={{ selected, disabled: !allowed && !selected }}
+      style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', gap: space.xs,
+        borderWidth: 1, borderColor: selected ? c.text : c.border, backgroundColor: selected ? c.text : pressed ? c.surfaceAlt : 'transparent',
+        opacity: !allowed && !selected ? 0.55 : 1 })}>
+      {!allowed && !selected ? <Icon name="lock" size={14} color={c.textMuted} /> : null}
+      <Text variant="label" style={{ color: selected ? c.bg : c.text }}>{label}</Text>
+    </Pressable>
+  );
+  return (
+    <View style={{ gap: space.md }}>
+      <View style={{ paddingHorizontal: space.xl, flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <Text variant="overline" tone="textSubtle" style={{ flex: 1 }}>{t('liveRandom.filtersTitle')}</Text>
+        {!allowed ? (
+          <Pressable onPress={upsell} accessibilityRole="button" hitSlop={12}>
+            <Text variant="caption" tone="accent">{t('liveRandom.filtersLocked')}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      <Text variant="label" tone="textMuted" style={{ paddingHorizontal: space.xl }}>{t('liveRandom.gender')}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.sm }}>
+        {chip('any', t('liveRandom.anyGender'), !value.gender, () => onChange({ ...value, gender: undefined }))}
+        {GENDERS.map((g) => chip(g, t(`liveRandom.genders.${g}`), value.gender === g, () => onChange({ ...value, gender: g })))}
+      </ScrollView>
+      <Text variant="label" tone="textMuted" style={{ paddingHorizontal: space.xl }}>{t('liveRandom.city')}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.sm }}>
+        {chip('world', t('liveRandom.anyCity'), !value.regionCode, () => onChange({ ...value, regionCode: undefined }))}
+        {REGIONS.map((r) => chip(r.code, r.city, value.regionCode === r.code, () => onChange({ ...value, regionCode: r.code })))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -156,59 +223,6 @@ function Intro({ onEnable, onSettings }: { onEnable: () => void; onSettings: () 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
         <Button label={t('live.enable')} onPress={onEnable} style={{ flexGrow: 1 }} />
         <Button kind="secondary" icon="settings" label={t('live.settingsLink')} onPress={onSettings} style={{ flexGrow: 1 }} />
-      </View>
-    </View>
-  );
-}
-
-function MemberRow({ m, onInvite, busy, disabled }: { m: LiveMember; onInvite: (mode: CallMode) => void; busy: boolean; disabled: boolean }) {
-  const { t } = useTranslation();
-  const { c } = useTheme();
-  return (
-    <View style={[{ marginHorizontal: space.lg, padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }, shadow.card]}>
-      <View style={{ width: 84, height: 105, borderRadius: radius.md, overflow: 'hidden', backgroundColor: c.surfaceAlt }}>
-        {m.photoUrl ? <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(250)} accessibilityLabel={m.firstName} /> : null}
-        <View style={{ position: 'absolute', top: space.sm, left: space.sm, width: 10, height: 10, borderRadius: 5, backgroundColor: c.live, borderWidth: 2, borderColor: c.surface }} />
-      </View>
-      <View style={{ flex: 1, gap: space.xs, paddingVertical: space.xs }}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexWrap: 'wrap' }}>
-          <Text variant="heading">{m.firstName}, {m.age}</Text>
-          {m.verified ? <Text variant="caption" tone="live">{m.isDemo ? t('ux.verifiedDemo') : t('live.verified')}</Text> : null}
-        </View>
-        {m.headline ? <Text variant="caption" tone="textMuted" numberOfLines={2}>{m.headline}</Text> : null}
-        {m.isDemo ? <DemoBadge compact /> : null}
-        <View style={{ flex: 1 }} />
-        {/* Video first (Live is face to face), audio always offered. The camera stays mine to switch on. */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
-          {(['video', 'audio'] as const).map((mode) => {
-            const primary = mode === 'video';
-            return (
-              <Pressable key={mode} onPress={() => onInvite(mode)} disabled={disabled} accessibilityRole="button"
-                accessibilityLabel={`${t('live.invite')} (${mode === 'video' ? t('live.inviteVideo') : t('live.inviteAudio')}) : ${m.firstName}`}
-                accessibilityHint={t('live.inviteHint')} accessibilityState={{ disabled, busy }}
-                style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.pill,
-                  flexDirection: 'row', alignItems: 'center', gap: space.sm, borderWidth: 1, borderColor: c.accent,
-                  backgroundColor: primary ? (pressed ? c.accentPressed : c.accent) : pressed ? c.accentSoft : 'transparent',
-                  opacity: disabled && !busy ? 0.45 : 1 })}>
-                {busy && primary ? <ActivityIndicator color={c.onAccent} /> : <Icon name={mode} size={18} color={primary ? (c.onAccent) : c.accent} />}
-                <Text variant="label" style={{ color: primary ? (c.onAccent) : c.accent }}>{mode === 'video' ? t('live.inviteVideo') : t('live.inviteAudio')}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function SkeletonRow() {
-  const { c } = useTheme();
-  return (
-    <View style={{ padding: space.md, borderRadius: radius.lg, backgroundColor: c.surface, flexDirection: 'row', gap: space.lg }} accessibilityElementsHidden>
-      <View style={{ width: 84, height: 105, borderRadius: radius.md, backgroundColor: c.surfaceAlt }} />
-      <View style={{ flex: 1, gap: space.sm, paddingTop: space.sm }}>
-        <View style={{ width: '55%', height: 18, borderRadius: 6, backgroundColor: c.surfaceAlt }} />
-        <View style={{ width: '85%', height: 12, borderRadius: 6, backgroundColor: c.surfaceAlt }} />
       </View>
     </View>
   );

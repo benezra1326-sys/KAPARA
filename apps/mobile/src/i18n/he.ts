@@ -8,6 +8,33 @@ type Catalog<T> = { [K in keyof T]?: T[K] extends object ? Catalog<T[K]> : strin
  * Plurals: Hebrew uses _one, _two and _other.
  */
 const he: Catalog<typeof fr> = {
+  liveRandom: {
+    subtitle: 'מפגשי וידאו אקראיים',
+    overline: 'לייב',
+    title: 'להכיר מישהו',
+    body: 'שולחים בקשת שיחת וידאו ל־{{count}} אנשים בבת אחת, באקראי. הראשון שמסכים, מתחילים.',
+    start: 'להתחיל',
+    startHint: 'שולח בקשות לשיחת וידאו לחברים שנמצאים עכשיו בלייב.',
+    stop: 'לעצור',
+    searching: 'מחפשים',
+    ringing_one: 'בקשה {{count}} ממתינה לתשובה',
+    ringing_two: '{{count}} בקשות ממתינות לתשובה',
+    ringing_other: '{{count}} בקשות ממתינות לתשובה',
+    nobody: 'אין אף אחד זמין כרגע. החיפוש ממשיך.',
+    tryDemo: 'לנסות עם פרופילי הדגמה',
+    filtersTitle: 'את מי מחפשים',
+    gender: 'מגדר',
+    city: 'עיר',
+    anyGender: 'כולם',
+    anyCity: 'כל העולם',
+    genders: {
+      woman: 'נשים',
+      man: 'גברים',
+      nonbinary: 'א־בינאריים',
+    },
+    filtersLocked: 'עם מינוי',
+    filtersLockedBody: 'בחירת מגדר ועיר כלולה במינוי. בלי מינוי, הבקשות נשלחות באקראי, לכל העולם.',
+  },
   live: {
     emptyBody: 'אפשר להפוך לזמינים: חברים שיכולים, אולי יציעו לכם שיחה.',
     steps: {
