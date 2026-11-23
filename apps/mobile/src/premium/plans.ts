@@ -26,7 +26,7 @@ export interface PlanLimits {
   rewind: boolean;
   /** Discreet mode: only people you noticed can see you. */
   discreet: boolean;
-  /** Live: choose gender and city. Free Live is a random worldwide match. Women always have it. */
+  /** Live: choose gender and city. Free Live is a random worldwide match. */
   liveFilters: boolean;
   /** "Pour toi" in another city than one's own (travel, a move to come). */
   otherCity: boolean;
@@ -74,10 +74,10 @@ export function planFor(need: QuotaKind | 'seeLikes' | 'rewind' | 'discreet' | '
 }
 
 /**
- * Live: choosing gender and city. Men pay for it (paid plan); women and the
- * administrator always have it. Same rule as can_filter_live() in the database.
+ * Live: choosing gender and city. Paid plans and the administrator, for
+ * everyone alike (Avishay, 23/11). Same rule as can_filter_live() in the database.
  */
-export const canFilterLive = (plan: PlanId, gender: string | undefined, isAdmin = false) => isAdmin || LIMITS[plan].liveFilters || gender === 'woman';
+export const canFilterLive = (plan: PlanId, isAdmin = false) => isAdmin || LIMITS[plan].liveFilters;
 
 /** The database refuses with "quota_exceeded" once a daily limit is reached. */
 export const isQuotaError = (e: unknown) => e instanceof Error && /quota_exceeded/.test(e.message);

@@ -8,11 +8,10 @@ test('free plan: 20 reactions a day, then nothing left; Live never capped', () =
   assert.equal(remaining(LIMITS.free, { like: 0, liveCall: 99 }, 'liveCall'), null);
 });
 
-test('Live gender and city: paid plans and women, never free men', () => {
-  assert.equal(canFilterLive('free', 'man'), false);
-  assert.equal(canFilterLive('free', 'woman'), true);
-  assert.equal(canFilterLive('plus', 'man'), true);
-  assert.equal(canFilterLive('free', 'man', true), true);
+test('Live gender and city: paid plans only, the same for everyone', () => {
+  assert.equal(canFilterLive('free'), false);
+  assert.equal(canFilterLive('plus'), true);
+  assert.equal(canFilterLive('free', true), true);
   assert.equal(planFor('liveFilters', 'free'), 'plus');
 });
 

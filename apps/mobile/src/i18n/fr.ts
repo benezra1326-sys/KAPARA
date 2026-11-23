@@ -1387,7 +1387,7 @@ export default {
       city: 'Voir une autre ville',
       messages: 'Écrire à vos matchs',
     },
-    liveNote: 'Le Live est gratuit pour tous : une rencontre au hasard, dans le monde entier. Choisir le sexe et la ville est inclus dans Plus et Cercle, et toujours offert aux femmes.',
+    liveNote: 'Le Live est gratuit pour tous : une rencontre au hasard, dans le monde entier. Choisir le sexe et la ville est inclus dans Plus et Cercle.',
     alwaysFreeTitle: 'Toujours gratuit',
     alwaysFree: 'Votre profil, vos questions et vos critères de valeurs, Pour toi dans votre ville, écrire à vos matchs, le Live aléatoire, les Croisés et toute la sécurité (blocage, signalement, mode Shabbat). Ce qui compte pour vous ne se paie pas.',
     admin: 'Compte administrateur : toutes les fonctions sont ouvertes, sans limite.',
