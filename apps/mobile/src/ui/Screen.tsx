@@ -32,7 +32,7 @@ export function Screen({ title, subtitle, children, scroll = true, back, right, 
   const column = { width: '100%' as const, maxWidth: layout[width], alignSelf: 'center' as const };
   const top = (
     <View style={{ paddingTop: insets.top + (back ? space.xs : isDesktop ? space.xxl : space.lg) }}>
-      {back || right ? (
+      {back ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.sm }}>
           {back ? (
             <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/')} accessibilityRole="button"
@@ -45,11 +45,15 @@ export function Screen({ title, subtitle, children, scroll = true, back, right, 
         </View>
       ) : null}
       {title ? (
-        <View style={{ paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.xs }}>
-          {subtitle ? <Text variant="overline" tone="textSubtle">{subtitle}</Text> : null}
-          <Text variant="title" accessibilityRole="header" style={isPhone ? undefined : { fontSize: 32, lineHeight: 38 }}>{title}</Text>
+        // Without a back control, `right` sits beside the title (e.g. the city on Pour toi).
+        <View style={{ paddingHorizontal: space.xl, paddingBottom: space.lg, flexDirection: 'row', alignItems: 'flex-end', gap: space.md }}>
+          <View style={{ flex: 1, gap: space.xs }}>
+            {subtitle ? <Text variant="overline" tone="textSubtle">{subtitle}</Text> : null}
+            <Text variant="title" accessibilityRole="header" style={isPhone ? undefined : { fontSize: 32, lineHeight: 38 }}>{title}</Text>
+          </View>
+          {!back && right ? <View style={{ paddingBottom: 2 }}>{right}</View> : null}
         </View>
-      ) : null}
+      ) : !back && right ? <View style={{ alignItems: 'flex-end', paddingHorizontal: space.xl }}>{right}</View> : null}
     </View>
   );
   const foot = footer ? (

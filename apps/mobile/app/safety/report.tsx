@@ -37,7 +37,7 @@ export default function Report() {
         <View style={{ marginHorizontal: space.lg, marginBottom: space.xl, gap: space.md }}>
           <Card>
             <Text tone="textMuted">{t('safety.reportIntro', { name })}</Text>
-            <Text variant="caption" tone="accent">{t('safety.urgent')}</Text>
+            <Text variant="caption" tone="danger">{t('safety.urgent')}</Text>
           </Card>
         </View>
         <Section title={t('safety.reasonTitle')}>

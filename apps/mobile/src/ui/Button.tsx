@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { ActivityIndicator, Platform, Pressable, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
-import { hitSlop, radius, space } from '@kapara/design';
+import { fonts, hitSlop, radius, space } from '@kapara/design';
 import { useTheme } from '../theme';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
@@ -9,7 +9,7 @@ type Kind = 'primary' | 'accent' | 'secondary' | 'ghost';
 
 /**
  * One button for the whole app. Primary = the one action of a screen (black pill);
- * accent = an action toward a person (react, like), in motek rose;
+ * accent = an action toward a person (react, like), ink like the rest (monochrome, after Raya);
  * secondary = an alternative of equal standing; ghost = a quiet link.
  * Hover and focus are visible on the web; press feedback is a slight scale.
  */
@@ -44,7 +44,7 @@ export function Button({ label, kind = 'primary', loading, onPress, icon, style,
       {loading ? <ActivityIndicator color={fg} /> : (
         <>
           {icon ? <View><Icon name={icon} size={20} color={fg} /></View> : null}
-          <Text variant="label" style={{ color: fg, fontFamily: 'DMSans_600SemiBold', fontSize: 15, letterSpacing: 0.1 }} numberOfLines={1}>{label}</Text>
+          <Text variant="label" style={{ color: fg, fontFamily: fonts.bodySemibold, fontSize: 14.5, letterSpacing: 0.1 }} numberOfLines={1}>{label}</Text>
         </>
       )}
     </Pressable>

@@ -2,12 +2,13 @@
  * MOTEK design tokens. Platform-agnostic (plain numbers/strings) so the
  * mobile app, a future web app and email templates share one source.
  *
- * Direction "Blanc": clean and bright like a members' club in daylight.
- * True white pages, crisp near-black type, black pill for the main action,
- * and one vivid accent, "motek" rose, for what is about people: hearts,
- * reactions, the active tab, live presence. No beige, no brown.
- * Titles in Instrument Serif (fine, editorial), text in DM Sans (light,
- * friendly). "Noir" (black and sand) is one tap away in Moi.
+ * Direction "Club" (23/11, after Raya): a private members' club. Almost
+ * monochrome: true white pages, near-black ink for type, actions and
+ * hearts, hairline borders, and one discreet brass note (the dot of the
+ * logo) for small details. Photos carry the colour, not the interface.
+ * Titles in light Fraunces (the logo's face), text in Inter, small and
+ * precise; section labels in widely tracked capitals.
+ * "Noir" (black and sand) is one tap away in Moi.
  * Every text tone passes WCAG AA (4.5:1) on `bg` and `surface`.
  */
 export const palette = {
@@ -18,6 +19,9 @@ export const palette = {
   ink: '#0E0E12',
   graphite: '#4A4A55',
   steel: '#6B6B76',
+  /** Brass, from the logo's dot, darkened so text passes AA on white. */
+  brass: '#86662F',
+  brassLight: '#D6AE6E',
   rose: '#E0245E',
   roseDeep: '#C01A4F',
   roseMist: '#FDE8EF',
@@ -43,10 +47,11 @@ export const colors = {
   light: {
     bg: palette.white, surface: palette.snow, surfaceAlt: palette.mist, border: palette.line,
     text: palette.ink, textMuted: palette.graphite, textSubtle: palette.steel,
-    accent: palette.rose, accentPressed: palette.roseDeep, accentSoft: palette.roseMist,
+    /** Monochrome: actions toward people are ink too, never a loud colour. */
+    accent: palette.ink, accentPressed: '#2A2A33', accentSoft: palette.snow,
     /** The main action: black pill on white. */
     primary: palette.ink, primaryPressed: '#2A2A33', onPrimary: palette.white,
-    highlight: palette.rose, live: palette.green, danger: palette.red, onAccent: palette.white,
+    highlight: palette.brass, live: palette.green, danger: palette.red, onAccent: palette.white,
   },
   /** "Noir": true black and warm sand, quiet luxury for the evening. */
   dark: {
@@ -63,26 +68,26 @@ export type ThemeColors = { [K in keyof typeof colors.light]: string };
 export const DEFAULT_SCHEME: ColorScheme = 'light';
 
 export const fonts = {
-  display: 'InstrumentSerif_400Regular',
-  displayItalic: 'InstrumentSerif_400Regular_Italic',
-  displayRegular: 'InstrumentSerif_400Regular',
-  body: 'DMSans_400Regular',
-  bodyMedium: 'DMSans_500Medium',
-  bodySemibold: 'DMSans_600SemiBold',
+  display: 'Fraunces_300Light',
+  displayItalic: 'Fraunces_300Light_Italic',
+  displayRegular: 'Fraunces_400Regular',
+  body: 'Inter_400Regular',
+  bodyMedium: 'Inter_500Medium',
+  bodySemibold: 'Inter_600SemiBold',
 } as const;
 
 /** Type scale (pt). Components must allow Dynamic Type / font scaling. */
 export const type = {
-  hero: { fontFamily: fonts.display, fontSize: 46, lineHeight: 50, letterSpacing: -0.5 },
-  title: { fontFamily: fonts.display, fontSize: 36, lineHeight: 40, letterSpacing: -0.3 },
-  heading: { fontFamily: fonts.display, fontSize: 25, lineHeight: 30 },
-  quote: { fontFamily: fonts.display, fontSize: 26, lineHeight: 32 },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24 },
-  bodyStrong: { fontFamily: fonts.bodyMedium, fontSize: 16, lineHeight: 24 },
-  label: { fontFamily: fonts.bodyMedium, fontSize: 14, lineHeight: 20 },
-  caption: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18 },
-  /** Section label: small tracked capitals. */
-  overline: { fontFamily: fonts.bodyMedium, fontSize: 11.5, lineHeight: 16, letterSpacing: 1.4, textTransform: 'uppercase' as const },
+  hero: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, letterSpacing: -0.8 },
+  title: { fontFamily: fonts.display, fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
+  heading: { fontFamily: fonts.display, fontSize: 23, lineHeight: 29, letterSpacing: -0.3 },
+  quote: { fontFamily: fonts.display, fontSize: 24, lineHeight: 31, letterSpacing: -0.3 },
+  body: { fontFamily: fonts.body, fontSize: 15.5, lineHeight: 23, letterSpacing: -0.1 },
+  bodyStrong: { fontFamily: fonts.bodyMedium, fontSize: 15.5, lineHeight: 23, letterSpacing: -0.1 },
+  label: { fontFamily: fonts.bodyMedium, fontSize: 13.5, lineHeight: 19, letterSpacing: -0.05 },
+  caption: { fontFamily: fonts.body, fontSize: 12.5, lineHeight: 17 },
+  /** Section label: small, widely tracked capitals (members' club signage). */
+  overline: { fontFamily: fonts.bodyMedium, fontSize: 10.5, lineHeight: 15, letterSpacing: 2, textTransform: 'uppercase' as const },
 } as const;
 
 export const space = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;

@@ -102,6 +102,7 @@ export default {
     },
   },
   reason: {
+    in_city: 'Dans la même ville que vous en ce moment',
     shared: {
       practice: 'Un rapport à la tradition proche du vôtre : $t(jewishLife.options.practice.{{value}})',
       partnerImportance: 'Vous accordez la même importance à une vie juive partagée',
@@ -1052,7 +1053,7 @@ export default {
     headlinePlaceholder: 'Architecte, toujours un carnet dans le sac',
     languages: 'Langues parlées',
     city: 'Ville',
-    cityHint: 'Lancement à Paris. D’autres villes ouvriront bientôt.',
+    cityHint: 'La ville où vous êtes en ce moment. Vous pouvez en changer à tout moment, gratuitement.',
   },
   preview: {
     title: 'Mon profil vu par…',
@@ -1096,7 +1097,20 @@ export default {
       generic: 'La connexion n’a pas abouti. Réessayez dans un instant.',
     },
   },
+  city: {
+    free: 'Gratuit, sans limite',
+    title: 'Où êtes-vous ?',
+    body: 'Pour toi vous présente les membres de cette ville, et vous présente à eux. En voyage, choisissez la ville où vous êtes.',
+    change: 'Changer de ville, actuellement {{city}}',
+    changeShort: 'Changer',
+    emptyTitle: 'Personne à {{city}} pour l’instant',
+    emptyBody: 'Les membres arrivent ville après ville. Revenez bientôt, ou regardez une autre ville.',
+    pickAnother: 'Choisir une autre ville',
+  },
   onb: {
+    skipAll: 'Passer',
+    skipAllHint: 'Passer les étapes facultatives, je compléterai mon profil plus tard',
+    doneSeeProfile: 'Voir mon profil',
     welcomeOverline: 'Bienvenue',
     start: 'Créer mon profil',
     continue: 'Continuer',

@@ -274,6 +274,7 @@ const he: Catalog<typeof fr> = {
     },
   },
   reason: {
+    in_city: 'באותה עיר שבה את/ה נמצא/ת עכשיו',
     shared: {
       practice: 'יחס דומה למסורת: $t(jewishLife.options.practice.{{value}})',
       partnerImportance: 'אותה חשיבות לחיים יהודיים משותפים',
@@ -1059,7 +1060,7 @@ const he: Catalog<typeof fr> = {
     headlinePlaceholder: 'אדריכלית, תמיד עם מחברת בתיק',
     languages: 'שפות',
     city: 'עיר',
-    cityHint: 'ההשקה בפריז. ערים נוספות בקרוב.',
+    cityHint: 'העיר שבה את/ה נמצא/ת עכשיו. אפשר לשנות בכל רגע, בחינם.',
   },
   preview: {
     title: 'הפרופיל שלי בעיני…',
@@ -1103,7 +1104,20 @@ const he: Catalog<typeof fr> = {
       generic: 'ההתחברות לא הצליחה. נסו שוב בעוד רגע.',
     },
   },
+  city: {
+    free: 'בחינם, ללא הגבלה',
+    title: 'איפה את/ה?',
+    body: 'בשבילך מציג לך את החברים בעיר הזו, ומציג אותך להם. בנסיעה? בחר/י את העיר שבה את/ה נמצא/ת.',
+    change: 'החלפת עיר, כרגע {{city}}',
+    changeShort: 'החלפה',
+    emptyTitle: 'עדיין אין אף אחד ב{{city}}',
+    emptyBody: 'החברים מצטרפים עיר אחר עיר. חזרו בקרוב, או הציצו בעיר אחרת.',
+    pickAnother: 'בחירת עיר אחרת',
+  },
   onb: {
+    skipAll: 'דילוג',
+    skipAllHint: 'דילוג על השלבים האופציונליים, אשלים את הפרופיל אחר כך',
+    doneSeeProfile: 'לצפייה בפרופיל שלי',
     welcomeOverline: 'ברוכים הבאים',
     start: 'יצירת הפרופיל',
     continue: 'המשך',

@@ -36,7 +36,7 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
   const onLayout = (e: LayoutChangeEvent) => setMeasured(Math.round(e.nativeEvent.layout.width));
   const twoCol = available >= 700;
   const [first, ...photos] = p.photos;
-  const photoMax = Math.max(280, Math.round(height * (height < 700 ? 0.5 : 0.6)));
+  const photoMax = Math.max(280, Math.round(height * (height < 700 ? 0.52 : 0.64)));
 
   const prompt = (q: ProfilePublic['prompts'][number]) => <PromptBlock key={`q-${q.id}`} q={q} onReact={onReact} />;
   const photo = (ph: ProfilePublic['photos'][number], style?: object) => (
@@ -101,24 +101,22 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
   const { c } = useTheme();
   const { t } = useTranslation();
   return (
-    <View style={[{ borderRadius: radius.xl, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }, shadow.card]}>
+    <View style={{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }}>
       <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300}
         accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: 1 })} />
-      <LinearGradient colors={['transparent', 'rgba(19,18,32,0.78)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '48%' }} pointerEvents="none" />
-      <View style={{ position: 'absolute', start: space.xl, end: onReact ? 84 : space.xl, bottom: space.xl, gap: space.sm }}>
-        {p.isDemo ? <DemoBadge /> : null}
-        <Text variant="hero" style={{ color: '#FFFFFF', fontSize: 44, lineHeight: 46 }} accessibilityRole="header" numberOfLines={2}>{p.firstName}, {p.age}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, flexWrap: 'wrap' }}>
-          {p.city ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Icon name="pin" size={16} color="rgba(255,255,255,0.9)" />
-              <Text variant="label" style={{ color: 'rgba(255,255,255,0.92)' }}>{p.city}</Text>
-            </View>
-          ) : null}
+      <LinearGradient colors={['transparent', 'rgba(10,10,12,0.30)', 'rgba(10,10,12,0.74)']} locations={[0, 0.45, 1]} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%' }} pointerEvents="none" />
+      {p.isDemo ? <View style={{ position: 'absolute', top: space.lg, start: space.lg }}><DemoBadge /></View> : null}
+      {/* After Raya: the first name alone, large and light; the facts on one quiet tracked line. */}
+      <View style={{ position: 'absolute', start: space.xl, end: onReact ? 84 : space.xl, bottom: space.xl, gap: 6 }}>
+        <Text variant="hero" style={{ color: '#FFFFFF', fontSize: 42, lineHeight: 46 }} accessibilityRole="header" numberOfLines={1}
+          accessibilityLabel={`${p.firstName}, ${p.age}`}>{p.firstName}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
+          <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{[String(p.age), p.city].filter(Boolean).join('  ·  ')}</Text>
           {p.verified ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Icon name="check" size={16} color="rgba(255,255,255,0.9)" />
-              <Text variant="label" style={{ color: 'rgba(255,255,255,0.92)' }}>{t(p.isDemo ? 'ux.verifiedDemo' : 'pick.verified')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <Text variant="overline" style={{ color: 'rgba(255,255,255,0.5)' }}>·</Text>
+              <Icon name="check" size={13} color="rgba(255,255,255,0.92)" />
+              <Text variant="overline" style={{ color: 'rgba(255,255,255,0.92)' }}>{t(p.isDemo ? 'ux.verifiedDemo' : 'pick.verified')}</Text>
             </View>
           ) : null}
         </View>
@@ -132,11 +130,11 @@ function PhotoBlock({ profile: p, photo, maxHeight, style, onReact }: { profile:
   const { c } = useTheme();
   const { t } = useTranslation();
   return (
-    <View style={[{ borderRadius: radius.xl, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }, style]}>
+    <View style={[{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }, style]}>
       <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300}
         accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: p.photos.indexOf(photo) + 1 })} />
       {photo.caption ? (
-        <View style={{ position: 'absolute', start: space.md, end: onReact ? 76 : space.md, bottom: space.md, backgroundColor: 'rgba(19,18,32,0.62)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm }}>
+        <View style={{ position: 'absolute', start: space.md, end: onReact ? 76 : space.md, bottom: space.md, backgroundColor: 'rgba(10,10,12,0.6)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm }}>
           <Text variant="caption" style={{ color: '#fff' }} numberOfLines={3}>{photo.caption}</Text>
         </View>
       ) : null}
@@ -150,10 +148,10 @@ function PromptBlock({ q, onReact }: { q: ProfilePublic['prompts'][number]; onRe
   const { t } = useTranslation();
   const title = t(`prompts.${q.id}`, { defaultValue: q.id });
   return (
-    <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.xl, paddingBottom: onReact ? space.xxl + space.sm : space.xl, gap: space.md }}
+    <View style={{ backgroundColor: c.bg, borderWidth: 1, borderColor: c.border, borderRadius: radius.lg, padding: space.xl, paddingBottom: onReact ? space.xxl + space.sm : space.xl, gap: space.md }}
       accessibilityLabel={`${title}. ${q.answer}`}>
       <Text variant="overline" tone="highlight">{title}</Text>
-      <Text variant="quote" style={{ fontSize: 28, lineHeight: 33, paddingEnd: onReact ? space.xl : 0 }}>{q.answer}</Text>
+      <Text variant="quote" style={{ fontSize: 25, lineHeight: 32, paddingEnd: onReact ? space.xl : 0 }}>{q.answer}</Text>
       {onReact ? <ReactButton inline label={t('pick.reactTo', { what: title })} onPress={() => onReact({ kind: 'prompt', id: q.id })} /> : null}
     </View>
   );
@@ -177,7 +175,7 @@ function Why({ reasons }: { reasons: Recommendation['reasons'] }) {
       </View>
       {reasons.map((r) => (
         <View key={r.key} style={{ flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' }}>
-          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: c.accent, marginTop: 10 }} />
+          <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: c.highlight, marginTop: 10 }} />
           <Text variant="body" style={{ flex: 1 }}>{say(r)}</Text>
         </View>
       ))}

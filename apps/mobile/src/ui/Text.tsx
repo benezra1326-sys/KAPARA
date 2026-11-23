@@ -3,7 +3,7 @@ import { type } from '@kapara/design';
 import { useTheme } from '../theme';
 
 type Variant = keyof typeof type;
-type Tone = 'text' | 'textMuted' | 'textSubtle' | 'accent' | 'onAccent' | 'highlight' | 'live';
+type Tone = 'text' | 'textMuted' | 'textSubtle' | 'accent' | 'onAccent' | 'highlight' | 'live' | 'danger';
 
 export function Text({ variant = 'body', tone = 'text', style, ...rest }: TextProps & { variant?: Variant; tone?: Tone }) {
   const { c } = useTheme();

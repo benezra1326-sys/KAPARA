@@ -1,7 +1,13 @@
 import '../src/i18n';
 import { useFonts } from 'expo-font';
-import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
-import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold } from '@expo-google-fonts/dm-sans';
+// Typography after Raya: light Fraunces (the logo's face) for titles, Inter for text.
+// Subpath imports so only these weights are bundled.
+import { Fraunces_300Light } from '@expo-google-fonts/fraunces/300Light';
+import { Fraunces_300Light_Italic } from '@expo-google-fonts/fraunces/300Light_Italic';
+import { Fraunces_400Regular } from '@expo-google-fonts/fraunces/400Regular';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -17,7 +23,7 @@ void SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } });
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic, DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold });
+  const [loaded, error] = useFonts({ Fraunces_300Light, Fraunces_300Light_Italic, Fraunces_400Regular, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
   useEffect(() => { if (loaded || error) void SplashScreen.hideAsync(); }, [loaded, error]);
   if (!loaded && !error) return null;
   return (

@@ -100,6 +100,7 @@ const en: DeepPartial<typeof fr> = {
     },
   },
   reason: {
+    in_city: 'In the same city as you right now',
     shared: {
       practice: 'A similar relationship to tradition: $t(jewishLife.options.practice.{{value}})',
       partnerImportance: 'You give the same importance to a shared Jewish life',
@@ -1050,7 +1051,7 @@ const en: DeepPartial<typeof fr> = {
     headlinePlaceholder: 'Architect, always a notebook in my bag',
     languages: 'Languages spoken',
     city: 'City',
-    cityHint: 'Launching in Paris. More cities soon.',
+    cityHint: 'The city you are in right now. Change it any time, for free.',
   },
   preview: {
     title: 'My profile as seen by…',
@@ -1094,7 +1095,20 @@ const en: DeepPartial<typeof fr> = {
       generic: 'Sign-in didn’t go through. Try again in a moment.',
     },
   },
+  city: {
+    free: 'Free, no limit',
+    title: 'Where are you?',
+    body: 'For you shows you the members in this city, and shows you to them. Travelling? Pick the city you are in.',
+    change: 'Change city, currently {{city}}',
+    changeShort: 'Change',
+    emptyTitle: 'No one in {{city}} yet',
+    emptyBody: 'Members are arriving city by city. Come back soon, or look at another city.',
+    pickAnother: 'Pick another city',
+  },
   onb: {
+    skipAll: 'Skip',
+    skipAllHint: 'Skip the optional steps, I will finish my profile later',
+    doneSeeProfile: 'See my profile',
     welcomeOverline: 'Welcome',
     start: 'Create my profile',
     continue: 'Continue',

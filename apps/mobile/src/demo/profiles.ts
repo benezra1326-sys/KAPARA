@@ -1,6 +1,6 @@
 import type { ProfilePublic, Recommendation } from '@kapara/shared';
-import { REGIONS } from '@kapara/config';
-import { ageOf, DEMO_PEOPLE, demoUserId, momentUrl, personByKey, portraitUrl, type DemoPerson } from './people';
+import { REGIONS, RULES } from '@kapara/config';
+import { ageOf, DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId, momentUrl, personByKey, portraitUrl, type DemoPerson, type Gender } from './people';
 import { DEMO_PICKS_PLAN } from './scenarios';
 
 /**
@@ -39,6 +39,27 @@ export const DEMO_PICKS: Recommendation[] = DEMO_PICKS_PLAN.map((pick, i) => ({
   score: Math.round((0.92 - i * 0.04) * 100) / 100,
   reasons: pick.reasons,
 }));
+
+/**
+ * "Pour toi" in a given city (the member can change city freely, for free).
+ * Today's plan first when it is in that city, then the other members there
+ * who would also be interested in the viewer, up to RULES.dailyPicks.
+ */
+export function demoPicksIn(regionCode: string, viewerGender?: Gender, viewerKey = DEMO_VIEWER_KEY): Recommendation[] {
+  const seeks: Gender[] = viewerGender === 'man' ? ['woman'] : viewerGender === 'woman' ? ['man'] : [];
+  const fits = (p: DemoPerson) => p.key !== viewerKey && p.regionCode === regionCode
+    && (!seeks.length || seeks.includes(p.gender)) && (!viewerGender || !p.seeks.length || p.seeks.includes(viewerGender));
+  const planned = DEMO_PICKS_PLAN.filter((x) => fits(personByKey(x.key)));
+  const others = DEMO_PEOPLE.filter((p) => fits(p) && !planned.some((x) => x.key === p.key));
+  return [
+    ...planned.map((x) => ({ key: x.key, reasons: [...x.reasons.slice(0, 2), { key: 'reason.in_city' }] })),
+    ...others.map((p) => ({ key: p.key, reasons: [{ key: 'reason.in_city' }] })),
+  ].slice(0, RULES.dailyPicks).map((pick, i) => ({
+    profile: toPublicProfile(personByKey(pick.key)),
+    score: Math.round((0.92 - i * 0.04) * 100) / 100,
+    reasons: pick.reasons,
+  }));
+}
 
 /** Every demo profile, by id (for profile screens, conversations, Live, Croisés). */
 export const DEMO_PROFILES: Record<string, ProfilePublic> = Object.fromEntries(

@@ -1,5 +1,5 @@
 import { Redirect, router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -8,9 +8,10 @@ import { useForYou, useSuggestionFeedback } from '../../src/api/hooks';
 import { DEMO_MODE } from '../../src/api/client';
 import { CLOUD } from '../../src/cloud/client';
 import { useHydrateMe } from '../../src/me/api';
+import { cityOf } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { Button, EmptyState, Progress, Screen, Text, useLayout } from '../../src/ui';
+import { Button, CityButton, CitySheet, EmptyState, Progress, Screen, Text, useLayout } from '../../src/ui';
 import { ProfileCard, type ReactTarget } from '../../src/ui/ProfileCard';
 import { ReactSheet } from '../../src/ui/ReactSheet';
 
@@ -29,6 +30,10 @@ export default function ForYou() {
   const [reacted, setReacted] = useState(0);
   const [target, setTarget] = useState<ReactTarget | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const regionCode = useMe((s) => s.regionCode);
+  const [cityOpen, setCityOpen] = useState(false);
+  // A new city is a new selection: start again from its first profile.
+  useEffect(() => { setI(0); setNotice(null); }, [regionCode]);
   const { isPhone, width } = useLayout();
   const narrow = width < 360; // 320 px phones: text only, so both labels fit
 
@@ -53,8 +58,9 @@ export default function ForYou() {
   const advance = (msg: string) => { setTarget(null); setNotice(msg); setI((x) => x + 1); };
 
   if (!picks.length) return (
-    <Screen title={t('forYou.title')} subtitle={date}>
-      <EmptyState title={t('pick.noneTitle')} body={t('pick.noneBody')} action={{ label: t('pick.completeProfile'), onPress: () => router.push('/profile/edit') }} />
+    <Screen title={t('forYou.title')} subtitle={date} right={<CityButton />}>
+      <EmptyState title={t('city.emptyTitle', { city: cityOf(regionCode) })} body={t('city.emptyBody')} action={{ label: t('city.pickAnother'), onPress: () => setCityOpen(true) }} />
+      <CitySheet visible={cityOpen} onClose={() => setCityOpen(false)} />
     </Screen>
   );
 
@@ -73,7 +79,7 @@ export default function ForYou() {
   ) : null;
 
   return (
-    <Screen title={t('forYou.title')} subtitle={date} width="wide" footer={actions}>
+    <Screen title={t('forYou.title')} subtitle={date} width="wide" footer={actions} right={<CityButton />}>
       <View style={{ gap: space.sm, marginBottom: space.lg }}>
         <Progress total={picks.length} current={i} />
         <Text variant="caption" tone="textSubtle" style={{ paddingHorizontal: space.xl }}>
