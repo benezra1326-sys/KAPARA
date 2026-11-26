@@ -29,7 +29,11 @@ export type ReactTarget = { kind: 'photo' | 'prompt'; id: string };
  * height so name, reasons and actions stay close), two columns from 720 px
  * of available width (photos on the left at a fixed width, words on the right).
  */
-export function ProfileCard({ profile: p, reasons, onReact }: { profile: ProfilePublic; reasons?: Recommendation['reasons']; onReact?: (target: ReactTarget) => void }) {
+export function ProfileCard({ profile: p, reasons, onReact, onOpenPhoto }: {
+  profile: ProfilePublic; reasons?: Recommendation['reasons']; onReact?: (target: ReactTarget) => void;
+  /** Tapping a photo opens it full screen (index in profile.photos). */
+  onOpenPhoto?: (index: number) => void;
+}) {
   const { t } = useTranslation();
   const { contentWidth, height } = useLayout();
   // Real width of the card's container (a preview inside a narrower page
@@ -46,9 +50,13 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
   const prompt = (q: ProfilePublic['prompts'][number]) => <PromptBlock key={`q-${q.id}`} q={q} onReact={onReact} />;
   const photo = (ph: ProfilePublic['photos'][number], style?: object) => (
     <PhotoBlock key={`p-${ph.id}`} profile={p} photo={ph} maxHeight={twoCol ? undefined : photoMax} style={style}
+      onOpen={onOpenPhoto ? () => onOpenPhoto(p.photos.indexOf(ph)) : undefined}
       onReact={onReact ? () => onReact({ kind: 'photo', id: ph.id }) : undefined} />
   );
-  const hero = first ? <Hero profile={p} photo={first} maxHeight={twoCol ? undefined : heroMax} onReact={onReact ? () => onReact({ kind: 'photo', id: first.id }) : undefined} /> : null;
+  const hero = first ? <Hero profile={p} photo={first} maxHeight={twoCol ? undefined : heroMax} onOpen={onOpenPhoto ? () => onOpenPhoto(0) : undefined}
+    onReact={onReact ? () => onReact({ kind: 'photo', id: first.id }) : undefined} /> : null;
+  // Hinge-like first contact, said once: a heart on each photo and each answer.
+  const howTo = onReact ? <HowToReact name={p.firstName} key="how" /> : null;
   const intro = p.headline || p.languages.length ? (
     <View style={{ gap: space.sm }}>
       {p.headline ? <Text variant="heading">{p.headline}</Text> : null}
@@ -66,7 +74,7 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
           {[hero, ...photos.map((ph) => photo(ph))].map((b, i) => <Rise key={i} i={i}>{b}</Rise>)}
         </View>
         <View style={{ flex: 1, gap: space.lg, maxWidth: 560 }}>
-          {[why, intro, ...p.prompts.map(prompt), <SharedLife profile={p} key="life" />].map((b, i) => <Rise key={i} i={i + 1}>{b}</Rise>)}
+          {[howTo, why, intro, ...p.prompts.map(prompt), <SharedLife profile={p} key="life" />].map((b, i) => <Rise key={i} i={i + 1}>{b}</Rise>)}
         </View>
       </View>
     );
@@ -89,6 +97,7 @@ export function ProfileCard({ profile: p, reasons, onReact }: { profile: Profile
   return (
     <View onLayout={onLayout} style={{ marginHorizontal: space.lg, gap: space.lg }}>
       <Rise i={0}>{hero}</Rise>
+      {howTo ? <Rise i={1}>{howTo}</Rise> : null}
       <Rise i={1}>{why}</Rise>
       {intro ? <Rise i={2}><View style={{ paddingHorizontal: space.xs }}>{intro}</View></Rise> : null}
       {blocks.map((b, i) => <Rise key={i} i={i + 3}>{b}</Rise>)}
@@ -103,13 +112,15 @@ function Rise({ i, children }: { i: number; children: ReactNode }) {
 }
 
 /** Main photo with name, age, city and badges over a soft gradient. Faces stay in the upper part (contentPosition top). */
-function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePublic; photo: ProfilePublic['photos'][number]; maxHeight?: number; onReact?: () => void }) {
+function Hero({ profile: p, photo, maxHeight, onReact, onOpen }: { profile: ProfilePublic; photo: ProfilePublic['photos'][number]; maxHeight?: number; onReact?: () => void; onOpen?: () => void }) {
   const { c } = useTheme();
   const { t } = useTranslation();
   return (
     <View style={{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }}>
-      <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)}
-        accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: 1 })} />
+      <OpenPhoto onOpen={onOpen}>
+        <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)}
+          accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: 1 })} />
+      </OpenPhoto>
       <LinearGradient colors={['transparent', 'rgba(10,10,12,0.30)', 'rgba(10,10,12,0.74)']} locations={[0, 0.45, 1]} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%' }} pointerEvents="none" />
       {p.isDemo ? <View style={{ position: 'absolute', top: space.lg, start: space.lg }}><DemoBadge /></View> : null}
       {/* After Raya: the first name alone, large and light; the facts on one quiet tracked line. */}
@@ -133,13 +144,15 @@ function Hero({ profile: p, photo, maxHeight, onReact }: { profile: ProfilePubli
   );
 }
 
-function PhotoBlock({ profile: p, photo, maxHeight, style, onReact }: { profile: ProfilePublic; photo: ProfilePublic['photos'][number]; maxHeight?: number; style?: object; onReact?: () => void }) {
+function PhotoBlock({ profile: p, photo, maxHeight, style, onReact, onOpen }: { profile: ProfilePublic; photo: ProfilePublic['photos'][number]; maxHeight?: number; style?: object; onReact?: () => void; onOpen?: () => void }) {
   const { c } = useTheme();
   const { t } = useTranslation();
   return (
     <View style={[{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.surfaceAlt, width: '100%', aspectRatio: 4 / 5, maxHeight, alignSelf: 'center' }, style]}>
-      <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)}
-        accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: p.photos.indexOf(photo) + 1 })} />
+      <OpenPhoto onOpen={onOpen}>
+        <Image source={photoSource(photo.url)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)}
+          accessibilityLabel={photo.caption ?? t('pick.photoOf', { name: p.firstName, n: p.photos.indexOf(photo) + 1 })} />
+      </OpenPhoto>
       {photo.caption ? (
         <View style={{ position: 'absolute', start: space.md, end: onReact ? 76 : space.md, bottom: space.md, backgroundColor: 'rgba(10,10,12,0.6)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm }}>
           <Text variant="caption" style={{ color: '#fff' }} numberOfLines={3}>{photo.caption}</Text>
@@ -254,6 +267,31 @@ function SharedLife({ profile: p }: { profile: ProfilePublic }) {
           {it.note ? <Text variant="quote" style={{ fontSize: 19, lineHeight: 24 }}>« {it.note} »</Text> : null}
         </View>
       ))}
+    </View>
+  );
+}
+
+/** The photo itself opens full screen when the screen offers it. */
+function OpenPhoto({ onOpen, children }: { onOpen?: () => void; children: ReactNode }) {
+  const { t } = useTranslation();
+  if (!onOpen) return <>{children}</>;
+  return (
+    <Pressable onPress={onOpen} accessibilityRole="imagebutton" accessibilityHint={t('liked.openPhotoHint')} style={{ width: '100%', height: '100%' }}>
+      {children}
+    </Pressable>
+  );
+}
+
+/** One quiet line under the main photo: what to do, and what the other person will see. */
+function HowToReact({ name }: { name: string }) {
+  const { c } = useTheme();
+  const { t } = useTranslation();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs }}>
+      <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="heart" size={15} color={c.accent} />
+      </View>
+      <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>{t('liked.howTo', { name })}</Text>
     </View>
   );
 }
