@@ -1,5 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
-import { LIVE_EVENTS_V1 as EV, type CallSnapshot, type JoinInfo, type LiveMember, type LiveSettings, type LiveStatus, type CallReportReason } from '@kapara/shared';
+import { LIVE_EVENTS_V1 as EV, type CallMode, type CallSnapshot, type JoinInfo, type LiveMember, type LiveSettings, type LiveStatus, type CallReportReason } from '@kapara/shared';
 import { api, API_BASE, session } from '../api/client';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
@@ -54,8 +54,8 @@ export class SocketTransport implements LiveTransport {
   setPresence(available: boolean) { return this.ack<{ availableUntil: number | null }>(EV.presenceSet, { available }); }
   heartbeat() { return this.ack<{ availableUntil: number | null }>(EV.presenceHeartbeat, {}); }
   list() { return this.ack<{ members: LiveMember[]; availableUntil: number | null }>(EV.presenceList, {}); }
-  invite(to: string) { return this.ack<{ call: CallSnapshot }>(EV.inviteSend, { to }); }
-  respond(callId: string, accept: boolean) { return this.ack(EV.inviteRespond, { callId, accept }); }
+  invite(to: string, mode: CallMode = 'audio') { return this.ack<{ call: CallSnapshot }>(EV.inviteSend, { to, mode }); }
+  respond(callId: string, accept: boolean, video = false) { return this.ack(EV.inviteRespond, { callId, accept, video }); }
   videoRequest(callId: string) { return this.ack(EV.videoRequest, { callId }); }
   videoRespond(callId: string, accept: boolean) { return this.ack(EV.videoRespond, { callId, accept }); }
   videoStop(callId: string) { return this.ack(EV.videoStop, { callId }); }

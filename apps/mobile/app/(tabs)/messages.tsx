@@ -3,6 +3,7 @@ import { Pressable, RefreshControl, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, space } from '@kapara/design';
 import type { ConversationSummary } from '@kapara/shared';
+import { useLikesInbox } from '../../src/premium/store';
 import { useConversations, useIntroInbox } from '../../src/social/api';
 import { Avatar, DemoNotice, Loading, Pill, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
@@ -15,11 +16,26 @@ export default function Messages() {
   const q = useConversations();
   const inbox = useIntroInbox();
   const pending = (inbox.data ?? []).filter((i) => i.myAnswer === 'pending').length;
+  const likes = useLikesInbox();
+  const noticed = likes.data?.count ?? 0;
 
   return (
     <Screen title={t('messages.title')} subtitle={t('messages.subtitle')}
       refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => { void q.refetch(); void inbox.refetch(); }} tintColor={c.accent} />}>
       <DemoNotice real />
+      {noticed > 0 ? (
+        <Pressable onPress={() => router.push('/likes')} accessibilityRole="button"
+          style={({ pressed }) => ({ marginHorizontal: space.lg, marginBottom: space.lg, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: c.border, opacity: pressed ? 0.85 : 1, flexDirection: 'row', alignItems: 'center', gap: space.md })}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="heart" size={20} color={c.accent} filled />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text variant="bodyStrong">{t('premium.likesCount', { count: noticed })}</Text>
+            <Text variant="caption" tone="textMuted">{likes.data?.locked ? t('premium.likesLockedShort') : t('premium.likesOpen')}</Text>
+          </View>
+          <Icon name={likes.data?.locked ? 'lock' : 'chevron'} size={20} color={c.textMuted} />
+        </Pressable>
+      ) : null}
       {pending > 0 ? (
         <Pressable onPress={() => router.push('/introductions')} accessibilityRole="button"
           style={({ pressed }) => ({ marginHorizontal: space.lg, marginBottom: space.lg, padding: space.lg, borderRadius: radius.lg, backgroundColor: c.accentSoft, opacity: pressed ? 0.85 : 1, flexDirection: 'row', alignItems: 'center', gap: space.md })}>

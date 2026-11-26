@@ -8,7 +8,7 @@ import { space } from '@kapara/design';
 import { answerLabel, fieldMeta, ONBOARDING_FIELDS, type JLKey } from '../../src/me/fields';
 import { emptyField, meStore, storesData, type SensitiveField } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { Button, ConsentSheet, Progress, Row, Screen, Section, SensitiveQuestion, SwitchRow, Text, VisibilityPicker, Icon } from '../../src/ui';
+import { Button, ConsentSheet, Progress, SkipToEnd, Row, Screen, Section, SensitiveQuestion, SwitchRow, Text, VisibilityPicker, Icon } from '../../src/ui';
 
 type Phase = { kind: 'intro' } | { kind: 'question'; i: number } | { kind: 'share' };
 
@@ -38,7 +38,7 @@ export default function OnbJewish() {
   };
 
   if (phase.kind === 'intro') return (
-    <Screen back="back" title={t('jewishLife.sectionTitle')} subtitle={t('onb.step', { n: 3, total: 4 })} footer={
+    <Screen back="back" title={t('jewishLife.sectionTitle')} subtitle={t('onb.step', { n: 3, total: 4 })} right={<SkipToEnd />} footer={
       <>
         <Button label={t('onb.jlAnswer')} onPress={() => setPhase({ kind: 'question', i: 0 })} />
         <Button kind="ghost" label={t('onb.jlLater')} onPress={() => router.push('/onboarding/prompts')} />

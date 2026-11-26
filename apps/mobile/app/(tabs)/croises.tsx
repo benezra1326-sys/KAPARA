@@ -15,6 +15,7 @@ import { useTheme } from '../../src/theme';
 import { Button, columnsFor, DemoBadge, EmptyState, Icon, Screen, Text, useLayout } from '../../src/ui';
 import { DEMO_MODE } from '../../src/api/client';
 import { photoSource } from '../../src/demo/images';
+import { imageFade } from '../../src/ui/imageFade';
 
 type Perm = 'unknown' | 'granted' | 'denied';
 
@@ -56,6 +57,7 @@ export default function Crossed() {
     return (
       <Screen title={t('crossed.title')} subtitle={t('crossed.subtitle')}>
         <DemoNotice />
+        <StateLine on={false} />
         <View style={{ marginHorizontal: space.lg, gap: space.lg }}>
           <Card>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
@@ -100,10 +102,11 @@ function CrossedList() {
     <Screen title={t('crossed.title')} subtitle={t('crossed.subtitle')} width="wide"
       refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => void q.refetch()} tintColor={c.accent} />}>
       <DemoNotice />
+      <StateLine on />
       {q.isLoading ? <Loading /> : q.isError ? (
         <EmptyState title={t('common.offline')} action={{ label: t('common.retry'), onPress: () => void q.refetch() }} />
       ) : items.length === 0 ? (
-        <EmptyState title={t('crossed.empty')} />
+        <EmptyState title={t('crossed.empty')} body={t('crossed.emptyBody')} />
       ) : (
         <View onLayout={(e) => setMeasured(Math.floor(e.nativeEvent.layout.width) - space.lg * 2)}
           style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: space.lg, gap: space.md, marginBottom: space.xl }}>
@@ -130,13 +133,13 @@ function CrossedCard({ item, width }: { item: CrossedItem; width: number }) {
       style={({ pressed }) => [{ width, aspectRatio: 3 / 4, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, overflow: 'hidden',
         transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow.card,
         Platform.OS === 'web' ? ({ transitionDuration: '200ms', transitionProperty: 'transform' } as object) : null]}>
-      {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300} accessible={false} /> : null}
+      {item.photoUrl ? <Image source={photoSource(item.photoUrl)} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)} accessible={false} /> : null}
       <LinearGradient colors={['transparent', 'rgba(10,10,12,0.78)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }} pointerEvents="none" />
       {item.isDemo ? <View style={{ position: 'absolute', top: space.sm, start: space.sm }}><DemoBadge compact /></View> : null}
       <View style={{ position: 'absolute', start: space.md, end: space.md, bottom: space.md, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text variant="heading" numberOfLines={1} style={{ color: '#FFFFFF', flexShrink: 1, fontSize: 24 }}>{item.firstName}, {item.age}</Text>
-          {item.verified ? <Icon name="check" size={15} color={c.live} /> : null}
+          {item.verified && !item.isDemo ? <Icon name="check" size={15} color={c.live} /> : null}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <Icon name="crossed" size={13} color={c.accent} />
@@ -214,4 +217,20 @@ function usePings(active: boolean) {
     const sub = AppState.addEventListener('change', (s) => { if (s === 'active') void ping(); });
     return () => { if (timer.current) clearInterval(timer.current); sub.remove(); };
   }, [active]));
+}
+
+/** The three states are never confused: off, on with nobody yet, on with people. */
+function StateLine({ on }: { on: boolean }) {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  return (
+    <View style={{ marginHorizontal: space.xl, marginBottom: space.lg, flexDirection: 'row', alignItems: 'flex-start', gap: space.md }} accessibilityRole="summary">
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.pill,
+        backgroundColor: on ? c.accentSoft : c.surfaceAlt }}>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: on ? c.live : c.textSubtle }} />
+        <Text variant="label" style={{ color: on ? c.text : c.textMuted }}>{t(on ? 'crossed.stateOn' : 'crossed.stateOff')}</Text>
+      </View>
+      {on ? <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>{t('crossed.stateOnNote')}</Text> : null}
+    </View>
+  );
 }

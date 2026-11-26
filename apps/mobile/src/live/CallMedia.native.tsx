@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
+import { RtcStage } from './RtcStage';
 import { DemoStage, StageBackdrop, pipStyle, type CallMediaProps } from './stage';
 
 type RN = typeof import('@livekit/react-native');
@@ -34,9 +35,10 @@ export function CallMedia(props: CallMediaProps) {
 
   useEffect(() => { if (join?.mode === 'livekit' && lib === null) onIssue('needs_dev_build'); }, [join, lib, onIssue]);
 
+  if (join?.mode === 'webrtc') return <RtcStage {...props} />;
   if (!join || join.mode === 'demo') return <DemoStage peer={peer} videoOn={videoAllowed} cameraOn={cameraOn} top={top} />;
   if (!lib) return <StageBackdrop peer={peer} />;
-  return <LiveKitStage {...props} lib={lib} url={join.url} token={join.token} />;
+  return join.mode === 'livekit' ? <LiveKitStage {...props} lib={lib} url={join.url} token={join.token} /> : null;
 }
 
 function LiveKitStage({ lib, url, token, peer, videoAllowed, micOn, cameraOn, frontCamera, top, onIssue }: CallMediaProps & { lib: { rn: RN; lk: LK }; url: string; token: string }) {

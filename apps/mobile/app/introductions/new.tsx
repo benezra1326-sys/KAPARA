@@ -9,11 +9,16 @@ import { useConversations, useProposeIntro } from '../../src/social/api';
 import { demo } from '../../src/social/demo';
 import { Avatar, Card, DemoNotice, Section, StackHeader } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { Button, Text } from '../../src/ui';
+import { useMe } from '../../src/me/store';
+import { Button, fontFor, Text } from '../../src/ui';
 
 type Contact = { id: string; firstName: string; photoUrl: string | null };
 
-/** Propose an introduction between two people you talk with. */
+/**
+ * Propose an introduction between two people you talk with, in three plain
+ * steps: who, why, and exactly what each person will see. Double consent:
+ * nothing opens unless both accept; a refusal is never revealed.
+ */
 export default function NewIntroduction() {
   const { t } = useTranslation();
   const { c } = useTheme();
@@ -29,6 +34,9 @@ export default function NewIntroduction() {
     return [...new Map(list.map((p) => [p.id, p])).values()];
   }, [convs.data]);
 
+  const me = useMe((s) => s.firstName);
+  const pa = contacts.find((p) => p.id === a);
+  const pb = contacts.find((p) => p.id === b);
   const ready = a && b && a !== b && note.trim().length >= 10;
 
   const submit = () => {
@@ -54,17 +62,34 @@ export default function NewIntroduction() {
           <View style={{ marginHorizontal: space.lg }}><Card><Text tone="textMuted">{t('intro.noContacts')}</Text></Card></View>
         ) : (
           <>
+            <Text variant="heading" accessibilityRole="header" style={{ marginHorizontal: space.xl, marginBottom: space.sm }}>{t('intro.stepWho')}</Text>
             <Picker title={t('intro.pickFirst')} contacts={contacts} value={a} disabledId={b} onChange={setA} />
             <Picker title={t('intro.pickSecond')} contacts={contacts} value={b} disabledId={a} onChange={setB} />
+            <Text variant="heading" accessibilityRole="header" style={{ marginHorizontal: space.xl, marginBottom: space.sm }}>{t('intro.stepWhy')}</Text>
             <Section title={t('intro.note')}>
               <TextInput
                 value={note} onChangeText={setNote} multiline maxLength={400}
                 placeholder={t('intro.notePlaceholder')} placeholderTextColor={c.textSubtle} accessibilityLabel={t('intro.note')}
-                style={{ minHeight: 120, borderRadius: radius.lg, backgroundColor: c.surface, padding: space.lg, color: c.text, fontFamily: fonts.body, fontSize: 16, textAlignVertical: 'top' }}
+                style={{ minHeight: 120, borderRadius: radius.lg, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: space.lg, color: c.text, fontFamily: fontFor(fonts.body), fontSize: 16, textAlignVertical: 'top' }}
               />
               <Text variant="caption" tone="textSubtle" style={{ textAlign: 'right' }}>{note.length}/400</Text>
-              <Button label={t('intro.submit')} disabled={!ready} loading={propose.isPending} onPress={submit} />
             </Section>
+            <Text variant="heading" accessibilityRole="header" style={{ marginHorizontal: space.xl, marginBottom: space.sm }}>{t('intro.stepSeen')}</Text>
+            <View style={{ marginHorizontal: space.lg, gap: space.lg }}>
+              <Card>
+                <View style={{ gap: space.md }}>
+                  <Text variant="label" tone="accent">{t('intro.fromYou', { me: me || '…' })}</Text>
+                  {pa && pb ? (
+                    <>
+                      <Text>{t('intro.willSee', { who: pa.firstName, other: pb.firstName })}</Text>
+                      <Text>{t('intro.willSee', { who: pb.firstName, other: pa.firstName })}</Text>
+                    </>
+                  ) : <Text tone="textMuted">{t('intro.pickBoth')}</Text>}
+                  <Text variant="caption" tone="textMuted">{t('intro.consentRule')}</Text>
+                </View>
+              </Card>
+              <Button label={t('intro.submit')} disabled={!ready} loading={propose.isPending} onPress={submit} />
+            </View>
           </>
         )}
       </ScrollView>

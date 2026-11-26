@@ -8,7 +8,7 @@ import { ReportReason, type ReportCreate } from '@kapara/shared';
 import { useReport } from '../../src/social/api';
 import { Card, DemoNotice, RowGroup, Section, StackHeader, ToggleRow } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { Button, Text } from '../../src/ui';
+import { Button, fontFor, Text } from '../../src/ui';
 
 /** Report a member. Confidential; blocks by default. Reachable from conversations, profiles, Live and Croisés. */
 export default function Report() {
@@ -37,7 +37,7 @@ export default function Report() {
         <View style={{ marginHorizontal: space.lg, marginBottom: space.xl, gap: space.md }}>
           <Card>
             <Text tone="textMuted">{t('safety.reportIntro', { name })}</Text>
-            <Text variant="caption" tone="accent">{t('safety.urgent')}</Text>
+            <Text variant="caption" tone="danger">{t('safety.urgent')}</Text>
           </Card>
         </View>
         <Section title={t('safety.reasonTitle')}>
@@ -60,7 +60,7 @@ export default function Report() {
         <Section title={t('safety.details')}>
           <TextInput value={details} onChangeText={setDetails} multiline maxLength={1000} accessibilityLabel={t('safety.details')}
             placeholderTextColor={c.textSubtle}
-            style={{ minHeight: 110, borderRadius: radius.lg, backgroundColor: c.surface, padding: space.lg, color: c.text, fontFamily: fonts.body, fontSize: 16, textAlignVertical: 'top' }} />
+            style={{ minHeight: 110, borderRadius: radius.lg, backgroundColor: c.surface, padding: space.lg, color: c.text, fontFamily: fontFor(fonts.body), fontSize: 16, textAlignVertical: 'top' }} />
           <RowGroup><ToggleRow first label={t('safety.alsoBlock')} value={alsoBlock} onChange={setAlsoBlock} /></RowGroup>
           <Button label={t('safety.send')} disabled={!reason} loading={report.isPending} onPress={submit} />
         </Section>

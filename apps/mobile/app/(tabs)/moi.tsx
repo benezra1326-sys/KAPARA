@@ -1,17 +1,20 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, shadow, space } from '@kapara/design';
 import { CLOUD, deleteAccount, signOut as doSignOut, useAccountInfo, useRole } from '../../src/account';
 import { confirm } from '../../src/account/confirm';
+import { loadPaused, savePaused } from '../../src/cloud/account';
 import { DEMO_MODE } from '../../src/api/client';
 import { cityOf, nameAndAge } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
+import { openPaywall, usePlan } from '../../src/premium/store';
 import { photoSource } from '../../src/demo/images';
 import { appearance, useAppearance, useTheme } from '../../src/theme';
-import { Button, DemoBadge, Icon, Screen, Text } from '../../src/ui';
+import { Button, CitySheet, DemoBadge, Icon, Screen, Text } from '../../src/ui';
+import { useBrowseRegion } from '../../src/me/browse';
 import { Row, Section, SwitchRow } from '../../src/ui/Rows';
 
 /**
@@ -24,13 +27,23 @@ export default function Me() {
   const { c } = useTheme();
   const router = useRouter();
   const me = useMe();
-  const [paused, setPaused] = useState(false);
+  const [paused, setPausedState] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const browse = useBrowseRegion();
+  // With real accounts the pause is saved: a paused profile disappears from everyone's selection.
+  useEffect(() => { if (CLOUD) void loadPaused().then(setPausedState); }, []);
+  const setPaused = (v: boolean) => {
+    setPausedState(v);
+    if (CLOUD) void savePaused(v).catch(() => setPausedState(!v));
+  };
   const go = (href: Href) => () => router.push(href);
   const photo = me.photos[0];
   const title = nameAndAge(me) || t('ux.profileIncomplete');
 
   const account = useAccountInfo();
   const isAdmin = useRole() === 'admin';
+  const plan = usePlan();
+  const sub = plan.data?.subscribed ?? 'free';
   // The tabs layout clears cached data and returns to the welcome screen.
   const signOut = () => confirm(t('me.signOutTitle'), t(CLOUD ? 'cloud.signOutBody' : DEMO_MODE ? 'signin.signOutDemoBody' : 'me.signOutBody'), t('me.signOut'), t('common.cancel'), () => void doSignOut());
   const forget = () => CLOUD
@@ -73,6 +86,14 @@ export default function Me() {
           <Row first title={t('admin.open')} value={t('admin.openHint')} onPress={go('/admin')} />
         </Section>
       ) : null}
+
+      <Section title={t('premium.section')}>
+        <Row first title={t(`premium.plan.${plan.data?.isAdmin ? 'cercle' : sub}`)}
+          value={plan.data?.isAdmin ? t('premium.adminShort') : sub === 'free' ? t('premium.freeHint') : t('premium.manage')}
+          onPress={() => openPaywall('browse')} />
+        <Row title={t('browse.title')} value={t('browse.moiHint', { city: cityOf(browse.code) })} onPress={() => setCityOpen(true)} />
+      </Section>
+      <CitySheet visible={cityOpen} onClose={() => setCityOpen(false)} />
 
       <Section title={t('ux.sectionProfile')}>
         <Row first title={t('me.editProfile')} onPress={go('/profile/edit')} />

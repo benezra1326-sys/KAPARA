@@ -85,6 +85,30 @@
       "statut": "en_cours",
       "avancement": 70,
       "responsable": "apps-dev"
+    },
+    {
+      "nom": "Finition façon Raya (typographie Fraunces Light + Inter, interface monochrome, onglets en icônes, changement de ville gratuit, étapes facultatives passables)",
+      "statut": "a_valider",
+      "avancement": 90,
+      "responsable": "apps-design"
+    },
+    {
+      "nom": "Offre premium (Gratuit, Plus, Cercle) : limites appliquées par la base, page d'abonnement, paiement simulé",
+      "statut": "a_valider",
+      "avancement": 90,
+      "responsable": "apps-produit"
+    },
+    {
+      "nom": "Appels audio ou vidéo (Live au hasard façon Azar, et entre matchs)",
+      "statut": "a_valider",
+      "avancement": 90,
+      "responsable": "apps-dev"
+    },
+    {
+      "nom": "Identité Grenat et refonte des écrans (accueil, Pour toi, villes, Croisés, appels, présentations)",
+      "statut": "en_revue",
+      "avancement": 90,
+      "responsable": "apps-design"
     }
   ],
   "liens": [
@@ -137,8 +161,12 @@
     {
       "date": "2026-11-23",
       "texte": "Accueil refait : logo et nom centrés, trois façons de se rencontrer présentées sur une ligne (une à la fois), un titre clair « Se connecter ou créer un compte », tout tient sur un écran d'iPhone."
+    },
+    {
+      "date": "2026-11-23",
+      "fait": "Appels : choix vidéo ou audio, réponse en audio seul possible, caméra coupée à tout moment ; vrais appels directs entre deux membres en contact (WebRTC, signalisation Supabase), essayés entre deux navigateurs."
     }
   ],
-  "maj_le": "2026-11-23T09:30:00Z",
+  "maj_le": "2026-11-23T14:30:00Z",
   "demo_web": "https://motek-demo.vercel.app"
 }

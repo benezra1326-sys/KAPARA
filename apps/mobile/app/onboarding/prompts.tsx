@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { MAX_PROMPTS } from '../../src/me/fields';
 import { space } from '@kapara/design';
 import { useMe } from '../../src/me/store';
-import { Button, Progress, Row, Screen, Section, Text } from '../../src/ui';
+import { Button, Progress, SkipToEnd, Row, Screen, Section, Text } from '../../src/ui';
 
 /** Conversation starters. Encouraged, never required. Reuses the profile prompt editor. */
 export default function OnbPrompts() {
   const { t } = useTranslation();
   const prompts = useMe((s) => s.prompts);
   return (
-    <Screen back="back" title={t('onb.promptsTitle')} subtitle={t('onb.step', { n: 4, total: 4 })} footer={
+    <Screen back="back" title={t('onb.promptsTitle')} right={<SkipToEnd />} subtitle={t('onb.step', { n: 4, total: 4 })} footer={
       <Button kind={prompts.length ? 'primary' : 'secondary'} label={prompts.length ? t('onb.continue') : t('onb.promptsLater')} onPress={() => router.push('/onboarding/done')} />
     }>
       <View style={{ marginBottom: space.xl }}><Progress total={4} current={3} /></View>

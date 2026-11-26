@@ -25,9 +25,10 @@ function Logo({ provider, color }: { provider: SignInProvider; color: string }) 
 
 /**
  * Sign-in buttons in each provider's own look (Apple: black/white, Google:
- * white with the four-colour G, Facebook: blue), then e-mail.
+ * white with the four-colour G, Facebook: blue), then e-mail. Only the
+ * providers passed are shown (see useSignInMethods).
  */
-export function ProviderButtons({ onPress, busy }: { onPress: (p: SignInProvider) => void; busy?: SignInProvider | null }) {
+export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'email'], onPress, busy }: { providers?: SignInProvider[]; onPress: (p: SignInProvider) => void; busy?: SignInProvider | null }) {
   const { t } = useTranslation();
   const { c, dark } = useTheme();
   const look: Record<SignInProvider, { bg: string; fg: string; border?: string }> = {
@@ -38,7 +39,7 @@ export function ProviderButtons({ onPress, busy }: { onPress: (p: SignInProvider
   };
   return (
     <View style={{ gap: space.sm }}>
-      {(['apple', 'google', 'facebook', 'email'] as const).map((p) => {
+      {providers.map((p) => {
         const l = look[p];
         return (
           <Pressable key={p} onPress={() => onPress(p)} disabled={!!busy} accessibilityRole="button" accessibilityLabel={t(`signin.with.${p}`)}

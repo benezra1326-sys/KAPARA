@@ -7,7 +7,7 @@ import { DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId, personByKey } from './people'
 import { DEMO_PROFILES, toPublicProfile } from './profiles';
 import { DEMO_CONVERSATIONS, DEMO_CROSSED, DEMO_INTRODUCTIONS, DEMO_LIKES_RECEIVED, DEMO_LIVE, minutesAgo } from './scenarios';
 
-export { DEMO_PICKS, DEMO_PROFILES, PROMPT_LABELS, toPublicProfile } from './profiles';
+export { DEMO_PICKS, DEMO_PROFILES, demoPicksIn, PROMPT_LABELS, toPublicProfile } from './profiles';
 export { DEMO_CALL_SCRIPT } from './scenarios';
 export { photoSource, isDemoImage } from './images';
 export { DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId } from './people';

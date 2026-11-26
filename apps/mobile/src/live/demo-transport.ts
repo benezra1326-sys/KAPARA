@@ -1,5 +1,5 @@
 import { RULES } from '@kapara/config';
-import type { CallSnapshot, CallState, LiveMember, LiveSettings, LiveStatus } from '@kapara/shared';
+import type { CallMode, CallSnapshot, CallState, LiveMember, LiveSearchFilters, LiveSettings, LiveStatus } from '@kapara/shared';
 import { DEMO_PICKS } from '../demo/profiles';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
@@ -29,10 +29,14 @@ export class DemoTransport implements LiveTransport {
   private availableUntil: number | null = null;
   private call: (CallSnapshot & { requestedByPeerOnce?: boolean }) | null = null;
   private timers: ReturnType<typeof setTimeout>[] = [];
+  /** Live "au hasard": my pending requests to fictional members. */
+  private pending: CallSnapshot[] = [];
+  private declinedBy = new Set<string>();
+  private searchTimers: ReturnType<typeof setTimeout>[] = [];
 
   on(l: (e: LiveServerEvent) => void) { return this.events.on(l); }
   async connect() { this.events.emit({ type: 'connection', status: 'online' }); }
-  disconnect() { this.clear(); }
+  disconnect() { this.clear(); this.stopSearchTimers(); this.pending = []; }
 
   async status(): Promise<LiveStatus> {
     return { mode: 'demo', availabilityMinutes: RULES.liveAvailabilityMinutes, inviteTtlSeconds: RULES.liveInviteTtlSeconds };
@@ -60,30 +64,82 @@ export class DemoTransport implements LiveTransport {
     return { ok: true as const, members: this.call ? DEMO_LIVE_MEMBERS.filter((m) => m.userId !== this.call?.peer.userId) : DEMO_LIVE_MEMBERS, availableUntil: this.availableUntil };
   }
 
-  async invite(to: string): Promise<Ack<{ call: CallSnapshot }>> {
+  async invite(to: string, mode: CallMode = 'audio'): Promise<Ack<{ call: CallSnapshot }>> {
     if (!this.settings.liveEnabled) return { ok: false, error: 'live_disabled' };
     const peer = DEMO_LIVE_MEMBERS.find((m) => m.userId === to);
     if (!peer || this.call) return { ok: false, error: 'not_available' };
-    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'outgoing' };
+    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'outgoing', mode };
     const id = this.call.callId;
     this.later(2600, () => this.peerAccepts(id));
     return { ok: true, call: { ...this.call } };
   }
 
+  /**
+   * Live "au hasard", simulated: a few fictional members are "called" at once;
+   * some say no after a few seconds, one of them says yes.
+   */
+  async search(o: { fresh: boolean; filters: LiveSearchFilters; want: number }): Promise<Ack<{ pending: CallSnapshot[] }>> {
+    if (!this.settings.liveEnabled) return { ok: false, error: 'live_disabled' };
+    if (this.call) return { ok: false, error: 'not_allowed' };
+    if (o.fresh) {
+      this.stopSearchTimers();
+      this.pending = [];
+      // One of the requests is accepted after 6 to 10 seconds.
+      this.laterSearch(6000 + Math.random() * 4000, () => this.someoneAccepts());
+    }
+    const taken = new Set(this.pending.map((p) => p.peer.userId));
+    let pool = DEMO_LIVE_MEMBERS.filter((m) => !taken.has(m.userId) && !this.declinedBy.has(m.userId));
+    if (!pool.length) { this.declinedBy.clear(); pool = DEMO_LIVE_MEMBERS.filter((m) => !taken.has(m.userId)); }
+    pool = [...pool].sort(() => Math.random() - 0.5);
+    while (this.pending.length < Math.min(Math.max(o.want, 1), 4) && pool.length) {
+      const peer = pool.shift()!;
+      const snap: CallSnapshot = { callId: `demo-${Date.now()}-${peer.userId}`, state: 'invited', peer, direction: 'outgoing', mode: 'video' };
+      this.pending.push(snap);
+      // Most people say no after a few seconds (the search then sends another request).
+      if (Math.random() < 0.6) this.laterSearch(2500 + Math.random() * 4500, () => this.dropPending(snap.callId, true));
+    }
+    return { ok: true, pending: this.pending.map((p) => ({ ...p })) };
+  }
+
+  async searchStop() { this.stopSearchTimers(); this.pending = []; }
+  async searchFiltersAllowed() { return false; }
+
+  private dropPending(callId: string, declined: boolean) {
+    const p = this.pending.find((x) => x.callId === callId);
+    if (!p) return;
+    if (declined) this.declinedBy.add(p.peer.userId);
+    this.pending = this.pending.filter((x) => x.callId !== callId);
+  }
+
+  private someoneAccepts() {
+    if (this.call) return;
+    const chosen = this.pending[0];
+    if (!chosen) { this.laterSearch(2000, () => this.someoneAccepts()); return; }
+    this.stopSearchTimers();
+    this.pending = [];
+    this.call = { ...chosen };
+    this.set('accepted');
+    this.connect2(chosen.callId, true);
+  }
+
+  private laterSearch(ms: number, fn: () => void) { this.searchTimers.push(setTimeout(fn, ms)); }
+  private stopSearchTimers() { this.searchTimers.forEach(clearTimeout); this.searchTimers = []; }
+
   simulateIncoming() {
     if (this.call) return;
     const peer = DEMO_LIVE_MEMBERS[1] ?? DEMO_LIVE_MEMBERS[0]!;
-    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'incoming' };
+    // Live is face to face first: the fictional person proposes video (you can still answer in audio).
+    this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'incoming', mode: 'video' };
     const id = this.call.callId;
     this.events.emit({ type: 'invited', call: { ...this.call } });
     this.later(RULES.liveInviteTtlSeconds * 1000, () => { if (this.call?.callId === id && this.call.state === 'invited') this.end('expired'); });
   }
 
-  async respond(callId: string, accept: boolean): Promise<Ack> {
+  async respond(callId: string, accept: boolean, video = false): Promise<Ack> {
     if (this.call?.callId !== callId || this.call.state !== 'invited') return { ok: false, error: 'not_found' };
     if (!accept) { this.end('declined'); return { ok: true }; }
     this.set('accepted');
-    this.connect2(callId);
+    this.connect2(callId, video && this.call.mode === 'video');
     return { ok: true };
   }
 
@@ -120,14 +176,15 @@ export class DemoTransport implements LiveTransport {
   private peerAccepts(callId: string) {
     if (this.call?.callId !== callId || this.call.state !== 'invited') return;
     this.set('accepted');
-    this.connect2(callId);
+    // The fictional person answers a video call in video.
+    this.connect2(callId, this.call.mode === 'video');
   }
 
-  private connect2(callId: string) {
+  private connect2(callId: string, video: boolean) {
     this.later(500, () => {
       if (this.call?.callId !== callId) return;
       this.events.emit({ type: 'join', callId, join: { mode: 'demo', room: callId, notice: 'demo_call_simulated' } });
-      this.set('connected');
+      this.set(video ? 'video_on' : 'connected');
       // Once per call, the fictional person proposes video, to show the consent step.
       this.later(14_000, () => {
         if (this.call?.callId === callId && this.call.state === 'connected' && !this.call.requestedByPeerOnce) {

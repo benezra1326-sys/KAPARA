@@ -58,8 +58,8 @@ export function SensitiveQuestion({ meta, value, onChange, compact }: { meta: Fi
       <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: value.preferNotToSay }}
         onPress={() => set({ preferNotToSay: !value.preferNotToSay, value: null as never })}
         style={{ minHeight: hitSlop, flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-        <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: value.preferNotToSay ? c.text : c.textSubtle, backgroundColor: value.preferNotToSay ? c.text : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-          {value.preferNotToSay ? <Text variant="caption" style={{ color: c.bg }}>✓</Text> : null}
+        <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: value.preferNotToSay ? c.accent : c.textSubtle, backgroundColor: value.preferNotToSay ? c.accent : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+          {value.preferNotToSay ? <Text variant="caption" style={{ color: c.onPrimary }}>✓</Text> : null}
         </View>
         <Text>{t('common.preferNotToSay')}</Text>
       </Pressable>

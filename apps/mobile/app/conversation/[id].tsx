@@ -4,11 +4,15 @@ import { ActionSheetIOS, Alert, FlatList, KeyboardAvoidingView, Platform, Pressa
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, hitSlop, radius, space } from '@kapara/design';
-import type { ChatMessage } from '@kapara/shared';
+import type { CallMode, ChatMessage } from '@kapara/shared';
+import { Icon } from '../../src/live/icons';
+import { useLiveStore } from '../../src/live/LiveProvider';
 import { useBlock, useCloseConversation, useConversations, useLiveMessages, useMessages, useSend } from '../../src/social/api';
 import { Avatar, DemoNotice, Loading, StackHeader, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
-import { DemoBadge, EmptyState, Text } from '../../src/ui';
+import { DemoBadge, EmptyState, fontFor, Text } from '../../src/ui';
+
+const HAS_TOUCH = Platform.OS === 'web' && typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
 /**
  * One conversation. No read receipts, no typing indicator, no "seen".
@@ -31,6 +35,22 @@ export default function Conversation() {
   const [failed, setFailed] = useState<string | null>(null);
   const list = useRef<FlatList<ChatMessage>>(null);
   const name = conv?.other.firstName ?? '';
+  const live = useLiveStore();
+  const [calling, setCalling] = useState(false);
+
+  /** A real call with this person (audio, or video with my camera mine to switch on). */
+  const call = async (mode: CallMode) => {
+    if (!conv || calling) return;
+    setCalling(true);
+    const started = await live.invite({ userId: conv.other.id, firstName: name, age: 0, photoUrl: conv.other.photoUrl ?? undefined, verified: false, isDemo: conv.other.isDemo }, mode, 'match');
+    setCalling(false);
+    if (started) router.push({ pathname: '/call/[id]', params: { id: started.callId } });
+    else {
+      const err = live.get().error ?? 'unknown';
+      Alert.alert(t(`live.errors.${err}`, { defaultValue: t('live.errors.unknown') }));
+      live.clearError();
+    }
+  };
 
   const data = useMemo(() => [...(q.data ?? [])].reverse(), [q.data]); // inverted list: newest first
 
@@ -99,7 +119,15 @@ export default function Conversation() {
         title={name}
         subtitle={t(`messages.origin.${conv.origin}`) || undefined}
         right={
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+            {!conv.other.isDemo ? (['audio', 'video'] as const).map((mode) => (
+              <Pressable key={mode} onPress={() => void call(mode)} disabled={calling} accessibilityRole="button"
+                accessibilityLabel={mode === 'video' ? t('messages.callVideo', { name }) : t('messages.callAudio', { name })}
+                style={({ pressed }) => ({ width: hitSlop, height: hitSlop, borderRadius: hitSlop / 2, alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: pressed ? c.surfaceAlt : 'transparent', opacity: calling ? 0.5 : 1 })}>
+                <Icon name={mode === 'video' ? 'video' : 'phone'} size={22} color={c.text} />
+              </Pressable>
+            )) : null}
             <Pressable onPress={() => router.push({ pathname: '/profile/[id]', params: { id: conv.other.id } })} accessibilityRole="button" accessibilityLabel={t('crossed.viewProfile', { name })}>
               <Avatar uri={conv.other.photoUrl} name={name} size={40} />
             </Pressable>
@@ -136,8 +164,13 @@ export default function Conversation() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: insets.bottom + space.sm, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.surface }}>
         <TextInput
           value={draft} onChangeText={setDraft} multiline maxLength={2000}
+          // Computer keyboard on the web: Enter sends, Shift+Enter goes to a new line. Phones keep Enter for a new line.
+          onKeyPress={Platform.OS === 'web' && !HAS_TOUCH ? (e) => {
+            const ev = e.nativeEvent as unknown as { key: string; shiftKey?: boolean; isComposing?: boolean };
+            if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { e.preventDefault(); if (draft.trim() && !send.isPending) submit(draft); }
+          } : undefined}
           placeholder={t('messages.placeholder')} placeholderTextColor={c.textSubtle} accessibilityLabel={t('messages.placeholder')}
-          style={{ flex: 1, minHeight: hitSlop, maxHeight: 140, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, paddingHorizontal: space.lg, paddingTop: 13, paddingBottom: 13, color: c.text, fontFamily: fonts.body, fontSize: 16, textAlign: 'auto' }}
+          style={{ flex: 1, minHeight: hitSlop, maxHeight: 140, borderRadius: radius.lg, backgroundColor: c.surfaceAlt, paddingHorizontal: space.lg, paddingTop: 13, paddingBottom: 13, color: c.text, fontFamily: fontFor(fonts.body), fontSize: 16, textAlign: 'auto' }}
         />
         <Pressable onPress={() => submit(draft)} disabled={!draft.trim() || send.isPending} accessibilityRole="button" accessibilityLabel={t('messages.send')}
           accessibilityState={{ disabled: !draft.trim(), busy: send.isPending }}
