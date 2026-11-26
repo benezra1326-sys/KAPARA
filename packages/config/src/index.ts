@@ -1,6 +1,6 @@
 /**
  * Single source of truth for the product name and launch configuration.
- * MOTEK (formerly KAPARA) is a working name: change `brand.json` and every surface follows
+ * ZIV is a working name: change `brand.json` and every surface follows
  * (app.config.ts, API, emails, UI copy via `APP.name`).
  */
 import brand from './brand.json';
@@ -30,7 +30,7 @@ export const REGIONS: Region[] = [
   { code: 'gb-london', country: 'GB', city: 'London', timezone: 'Europe/London', defaultLocale: 'en', currency: 'GBP', center: { lat: 51.5072, lng: -0.1276 }, launched: false },
   { code: 'il-tel-aviv', country: 'IL', city: 'Tel Aviv', timezone: 'Asia/Jerusalem', defaultLocale: 'he', currency: 'ILS', center: { lat: 32.0853, lng: 34.7818 }, launched: false },
   { code: 'us-new-york', country: 'US', city: 'New York', timezone: 'America/New_York', defaultLocale: 'en', currency: 'USD', center: { lat: 40.7128, lng: -74.006 }, launched: false },
-  // Demo / upcoming markets (not launched): MOTEK is built to be worldwide.
+  // Demo / upcoming markets (not launched): ZIV is built to be worldwide.
   { code: 'il-jerusalem', country: 'IL', city: 'Jerusalem', timezone: 'Asia/Jerusalem', defaultLocale: 'he', currency: 'ILS', center: { lat: 31.7683, lng: 35.2137 }, launched: false },
   { code: 'fr-marseille', country: 'FR', city: 'Marseille', timezone: 'Europe/Paris', defaultLocale: 'fr', currency: 'EUR', center: { lat: 43.2965, lng: 5.3698 }, launched: false },
   { code: 'fr-nice', country: 'FR', city: 'Nice', timezone: 'Europe/Paris', defaultLocale: 'fr', currency: 'EUR', center: { lat: 43.7102, lng: 7.262 }, launched: false },

@@ -1,5 +1,5 @@
 /**
- * MOTEK's offer: free, Plus, Cercle. The limits mirror the `plans` table of
+ * ZIV's offer: free, Plus, Cercle. The limits mirror the `plans` table of
  * supabase/migrations/20261123130000_motek_premium.sql, which is what really
  * applies them for real accounts; this copy drives the paywall and the local
  * demo. Prices are shown in euros; payment is simulated until Apple in-app

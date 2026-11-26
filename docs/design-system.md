@@ -1,4 +1,4 @@
-# Système visuel MOTEK « Grenat » (23 novembre 2026)
+# Système visuel ZIV « Grenat » (23 novembre 2026)
 
 Remplace la direction « Club / façon Raya » (noir et blanc, laiton). Source unique : `packages/design/src/index.ts`. Aucun écran ne doit écrire une couleur en dur, sauf les logos des fournisseurs de connexion (Apple, Google, Facebook) et les écrans d'appel, toujours sombres.
 
@@ -40,4 +40,4 @@ Contrastes mesurés (WCAG 2.1) : texte discret ≥ 4,79:1 sur la surface la plus
 - Une fonction simulée le dit à l'endroit où on l'utilise.
 
 ## Marque
-Logo : le M en Fraunces Light, ivoire sur une tuile grenat, point rosé. Nom en capitales Fraunces espacées ; en hébreu, « מותק » s'ajoute sous le nom. Les icônes d'application (`assets/`) gardent l'ancien fond nuit tant qu'Avishay n'a pas validé la tuile grenat.
+Logo ZIV : Z en Fraunces Light, ivoire sur la tuile grenat, avec le point rosé signature. Le nom s'affiche en capitales Fraunces espacées dans l'application. En hébreu, ZIV reste en alphabet latin. Les icônes iOS, Android et web reprennent la tuile grenat.

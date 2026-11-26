@@ -1,7 +1,7 @@
-# KAPARA
+# ZIV
 
 Application de rencontres mobile pour la communauté juive, conçue pour l’international (lancement : Paris).
-**KAPARA est un nom de travail** : il est centralisé dans [`packages/config/src/brand.json`](packages/config/src/brand.json).
+**ZIV est le nom de travail actuel** : il est centralisé dans [`packages/config/src/brand.json`](packages/config/src/brand.json). Les identifiants techniques restent `kapara` pendant le prototype.
 
 Trois façons de se rencontrer, un seul profil :
 

@@ -1,4 +1,4 @@
-# Offre MOTEK : Gratuit, Plus, Cercle
+# Offre ZIV : Gratuit, Plus, Cercle
 
 ## Principe
 Tout l'essentiel est gratuit, pour toujours : profil, questions, préférences et critères de valeurs, **changer de ville**, écrire à ses matchs, recevoir des appels Live, Croisés, et toute la sécurité (blocage, signalement, mode Shabbat). On ne fait jamais payer la sécurité ni les valeurs (benchmark, point 11).
