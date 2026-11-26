@@ -49,6 +49,11 @@ export default function Live() {
   // Leaving Live while searching stops the requests.
   useFocusEffect(useCallback(() => () => { if (store.get().search.status === 'searching') void store.stopSearch(); }, [store]));
 
+  const errorNotice = (
+    <Pressable onPress={() => store.clearError()} accessibilityRole="alert" accessibilityLiveRegion="polite">
+      <Notice tone={s.error === 'live_soon' ? 'highlight' : 'danger'} text={t(`live.errors.${s.error}`, { defaultValue: t('live.errors.unknown') })} />
+    </Pressable>
+  );
   const nobodyForAWhile = searching && !s.search.demo && s.search.emptySince !== null && now - s.search.emptySince > 6_000;
 
   return (
@@ -69,6 +74,13 @@ export default function Live() {
         <View style={{ gap: space.lg }}>
           <SearchStage pending={s.search.pending} searching={searching} demo={s.search.demo}
             onStart={() => void store.startSearch(false)} onStop={() => void store.stopSearch()} disabled={!!s.call} />
+          {/* Right under the button, so the answer to « Lancer » is on screen. */}
+          {s.error && !s.call ? errorNotice : null}
+          {s.error === 'live_soon' && !searching ? (
+            <View style={{ alignItems: 'center' }}>
+              <Button kind="ghost" label={t('liveRandom.tryDemo')} onPress={() => { store.clearError(); void store.startSearch(true); }} />
+            </View>
+          ) : null}
           {nobodyForAWhile ? (
             <View style={{ marginHorizontal: space.lg, gap: space.sm, alignItems: 'center' }}>
               <Text variant="caption" tone="textMuted" style={{ textAlign: 'center' }}>{t('liveRandom.nobody')}</Text>
@@ -84,11 +96,7 @@ export default function Live() {
           <Notice tone="muted" text={t(`live.lastCall.${s.lastEnded.state}`, { name: s.lastEnded.peer.firstName, duration: formatDuration(s.lastEnded.durationSec) })} />
         </Pressable>
       ) : null}
-      {s.error && !s.call ? (
-        <Pressable onPress={() => store.clearError()} accessibilityRole="alert">
-          <Notice tone={s.error === 'live_soon' ? 'highlight' : 'danger'} text={t(`live.errors.${s.error}`, { defaultValue: t('live.errors.unknown') })} />
-        </Pressable>
-      ) : null}
+      {s.error && !s.call && !enabled ? errorNotice : null}
 
       {s.local && enabled ? (
         <View style={{ paddingHorizontal: space.xl, marginTop: space.xl }}>

@@ -3,19 +3,17 @@ import { useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { APP } from '@kapara/config';
 import { fonts, hitSlop, palette, radius, space } from '@kapara/design';
 import { LIMITS, PRICES, saving, total, type Months, type PlanId } from '../src/premium/plans';
 import { useCancelPlan, usePlan, useSetDiscreet, useSubscribe, type PaywallReason } from '../src/premium/store';
 import { Icon, Text, useLayout } from '../src/ui';
-import { BRAND_NAME, WORDMARK } from '../src/ui/brandPaths';
 import { switchThumb } from '../src/ui/switchThumb';
 
 /**
  * The membership page. Always on aubergine night, whatever the app theme:
- * one calm page, serif titles, the MOTEK garnet for the one action. Opens on what the member was
+ * one calm page, serif titles, the ZIV garnet for the one action. Opens on what the member was
  * trying to do (reason), shows the two plans, the commitment, and plainly
  * what stays free. Payment is simulated in the demo and says so.
  */
@@ -142,13 +140,10 @@ export default function Premium() {
 
 /** The wordmark in cream, whatever the app theme. */
 function Mark() {
-  if (BRAND_NAME !== APP.name) return <Text style={{ fontFamily: fonts.display, fontSize: 20, letterSpacing: 5, color: N.text }}>{APP.name.toUpperCase()}</Text>;
-  const h = 13;
-  return (
-    <View accessible accessibilityLabel={APP.name}>
-      <Svg width={(h * WORDMARK.width) / WORDMARK.height} height={h} viewBox={`0 0 ${WORDMARK.width} ${WORDMARK.height}`}><Path d={WORDMARK.d} fill={N.text} /></Svg>
-    </View>
-  );
+  return <Text accessibilityRole="text" accessibilityLabel={APP.name}
+    style={{ fontFamily: fonts.display, fontSize: 20, letterSpacing: 5, color: N.text }}>
+    {APP.name.toUpperCase()}
+  </Text>;
 }
 
 function PlanCard({ id, selected, onPress, price, recommended }: { id: Paid; selected: boolean; onPress: () => void; price: string; recommended: boolean }) {

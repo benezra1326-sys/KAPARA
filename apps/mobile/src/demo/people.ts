@@ -531,7 +531,7 @@ export const DEMO_PEOPLE: DemoPerson[] = [
     moments: [{ kind: 'ceramics', caption: 'Wonky but mine.' }, { kind: 'books', caption: 'Galleys, everywhere.' }],
     privacy: open, preferences: { ageMin: 27, ageMax: 38, maxDistanceKm: 25 },
   },
-  // ——— Monde (démo : MOTEK est pensé pour un lancement mondial) ———
+  // ——— Monde (démo : ZIV est pensé pour un lancement mondial) ———
   {
     key: 'avigail', firstName: 'Avigail', gender: 'woman', seeks: ['man'], birthDate: '1995-01-12', regionCode: 'il-jerusalem',
     languages: ['fr', 'he', 'en'], headline: 'Montée de Lyon il y a six ans, guide au musée d’Israël', verified: true,
