@@ -158,6 +158,14 @@ export const cloudAccount = {
     return !error;
   },
 
+  /** Web: Google's own button hands back an ID token; Supabase checks it (and the nonce). */
+  async signInWithGoogleToken(token: string, nonce: string): Promise<{ hasProfile: boolean } | null> {
+    const { data, error } = await sb.auth.signInWithIdToken({ provider: 'google', token, nonce });
+    if (error || !data.session) return null;
+    await adopt(data.session);
+    return { hasProfile: meStore.get().onboarded };
+  },
+
   async signOut() {
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await saveNow(); }
     await saving;

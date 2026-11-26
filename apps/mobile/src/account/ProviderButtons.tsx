@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +29,11 @@ function Logo({ provider, color }: { provider: SignInProvider; color: string }) 
  * white with the four-colour G, Facebook: blue), then e-mail. Only the
  * providers passed are shown (see useSignInMethods).
  */
-export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'email'], onPress, busy }: { providers?: SignInProvider[]; onPress: (p: SignInProvider) => void; busy?: SignInProvider | null }) {
+export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'email'], onPress, busy, wrap }: {
+  providers?: SignInProvider[]; onPress: (p: SignInProvider) => void; busy?: SignInProvider | null;
+  /** Replaces one provider's button, given ours as the fallback (web: Google's own button). */
+  wrap?: Partial<Record<SignInProvider, (fallback: ReactNode) => ReactNode>>;
+}) {
   const { t } = useTranslation();
   const { c, dark } = useTheme();
   const look: Record<SignInProvider, { bg: string; fg: string; border?: string }> = {
@@ -41,7 +46,7 @@ export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'e
     <View style={{ gap: space.sm }}>
       {providers.map((p) => {
         const l = look[p];
-        return (
+        const button = (
           <Pressable key={p} onPress={() => onPress(p)} disabled={!!busy} accessibilityRole="button" accessibilityLabel={t(`signin.with.${p}`)}
             style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({
               minHeight: Math.max(hitSlop, 52), borderRadius: radius.pill, backgroundColor: l.bg, borderWidth: l.border ? 1 : 0, borderColor: l.border,
@@ -52,6 +57,8 @@ export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'e
             <Text style={{ color: l.fg, fontFamily: fonts.bodySemibold, fontSize: 16 }}>{t(`signin.with.${p}`)}</Text>
           </Pressable>
         );
+        const w = wrap?.[p];
+        return w ? <View key={p}>{w(button)}</View> : button;
       })}
     </View>
   );

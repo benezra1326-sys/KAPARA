@@ -10,6 +10,7 @@ import { demoAccount, type SignInProvider } from './demo-account';
 import { cloudAccount } from '../cloud/account';
 import { CLOUD, enabledProviders } from '../cloud/client';
 import { ProviderButtons } from './ProviderButtons';
+import { GOOGLE_WEB, GoogleWebButton } from '../cloud/google-web';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const NAME: Record<Exclude<SignInProvider, 'email'>, string> = { apple: 'Apple', google: 'Google', facebook: 'Facebook' };
@@ -96,7 +97,10 @@ export function SignInChoices({ intent = 'create' }: { intent?: SignInIntent }) 
 
   return (
     <View style={{ gap: space.md }}>
-      <ProviderButtons providers={methods} onPress={press} busy={busy} />
+      <ProviderButtons providers={methods} onPress={press} busy={busy}
+        wrap={GOOGLE_WEB ? { google: (fallback) => (
+          <GoogleWebButton fallback={fallback} onSignedIn={(has) => { qc.clear(); afterSignIn(has); }} onError={() => say(t('cloud.err.generic'))} />
+        ) } : undefined} />
       {checking ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.checking')}</Text> : null}
       {soon.length ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.soon', { list: soon.map((p) => NAME[p]).join(', ') })}</Text> : null}
       {simulated ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.demoMethods')}</Text> : null}
