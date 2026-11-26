@@ -1,8 +1,8 @@
-# MOTEK sur Supabase (vraie base)
+# ZIV sur Supabase (vraie base)
 
-Depuis le 23 novembre 2026, la démo web (https://motek-demo.vercel.app) fonctionne sur une vraie base Supabase.
+Depuis le 23 novembre 2026, la démo web (https://ziv-demo.vercel.app, ancienne adresse motek-demo.vercel.app) fonctionne sur une vraie base Supabase.
 
-- Projet Supabase : **motek** (région Paris, `eu-west-3`), organisation d'Avishay. URL : `https://gvtixevqemhsahhxiqsr.supabase.co`.
+- Projet Supabase : **motek** (nom technique ; le nom affiché se change dans Settings → General → Project name ; l’identifiant `gvtixevqemhsahhxiqsr` ne change pas) (région Paris, `eu-west-3`), organisation d'Avishay. URL : `https://gvtixevqemhsahhxiqsr.supabase.co`.
 - L'app l'utilise dès que la compilation a `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_KEY` (clé publique « publishable », faite pour être dans l'app ; déjà dans `vercel.json`).
 - Schéma : `supabase/migrations/` (appliqué). Profils de démo : `supabase/seed/` (55 profils, mêmes identifiants `demo-<clé>` et mêmes photos que l'app).
 - Création de compte par e-mail : fonction `supabase/functions/signup` (déployée).
@@ -32,15 +32,15 @@ Toujours en démonstration (annoncé dans l'app) : Croisés, Live, présentation
 ## À faire par Avishay (une seule fois)
 
 ### 1. Adresse du site (1 minute, indispensable pour Google, Facebook et les liens e-mail)
-Supabase → projet **motek** → Authentication → **URL Configuration** :
-- Site URL : `https://motek-demo.vercel.app`
-- Redirect URLs, ajouter : `https://motek-demo.vercel.app/**`
+Supabase → projet → Authentication → **URL Configuration** :
+- Site URL : `https://ziv-demo.vercel.app`
+- Redirect URLs, ajouter : `https://ziv-demo.vercel.app/**` (garder `https://motek-demo.vercel.app/**` tant que l’ancienne adresse sert encore)
 
 ### 2. Google (10 minutes)
-1. https://console.cloud.google.com → créer un projet « MOTEK ».
-2. APIs & Services → **OAuth consent screen** : type « External », nom MOTEK, votre e-mail ; publier (« In production »).
+1. https://console.cloud.google.com → créer un projet « ZIV ».
+2. APIs & Services → **OAuth consent screen** : type « External », nom de l’application **ZIV**, votre e-mail ; publier (« In production »).
 3. APIs & Services → **Credentials** → Create credentials → **OAuth client ID** → type « Web application ».
-   - Authorized JavaScript origins : `https://motek-demo.vercel.app`
+   - Authorized JavaScript origins : `https://ziv-demo.vercel.app` (et `https://motek-demo.vercel.app` pendant la transition)
    - Authorized redirect URIs : `https://gvtixevqemhsahhxiqsr.supabase.co/auth/v1/callback`
 4. Copier le **Client ID** et le **Client secret**.
 5. Supabase → Authentication → **Sign In / Providers** → Google → activer, coller les deux valeurs, enregistrer.

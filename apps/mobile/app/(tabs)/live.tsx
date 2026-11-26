@@ -59,7 +59,8 @@ export default function Live() {
   return (
     <Screen title={t('live.title')} subtitle={t('liveRandom.subtitle')}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.accent} />}>
-      {s.mode === 'demo' ? (
+      {/* Real build: calls between real members are real, so the demo notice is only for fictional profiles. */}
+      {s.local || (searching && s.search.demo) ? (
         <Notice tone="highlight" text={s.local ? t('live.demoLocalNotice') : t('live.demoNotice')} />
       ) : null}
       {s.connection === 'offline' && !s.local ? <Notice tone="danger" text={t('live.offline')} /> : null}

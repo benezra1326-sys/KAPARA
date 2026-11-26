@@ -1,4 +1,4 @@
-// KAPARA data model. Geography uses PostGIS through explicit SQL
+// ZIV data model. Geography uses PostGIS through explicit SQL
 // (see src/crossed and prisma/migrations/*_postgis). Prisma sees the columns
 // as Unsupported and never reads raw coordinates back into the app.
 

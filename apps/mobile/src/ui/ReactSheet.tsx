@@ -23,7 +23,7 @@ export type ReactSheetTarget = ReactTarget | 'choose';
 
 /**
  * Reacting to one photo or one answer, with an optional word — the way
- * first contact works on MOTEK: always about something specific.
+ * first contact works on ZIV: always about something specific.
  *
  * Opened from a heart, it shows that element large. Opened from the general
  * "React" button, it first asks which photo or answer, then the same.

@@ -1,4 +1,4 @@
--- MOTEK : Live façon Azar. On ne parcourt plus une liste : on lance une recherche, et l'app envoie
+-- ZIV : Live façon Azar. On ne parcourt plus une liste : on lance une recherche, et l'app envoie
 -- 3 ou 4 demandes d'appel en même temps à des membres présents dans le Live, au hasard.
 -- La première personne qui accepte gagne, les autres demandes s'arrêtent ; après un refus, on en relance.
 -- Gratuit : hasard dans le monde entier. Abonnement : choix du genre et de la ville.

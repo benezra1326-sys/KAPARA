@@ -13,8 +13,8 @@ function webChoice(): LocaleCode | undefined {
   if (Platform.OS !== 'web' || typeof location === 'undefined') return undefined;
   try {
     const q = new URLSearchParams(location.search).get('lang') as LocaleCode | null;
-    if (q && SUPPORTED_LOCALES.includes(q)) { localStorage.setItem('motek.lang', q); return q; }
-    const saved = localStorage.getItem('motek.lang') as LocaleCode | null;
+    if (q && SUPPORTED_LOCALES.includes(q)) { localStorage.setItem('ziv.lang', q); return q; }
+    const saved = localStorage.getItem('ziv.lang') as LocaleCode | null;
     return saved && SUPPORTED_LOCALES.includes(saved) ? saved : undefined;
   } catch { return undefined; }
 }

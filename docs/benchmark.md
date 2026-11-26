@@ -1,6 +1,6 @@
 # Benchmark produit : applications de rencontre
 
-> Étude courte réalisée le 22 novembre 2026 pour cadrer les parcours de KAPARA (nom de travail).
+> Étude courte réalisée le 22 novembre 2026 pour cadrer les parcours de ZIV (ex-ZIV, nom de travail).
 > Objectif : retenir ce qui améliore vraiment la qualité des rencontres, sans copier la marque, le texte ni l'interface d'une autre application.
 
 ## 1. Méthode et sources
@@ -92,10 +92,10 @@
 | Modèle économique | Fonctions essentielles gratuites (JSwipe 2026, CMB) | Payer pour voir qui vous aime ou filtrer selon ses valeurs |
 | Introductions | Entremetteurs humains (SawYouAtSinai), recommandation d'amis (Tinder Matchmaker) | Profil exposé à des tiers sans l'accord de la personne présentée |
 
-## 4. Fonctions retenues pour KAPARA
+## 4. Fonctions retenues pour ZIV
 
-1. **Réactions ciblées** : tout premier contact s'accroche à un élément précis (photo, réponse, question de profil), avec un commentaire facultatif. Inspiré du principe de Hinge, interface propre à KAPARA.
-2. **Questions de profil ouvertes** propres à KAPARA (repas de Shabbat idéal, fête préférée, ce qui me fait rire, projet qui m'enthousiasme…), 3 affichées, modifiables à tout moment.
+1. **Réactions ciblées** : tout premier contact s'accroche à un élément précis (photo, réponse, question de profil), avec un commentaire facultatif. Inspiré du principe de Hinge, interface propre à ZIV.
+2. **Questions de profil ouvertes** propres à ZIV (repas de Shabbat idéal, fête préférée, ce qui me fait rire, projet qui m'enthousiasme…), 3 affichées, modifiables à tout moment.
 3. **Préférences souples + critères éliminatoires mutuels**, choisis critère par critère. **Gratuits pour tous**, y compris les critères liés à la pratique juive : filtrer selon ses valeurs n'est pas une option premium.
 4. **Questions de pratique juive nuancées** : options multiples plus « autre / je préfère ne pas répondre » et un champ libre ; cacherout distinguée maison / extérieur ; Shabbat et fêtes en gradations, pas en oui/non ; libellés adaptables par pays (les courants ne s'appellent pas pareil en France, aux États-Unis ou en Israël).
 5. **« Pour toi » en lot quotidien fini** (environ 8 à 12 profils, renouvelés chaque jour) avec une phrase d'explication par suggestion (« vous avez tous deux répondu… »). Pas de swipe : une carte éditoriale, puis « Réagir » ou « Pas maintenant ».
@@ -123,7 +123,7 @@
 | Affichage de l'activité récente et accusés de lecture | Pression sociale inutile |
 | Groupes et Double Date | Intéressant mais hors périmètre de la v1. Possible plus tard pour des événements communautaires |
 
-## 6. Décisions de conception pour KAPARA
+## 6. Décisions de conception pour ZIV
 
 1. **Un profil, trois univers** (Croisés, Pour toi, Live) qui partagent profil, préférences, réactions, matchs et blocages. Un blocage s'applique partout.
 2. **Les données sensibles ne sont jamais visibles par défaut.** Chaque champ de pratique juive a sa propre visibilité (*moi seul* par défaut, *mes matchs*, *tous les membres*), un écran qui explique à quoi il sert et un consentement explicite (RGPD art. 9). Il peut être retiré à tout moment, avec effet immédiat sur les filtres.
