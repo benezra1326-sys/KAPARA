@@ -12,6 +12,7 @@ import { Icon } from './Icon';
 import { ChoiceList, Chips } from './Choice';
 import { Field } from './Field';
 import { Text } from './Text';
+import { cityOf } from '../me/identity';
 
 type Basics = Required<Pick<ProfileUpdate, 'firstName' | 'birthDate' | 'gender' | 'headline' | 'languages' | 'regionCode'>>;
 
@@ -84,10 +85,10 @@ function BasicsFields(p: {
       </View>
       <View style={{ gap: space.xs }}>
         <Text variant="label" tone="textMuted">{t('basics.city')}</Text>
-        <Pressable onPress={() => setCityOpen(true)} accessibilityRole="button" accessibilityLabel={t('city.change', { city: region.city })}
+        <Pressable onPress={() => setCityOpen(true)} accessibilityRole="button" accessibilityLabel={t('city.change', { city: cityOf(region.code) })}
           style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, opacity: pressed ? 0.6 : 1 })}>
           <Icon name="pin" size={16} color={c.text} />
-          <Text variant="bodyStrong" style={{ flex: 1 }}>{region.city}</Text>
+          <Text variant="bodyStrong" style={{ flex: 1 }}>{cityOf(region.code)}</Text>
           <Text variant="label" style={{ textDecorationLine: 'underline' }}>{t('city.changeShort')}</Text>
         </Pressable>
         <Text variant="caption" tone="textSubtle">{t('basics.cityHint')}</Text>
