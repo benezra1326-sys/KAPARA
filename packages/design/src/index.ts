@@ -1,8 +1,8 @@
 /**
- * MOTEK design tokens. Platform-agnostic (plain numbers/strings) so the
+ * ZIV design tokens. Platform-agnostic (plain numbers/strings) so the
  * mobile app, a future web app and email templates share one source.
  *
- * Direction "Grenat" (23/11, Avishay's brief): MOTEK's own identity —
+ * Direction "Grenat" (23/11, Avishay's brief): ZIV's own identity —
  * intimate, editorial, warm, contemporary. One signature colour, a deep
  * garnet, shared by both themes: the main action, the active tab, the
  * reasons of a suggestion. Light theme "Ivoire" (warm ivory paper, ink with
