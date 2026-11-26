@@ -3,6 +3,7 @@ import type {
 } from '@kapara/shared';
 import { ageOf, DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId, portraitUrl } from '../demo/people';
 import { DEMO_CONVERSATIONS, DEMO_CROSSED, DEMO_INTRODUCTIONS } from '../demo/scenarios';
+import { meStore } from '../me/store';
 
 /**
  * In-memory demo store for Croisés, conversations, introductions, safety and
@@ -41,13 +42,21 @@ const state = {
 };
 
 const hidden = (id: string) => state.blocked.some((b) => b.userId === id);
+// Croisés follows who the member seeks, like "Pour toi": a man seeking women sees women, and the other way round.
+const fits = (id: string) => {
+  const viewer = meStore.get().gender;
+  const p = DEMO_PEOPLE.find((x) => demoUserId(x.key) === id);
+  if (!p || !viewer) return true;
+  const seeks = viewer === 'man' ? ['woman'] : viewer === 'woman' ? ['man'] : [];
+  return (!seeks.length || seeks.includes(p.gender)) && (!p.seeks.length || p.seeks.includes(viewer));
+};
 const wait = <T,>(v: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(v), ms));
 
 // ── Croisés ────────────────────────────────────────────────────────────────
 export const demo = {
   crossedSettings: () => wait({ enabled: state.crossedEnabled }),
   setCrossed: (enabled: boolean) => { state.crossedEnabled = enabled; return wait({ enabled }); },
-  crossed: (): Promise<CrossedItem[]> => wait(state.crossedEnabled ? state.crossed.filter((c) => !hidden(c.userId)).map((c) => {
+  crossed: (): Promise<CrossedItem[]> => wait(state.crossedEnabled ? state.crossed.filter((c) => !hidden(c.userId) && fits(c.userId)).map((c) => {
     const p = person(c.userId)!;
     return { userId: p.id, firstName: p.firstName, age: p.age, photoUrl: p.photoUrl, isDemo: true, verified: p.verified, times: c.times };
   }) : []),

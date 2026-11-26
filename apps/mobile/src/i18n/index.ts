@@ -28,6 +28,10 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
+// French elision before a first name: « la photo d’Ilan », « de Noam ». Used as {{name, de}} in fr.ts.
+const ELIDE = /^[aeiouyàâäéèêëîïôöùûü]/i;
+i18n.services.formatter?.add('de', (value: string) => (ELIDE.test(value) ? `d’${value}` : `de ${value}`));
+
 I18nManager.allowRTL(true);
 export const isRTL = RTL_LOCALES.includes(lng);
 /** Hebrew swaps Fraunces/Inter for Frank Ruhl Libre/Heebo (see Text). */

@@ -9,6 +9,7 @@ import { fonts, hitSlop, palette, radius, space } from '@kapara/design';
 import { LIMITS, PRICES, saving, total, type Months, type PlanId } from '../src/premium/plans';
 import { useCancelPlan, usePlan, useSetDiscreet, useSubscribe, type PaywallReason } from '../src/premium/store';
 import { Icon, Text, useLayout } from '../src/ui';
+import { switchThumb } from '../src/ui/switchThumb';
 
 /**
  * The membership page. Always on aubergine night, whatever the app theme:
@@ -243,7 +244,7 @@ function Membership({ plan, until, discreetOn, onDiscreet, onCancel, cancelling 
             <Text style={{ color: N.text }}>{t('premium.discreetTitle')}</Text>
             <Text variant="caption" style={{ color: N.muted }}>{t('premium.discreetBody')}</Text>
           </View>
-          <Switch value={discreetOn} onValueChange={onDiscreet} trackColor={{ true: N.sand, false: N.line }} accessibilityLabel={t('premium.discreetTitle')} />
+          <Switch value={discreetOn} onValueChange={onDiscreet} trackColor={{ true: N.sand, false: N.line }} {...switchThumb('#fff')} accessibilityLabel={t('premium.discreetTitle')} />
         </View>
       ) : null}
       <Pressable onPress={onCancel} disabled={cancelling} accessibilityRole="button" style={{ minHeight: hitSlop, justifyContent: 'center' }}>

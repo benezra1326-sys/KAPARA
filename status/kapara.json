@@ -109,6 +109,12 @@
       "statut": "en_revue",
       "avancement": 90,
       "responsable": "apps-design"
+    },
+    {
+      "nom": "Aimer une photo ou une réponse précise (façon Hinge) : photo plein écran, choix de l'élément, mot facultatif, élément visible chez l'autre",
+      "statut": "en_revue",
+      "avancement": 90,
+      "responsable": "apps-dev"
     }
   ],
   "liens": [

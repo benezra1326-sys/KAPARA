@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { radius, space } from '@kapara/design';
 import { openPaywall, useLikesInbox } from '../src/premium/store';
 import { Avatar, Loading, useFormat } from '../src/social/ui';
+import { useMe } from '../src/me/store';
+import { likedItem } from '../src/social/liked';
 import { useTheme } from '../src/theme';
+import { LikedItemQuote } from '../src/ui/LikedItem';
 import { Button, DemoBadge, EmptyState, Icon, Screen, Text } from '../src/ui';
 
 /**
@@ -18,6 +21,8 @@ export default function Likes() {
   const f = useFormat();
   const q = useLikesInbox();
   const d = q.data;
+  // What they liked is one of my own photos or answers: shown from my profile.
+  const mine = useMe();
 
   return (
     <Screen back="back" title={t('premium.likesTitle')}>
@@ -39,9 +44,9 @@ export default function Likes() {
       ) : (
         <View style={{ marginHorizontal: space.lg, backgroundColor: c.surface, borderRadius: radius.lg, overflow: 'hidden' }}>
           {d.items.map((it, i) => (
-            <Pressable key={it.from.id} onPress={() => router.push({ pathname: '/profile/[id]', params: { id: it.from.id } })} accessibilityRole="button"
+            <Pressable key={it.from.id} onPress={() => router.push({ pathname: '/profile/[id]', params: { id: it.from.id, from: 'like' } })} accessibilityRole="button"
               accessibilityLabel={`${it.from.firstName}${it.comment ? `. ${it.comment}` : ''}`}
-              style={({ pressed }) => ({ flexDirection: 'row', gap: space.md, padding: space.lg, alignItems: 'center', backgroundColor: pressed ? c.surfaceAlt : 'transparent', borderTopWidth: i ? 1 : 0, borderTopColor: c.border })}>
+              style={({ pressed }) => ({ flexDirection: 'row', gap: space.md, padding: space.lg, alignItems: 'flex-start', backgroundColor: pressed ? c.surfaceAlt : 'transparent', borderTopWidth: i ? 1 : 0, borderTopColor: c.border })}>
               <Avatar uri={it.from.photos[0]?.url ?? null} name={it.from.firstName} />
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
@@ -49,9 +54,10 @@ export default function Likes() {
                   {it.from.isDemo ? <DemoBadge compact /> : null}
                   <Text variant="caption" tone="textSubtle">{f.when(it.createdAt)}</Text>
                 </View>
-                <Text tone="textMuted" numberOfLines={2}>{it.comment || t('premium.likedYou')}</Text>
+                <LikedItemQuote mine size="sm" item={likedItem(it.target, mine)} comment={it.comment}
+                  label={it.target?.kind === 'photo' ? t('liked.theyLikedPhoto') : it.target?.kind === 'prompt' ? t('liked.theyLikedAnswer') : t('premium.likedYou')} />
               </View>
-              <Icon name="chevron" size={18} color={c.textSubtle} />
+              <View style={{ alignSelf: 'center' }}><Icon name="chevron" size={18} color={c.textSubtle} /></View>
             </Pressable>
           ))}
         </View>

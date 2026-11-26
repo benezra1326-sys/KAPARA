@@ -5,6 +5,8 @@ import { useRole } from '../account';
 import { kv } from '../account/kv';
 import { CLOUD, must, sb } from '../cloud/client';
 import { DEMO_PICKS } from '../demo/profiles';
+import i18n from '../i18n';
+import { meStore } from '../me/store';
 import { canFilterLive, LIMITS, type Months, type PlanId, type PlanLimits, type QuotaKind } from './plans';
 
 /**
@@ -165,7 +167,8 @@ export interface LikesInbox {
   count: number;
   /** Free plan: the number only, the people stay hidden (enforced by the database). */
   locked: boolean;
-  items: { from: ProfilePublic; comment?: string | null; createdAt: string }[];
+  /** `target`: the photo or answer of mine they liked ({ kind, id }); see src/social/liked.ts. */
+  items: { from: ProfilePublic; target?: { kind?: 'photo' | 'prompt'; id?: string } | null; comment?: string | null; createdAt: string }[];
   demo?: boolean;
 }
 
@@ -179,7 +182,11 @@ export function useLikesInbox() {
       // Local demo: three demo profiles, announced as such.
       const picks = DEMO_PICKS.slice(2, 5).map((r) => r.profile);
       const locked = !plan.data!.limits.seeLikes;
-      return { count: picks.length, locked, demo: true, items: locked ? [] : picks.map((p, i) => ({ from: p, createdAt: new Date(Date.now() - (i + 1) * 3_600_000).toISOString() })) };
+      // Each one liked something precise of mine: a photo, or one of my answers.
+      const me = meStore.get();
+      const targets = [me.prompts[0] ? { kind: 'prompt' as const, id: me.prompts[0].id } : null, me.photos[0] ? { kind: 'photo' as const, id: me.photos[0].id } : null, me.prompts[1] ? { kind: 'prompt' as const, id: me.prompts[1].id } : null];
+      const words = [i18n.t('liked.demoComment1'), null, i18n.t('liked.demoComment2')];
+      return { count: picks.length, locked, demo: true, items: locked ? [] : picks.map((p, i) => ({ from: p, target: targets[i] ?? (me.photos[0] ? { kind: 'photo' as const, id: me.photos[0].id } : null), comment: words[i], createdAt: new Date(Date.now() - (i + 1) * 3_600_000).toISOString() })) };
     },
   });
 }

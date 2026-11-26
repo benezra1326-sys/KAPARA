@@ -33,7 +33,7 @@ export function CitySheet({ visible, onClose, mode = 'browse' }: { visible: bool
   const plan = usePlan();
   const allowed = mode === 'home' || (plan.data ? canBrowseOtherCity(plan.data.plan, plan.data.isAdmin) : false);
   const selected = mode === 'home' ? home : current;
-  const cities = [...REGIONS].filter((r) => mode === 'home' || r.code !== home).sort((a, b) => a.city.localeCompare(b.city, i18n.language));
+  const cities = [...REGIONS].filter((r) => mode === 'home' || r.code !== home).sort((a, b) => cityOf(a.code).localeCompare(cityOf(b.code), i18n.language));
   const pick = (code: string) => {
     if (mode === 'home') { if (code !== home) { meStore.set({ regionCode: code }); browseStore.set(null); } onClose(); return; }
     if (code !== home && !allowed) { onClose(); openPaywall('otherCity'); return; }
@@ -70,11 +70,11 @@ export function CitySheet({ visible, onClose, mode = 'browse' }: { visible: bool
         {mode === 'browse' && homeRegion ? (
           <View style={{ marginBottom: space.md }}>
             <Text variant="overline" tone="textSubtle">{t('browse.mine')}</Text>
-            {row(homeRegion.code, homeRegion.city, countryName(homeRegion.country, i18n.language), 0, t('browse.mineHint'))}
+            {row(homeRegion.code, cityOf(homeRegion.code), countryName(homeRegion.country, i18n.language), 0, t('browse.mineHint'))}
             <Text variant="overline" tone="textSubtle" style={{ marginTop: space.lg }}>{t('browse.others')}</Text>
           </View>
         ) : null}
-        {cities.map((r, i) => row(r.code, r.city, countryName(r.country, i18n.language), i, undefined, mode === 'browse' && !allowed))}
+        {cities.map((r, i) => row(r.code, cityOf(r.code), countryName(r.country, i18n.language), i, undefined, mode === 'browse' && !allowed))}
       </ScrollView>
     </Sheet>
   );
