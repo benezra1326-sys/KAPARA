@@ -1,5 +1,5 @@
-import { Redirect } from 'expo-router';
-import { useEffect, useState, type ReactNode } from 'react';
+import { Redirect, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ScrollView, View, type ViewStyle } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,6 +49,9 @@ export default function Welcome() {
   const status = useAuthStatus();
   const onboarded = useMe((s) => s.onboarded);
   const [intent, setIntent] = useState<SignInIntent | null>(null);
+  // The sheet is a modal: close it when another screen opens ("Continuer avec l'adresse email"),
+  // or it stays on top of that screen on the web.
+  useFocusEffect(useCallback(() => () => setIntent(null), []));
 
   // Already signed in (reload, back button): never ask again.
   if (status === 'loading') return null;
