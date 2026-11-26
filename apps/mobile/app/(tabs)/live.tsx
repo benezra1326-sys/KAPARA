@@ -147,7 +147,7 @@ function Slot({ call, searching }: { call: CallSnapshot | null; searching: boole
       <View style={{ width: size - 8, height: size - 8, borderRadius: (size - 8) / 2, overflow: 'hidden', backgroundColor: c.surfaceAlt,
         borderWidth: 1, borderColor: call ? c.live : c.border, alignItems: 'center', justifyContent: 'center' }}>
         {call?.peer.photoUrl ? (
-          <Image source={photoSource(call.peer.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={300} />
+          <Image source={photoSource(call.peer.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)} />
         ) : searching ? <ActivityIndicator color={c.textSubtle} /> : <Icon name="video" size={20} color={c.textSubtle} />}
       </View>
     </View>
