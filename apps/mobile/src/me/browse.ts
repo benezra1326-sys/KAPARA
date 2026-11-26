@@ -7,7 +7,7 @@ import { meStore, useMe } from './store';
  * profile's, free). Another city (a trip, a move to come) is a Plus/Cercle
  * feature; the picker checks the plan before setting it. Kept on this device.
  */
-const KEY = 'motek.browseRegion';
+const KEY = 'ziv.browseRegion';
 let browse: string | null = null;
 const listeners = new Set<() => void>();
 void kv.get(KEY).then((v) => { if (v) { browse = v; listeners.forEach((l) => l()); } });

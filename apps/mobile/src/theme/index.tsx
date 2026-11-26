@@ -7,7 +7,7 @@ import { colors, DEFAULT_SCHEME, type ColorScheme, type ThemeColors } from '@kap
  * The choice is kept on this device (localStorage on the web; in memory on
  * native until a settings store exists).
  */
-const KEY = 'motek.appearance';
+const KEY = 'ziv.appearance';
 const read = (): ColorScheme => {
   try {
     // A shared link can pick the look: ?theme=noir or ?theme=blanc.

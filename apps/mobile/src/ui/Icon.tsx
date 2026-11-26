@@ -13,7 +13,7 @@ export type IconName =
 const DIRECTIONAL: IconName[] = ['back', 'chevron'];
 
 /**
- * KAPARA's single icon set: 24 px grid, 1.75 stroke, rounded caps, drawn
+ * ZIV's single icon set: 24 px grid, 1.75 stroke, rounded caps, drawn
  * for the app (no icon font, no emoji). Decorative: the label next to an
  * icon, or the control's accessibilityLabel, carries the meaning.
  */

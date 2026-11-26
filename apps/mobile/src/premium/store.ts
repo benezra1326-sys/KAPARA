@@ -36,7 +36,7 @@ export type PaywallReason = 'like' | 'liveFilters' | 'picks' | 'seeLikes' | 'rew
 export const openPaywall = (reason: PaywallReason = 'browse') => router.push({ pathname: '/premium', params: { reason } });
 
 const KEY = ['plan'] as const;
-const LOCAL = 'motek.premium';
+const LOCAL = 'ziv.premium';
 const deviceTz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
 const today = () => new Date().toLocaleDateString('en-CA');
 const nextMidnight = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return d.toISOString(); };

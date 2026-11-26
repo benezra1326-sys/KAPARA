@@ -1,4 +1,4 @@
--- MOTEK : base réelle sur Supabase (comptes, profils, likes, conversations, sécurité, administration).
+-- ZIV : base réelle sur Supabase (comptes, profils, likes, conversations, sécurité, administration).
 -- Les profils de démo (is_demo) sont dans la même table que les vrais membres, avec un badge dans l'app.
 -- Données de vie juive : lisibles en entier uniquement par leur propriétaire ; les autres membres
 -- ne reçoivent que les réponses partagées (« membres », ou « matchs » après un double like),
