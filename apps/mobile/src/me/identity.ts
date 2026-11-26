@@ -1,5 +1,6 @@
 import { LAUNCH_REGION, REGIONS } from '@kapara/config';
 import { visibleSensitive, type JewishLife, type ProfilePublic, type ViewerRelation } from '@kapara/shared';
+import i18n from '../i18n';
 import { ageFrom, type MyProfile } from './store';
 
 /**
@@ -15,8 +16,10 @@ import { ageFrom, type MyProfile } from './store';
  * "Moi", the editor, the preview and every card of the member read from
  * here, so they can never disagree again.
  */
+/** City name in the app's language (« Londres », « Jérusalem »), from the regions translations. */
 export function cityOf(regionCode: string) {
-  return (REGIONS.find((r) => r.code === regionCode) ?? LAUNCH_REGION).city;
+  const r = REGIONS.find((x) => x.code === regionCode) ?? LAUNCH_REGION;
+  return i18n.t(`regions.${r.code}`, { defaultValue: r.city });
 }
 
 export function myPublicProfile(me: MyProfile, as: Exclude<ViewerRelation, 'self'> = 'member'): ProfilePublic {

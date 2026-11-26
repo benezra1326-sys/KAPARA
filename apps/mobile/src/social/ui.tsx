@@ -11,6 +11,7 @@ import { useTheme } from '../theme';
 import { Icon, Text } from '../ui';
 import { photoSource } from '../demo/images';
 import { imageFade } from '../ui/imageFade';
+import { switchThumb } from '../ui/switchThumb';
 
 /** Building blocks shared by the Croisés / messages / introductions / safety screens. */
 
@@ -92,7 +93,7 @@ export function ToggleRow({ label, detail, value, onChange, first, disabled }: {
   return (
     <Row first={first} label={label} detail={detail}
       right={<Switch value={value} onValueChange={onChange} disabled={disabled} accessibilityLabel={label}
-        trackColor={{ true: c.accent, false: c.textSubtle }} thumbColor={c.text} ios_backgroundColor={c.border} />} />
+        trackColor={{ true: c.accent, false: c.textSubtle }} {...switchThumb('#fff')} ios_backgroundColor={c.border} />} />
   );
 }
 

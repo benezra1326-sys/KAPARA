@@ -17,6 +17,7 @@ import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
 import { openPaywall } from '../../src/premium/store';
 import { imageFade } from '../../src/ui/imageFade';
+import { cityOf } from '../../src/me/identity';
 
 /**
  * Live, Azar-style: no list of who is online. The member starts a search and
@@ -191,7 +192,7 @@ function Filters({ allowed, value, onChange }: { allowed: boolean; value: LiveSe
       <Text variant="label" tone="textMuted" style={{ paddingHorizontal: space.xl }}>{t('liveRandom.city')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.sm }}>
         {chip('world', t('liveRandom.anyCity'), !value.regionCode, () => onChange({ ...value, regionCode: undefined }))}
-        {REGIONS.map((r) => chip(r.code, r.city, value.regionCode === r.code, () => onChange({ ...value, regionCode: r.code })))}
+        {REGIONS.map((r) => chip(r.code, cityOf(r.code), value.regionCode === r.code, () => onChange({ ...value, regionCode: r.code })))}
       </ScrollView>
     </View>
   );

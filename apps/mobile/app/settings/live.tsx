@@ -8,6 +8,7 @@ import { Icon } from '../../src/live/icons';
 import { useLive, useLiveStore } from '../../src/live/LiveProvider';
 import { useTheme } from '../../src/theme';
 import { EmptyState, Screen, Text } from '../../src/ui';
+import { switchThumb } from '../../src/ui/switchThumb';
 
 /** Live opt-in and "who can call me". The callee's choice always wins on the server. */
 export default function LiveSettingsScreen() {
@@ -30,7 +31,7 @@ export default function LiveSettingsScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
               <Text variant="bodyStrong" style={{ flex: 1 }}>{t('liveSettings.enableLabel')}</Text>
               <Switch value={settings.liveEnabled} onValueChange={(v) => void store.saveSettings({ ...settings, liveEnabled: v })}
-                trackColor={{ true: c.live, false: c.textSubtle }} accessibilityLabel={t('liveSettings.enableLabel')} />
+                trackColor={{ true: c.live, false: c.textSubtle }} {...switchThumb('#fff')} accessibilityLabel={t('liveSettings.enableLabel')} />
             </View>
             <Text variant="caption" tone="textMuted">{t('liveSettings.enableHint')}</Text>
           </View>

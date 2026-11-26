@@ -4,6 +4,7 @@ import { hitSlop, radius, space } from '@kapara/design';
 import { useTheme } from '../theme';
 import { Icon } from './Icon';
 import { Text } from './Text';
+import { switchThumb } from './switchThumb';
 
 /** Grouped surface with an overline title, used for settings-like lists. */
 export function Section({ title, footnote, children }: { title?: string; footnote?: string; children: ReactNode }) {
@@ -49,7 +50,7 @@ export function SwitchRow({ title, description, value, onValueChange, first }: {
         {description ? <Text variant="caption" tone="textMuted">{description}</Text> : null}
       </View>
       <Switch value={value} onValueChange={onValueChange} accessibilityLabel={title} accessibilityHint={description}
-        trackColor={{ true: c.accent, false: c.textSubtle }} thumbColor="#fff" />
+        trackColor={{ true: c.accent, false: c.textSubtle }} {...switchThumb('#fff')} />
     </View>
   );
 }
