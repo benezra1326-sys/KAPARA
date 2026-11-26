@@ -8,8 +8,9 @@ Text is turned into paths, so generated assets never depend on installed fonts.
     python3 apps/mobile/assets/brand/generate.py   # name from brand.json
 
 PNG icons (icon-1024, apple-touch-icon 180, icon-192/512, favicon-32) are
-rendered from icon.svg / favicon.svg with any SVG renderer (opaque, no alpha
-for the iOS icon). In the app, src/ui/Logo.tsx draws the same mark with Fraunces.
+rendered too when cairosvg is installed (pip install cairosvg): square and
+opaque for iOS (it applies its own mask), rounded for the favicon.
+In the app, src/ui/Logo.tsx draws the same mark with Fraunces.
 """
 import json, os, re, sys
 from fontTools.ttLib import TTFont
@@ -47,7 +48,7 @@ def svg(w, h, body, bg=None, rx=0):
 
 def main(name):
     # Mark: the initial, optically centred slightly left to leave room for the dot.
-    letter, size, cx, cy = name[0].upper(), 560, 500, 512
+    letter, size, cx, cy = name[0].upper(), 680, 500, 512
     x0, y0, x1, y1 = glyphs(FRAUNCES_LIGHT, letter, size, 0, 0, pen_factory=BoundsPen)[0].bounds
     pen, _ = glyphs(FRAUNCES_LIGHT, letter, size, cx - (x0 + x1) / 2, cy - (y0 + y1) / 2, pen_factory=SVGPathPen)
     global MARK_D
@@ -67,11 +68,21 @@ def main(name):
 
     # Web app manifest (Android / desktop install; iPhone uses apple-touch-icon.png).
     json.dump({'name': name, 'short_name': name, 'start_url': '/', 'display': 'standalone',
-               'background_color': '#FFFFFF', 'theme_color': '#FFFFFF',  # app page colour (identity "Blanc")
+               'background_color': IVORY, 'theme_color': IVORY,  # light theme "Ivoire" page colour
                'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
                          {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
                          {'src': '/favicon.svg', 'sizes': 'any', 'type': 'image/svg+xml'}]},
               open(f'{PUBLIC}/manifest.webmanifest', 'w'), indent=2, ensure_ascii=False)
+
+    try:
+        import cairosvg
+    except ImportError:
+        print('cairosvg not installed: PNG icons not re-rendered'); return
+    square, rounded = open(f'{OUT}/icon.svg').read(), open(f'{PUBLIC}/favicon.svg').read()
+    for src, path, px in ((square, f'{OUT}/icon-1024.png', 1024), (square, f'{PUBLIC}/apple-touch-icon.png', 180),
+                          (square, f'{PUBLIC}/icon-192.png', 192), (square, f'{PUBLIC}/icon-512.png', 512),
+                          (rounded, f'{PUBLIC}/favicon-32.png', 32)):
+        cairosvg.svg2png(bytestring=src.encode(), write_to=path, output_width=px, output_height=px)
 
 
 if __name__ == '__main__':

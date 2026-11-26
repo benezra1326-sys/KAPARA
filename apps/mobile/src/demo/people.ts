@@ -1,5 +1,5 @@
 /**
- * KAPARA demo cast. Single source of truth for the offline app (src/demo) and
+ * ZIV demo cast. Single source of truth for the offline app (src/demo) and
  * the database seed (apps/api/prisma/seed.ts imports this file).
  *
  * Rules:

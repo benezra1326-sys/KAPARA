@@ -1,4 +1,4 @@
--- MOTEK : offre gratuite / Plus / Cercle, appliquée par la base (pas seulement par l'app).
+-- ZIV : offre gratuite / Plus / Cercle, appliquée par la base (pas seulement par l'app).
 --
 -- Gratuit pour toujours : profil, questions, préférences et critères de valeurs, changer de ville,
 -- messages avec ses matchs, Croisés, sécurité (blocage, signalement). Ce qui est limité par jour :

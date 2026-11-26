@@ -1,3 +1,4 @@
+import '../src/storage-rename';
 import '../src/i18n';
 import { useFonts } from 'expo-font';
 // Typography: Fraunces (the logo's face) for titles, Inter for text; Hebrew: Frank Ruhl Libre and Heebo.

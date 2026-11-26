@@ -1,4 +1,4 @@
--- MOTEK : vrais appels audio ou vidéo entre deux membres en contact (conversation ouverte).
+-- ZIV : vrais appels audio ou vidéo entre deux membres en contact (conversation ouverte).
 -- Le son et l'image passent en direct d'un téléphone à l'autre (WebRTC) ; la base ne garde que
 -- l'état de l'appel (qui, quand, audio ou vidéo, durée) : rien n'est enregistré.
 -- La signalisation WebRTC passe par un canal Realtime privé « call:<id> », réservé aux deux participants.

@@ -28,9 +28,9 @@ export interface DemoAccount {
 
 export type AccountStatus = 'loading' | 'signedIn' | 'signedOut';
 
-const CURRENT = 'motek.demo.current';
-const ACCOUNTS = 'motek.demo.accounts';
-const profileKey = (id: string) => `motek.demo.profile.${id}`;
+const CURRENT = 'ziv.demo.current';
+const ACCOUNTS = 'ziv.demo.accounts';
+const profileKey = (id: string) => `ziv.demo.profile.${id}`;
 
 let status: AccountStatus = 'loading';
 let current: DemoAccount | null = null;
