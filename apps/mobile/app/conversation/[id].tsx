@@ -7,7 +7,11 @@ import { fonts, hitSlop, radius, space } from '@kapara/design';
 import type { CallMode, ChatMessage } from '@kapara/shared';
 import { Icon } from '../../src/live/icons';
 import { useLiveStore } from '../../src/live/LiveProvider';
-import { useBlock, useCloseConversation, useConversations, useLiveMessages, useMessages, useSend } from '../../src/social/api';
+import { useProfile } from '../../src/api/hooks';
+import { useMe } from '../../src/me/store';
+import { useBlock, useCloseConversation, useConversations, useLikesBetween, useLiveMessages, useMessages, useSend } from '../../src/social/api';
+import { likedItem } from '../../src/social/liked';
+import { LikedItemQuote } from '../../src/ui/LikedItem';
 import { Avatar, DemoNotice, Loading, StackHeader, useFormat } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
 import { DemoBadge, EmptyState, fontFor, Text } from '../../src/ui';
@@ -149,7 +153,12 @@ export default function Conversation() {
           keyExtractor={(m) => m.id}
           contentContainerStyle={{ paddingHorizontal: space.lg, paddingVertical: space.md, gap: space.sm }}
           renderItem={({ item, index }) => <Bubble m={item} showTime={shouldShowTime(data, index)} />}
-          ListFooterComponent={<Text variant="caption" tone="textSubtle" style={{ textAlign: 'center', marginVertical: space.lg }}>{t('messages.noReceipts')}</Text>}
+          ListFooterComponent={(
+            <View>
+              <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center', marginVertical: space.lg }}>{t('messages.noReceipts')}</Text>
+              <HowWeMet otherId={conv.other.id} name={name} />
+            </View>
+          )}
           ListEmptyComponent={<Text tone="textMuted" style={{ textAlign: 'center', marginTop: space.xl, transform: [{ scaleY: -1 }] }}>{t('messages.startHint')}</Text>}
           keyboardDismissMode="interactive"
         />
@@ -205,4 +214,28 @@ function shouldShowTime(data: ChatMessage[], i: number) {
   const m = data[i]!;
   const newer = data[i - 1];
   return !newer || newer.mine !== m.mine || +new Date(newer.createdAt) - +new Date(m.createdAt) > 10 * 60_000;
+}
+
+/**
+ * At the start of a conversation opened by two likes: what each one liked —
+ * the photo or the answer — so the first words have their context.
+ */
+function HowWeMet({ otherId, name }: { otherId: string; name: string }) {
+  const { t } = useTranslation();
+  const { c } = useTheme();
+  const likes = useLikesBetween(otherId);
+  const other = useProfile(likes.data?.mine?.target?.id ? otherId : undefined);
+  const me = useMe();
+  const mine = likes.data?.mine?.target;
+  const theirs = likes.data?.theirs?.target;
+  const myItem = likedItem(mine, other.data);
+  const theirItem = likedItem(theirs, me);
+  if (!myItem && !theirItem) return null;
+  return (
+    <View style={{ marginBottom: space.lg, padding: space.lg, gap: space.lg, borderRadius: radius.lg, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border }}>
+      <Text variant="overline" tone="textMuted" accessibilityRole="header">{t('liked.howWeMet')}</Text>
+      {theirItem ? <LikedItemQuote mine size="sm" item={theirItem} label={theirItem.kind === 'photo' ? t('liked.nameLikedPhoto', { name }) : t('liked.nameLikedAnswer', { name })} /> : null}
+      {myItem ? <LikedItemQuote size="sm" item={myItem} label={myItem.kind === 'photo' ? t('liked.youLikedPhoto') : t('liked.youLikedAnswer')} /> : null}
+    </View>
+  );
 }

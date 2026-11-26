@@ -15,8 +15,9 @@ import { browseStore, useBrowseRegion } from '../../src/me/browse';
 import { openPaywall, usePlan } from '../../src/premium/store';
 import { useTheme } from '../../src/theme';
 import { Button, CityButton, CitySheet, EmptyState, Icon, Progress, Screen, Text, useLayout } from '../../src/ui';
-import { ProfileCard, type ReactTarget } from '../../src/ui/ProfileCard';
-import { ReactSheet } from '../../src/ui/ReactSheet';
+import { ProfileCard } from '../../src/ui/ProfileCard';
+import { PhotoViewer } from '../../src/ui/PhotoViewer';
+import { ReactSheet, type ReactSheetTarget } from '../../src/ui/ReactSheet';
 
 /**
  * "Pour toi": a finite daily selection, one profile at a time, each with the
@@ -34,7 +35,8 @@ export default function ForYou() {
   const feedback = useSuggestionFeedback();
   const [i, setI] = useState(0);
   const [reacted, setReacted] = useState(0);
-  const [target, setTarget] = useState<ReactTarget | null>(null);
+  const [target, setTarget] = useState<ReactSheetTarget | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [cityOpen, setCityOpen] = useState(false);
   // A new city is a new selection: start again from its first profile.
@@ -90,7 +92,7 @@ export default function ForYou() {
       <View style={{ flexDirection: 'row', gap: space.sm }}>
         <Button kind="secondary" icon={narrow ? undefined : 'close'} label={t('pick.pass')} accessibilityHint={t('pick.passHint')} onPress={pass} style={{ flex: 1, paddingHorizontal: space.md }} />
         <Button kind="accent" icon={narrow ? undefined : 'heart'} label={t('ux.react')} accessibilityHint={t('ux.reactHint')} style={{ flex: 1, paddingHorizontal: space.md }}
-          onPress={() => setTarget(rec.profile.prompts[0] ? { kind: 'prompt', id: rec.profile.prompts[0].id } : main ? { kind: 'photo', id: main.id } : null)} />
+          onPress={() => setTarget(rec.profile.prompts.length || main ? 'choose' : null)} />
       </View>
       {isPhone ? null : <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('pick.passFootnote')}</Text>}
     </View>
@@ -120,7 +122,7 @@ export default function ForYou() {
 
       {rec ? (
         <Animated.View key={rec.profile.id} entering={FadeInDown.duration(400)}>
-          <ProfileCard profile={rec.profile} reasons={rec.reasons} onReact={setTarget} />
+          <ProfileCard profile={rec.profile} reasons={rec.reasons} onReact={setTarget} onOpenPhoto={setViewing} />
         </Animated.View>
       ) : (
         <Animated.View entering={FadeIn.duration(420)}>
@@ -132,6 +134,8 @@ export default function ForYou() {
         </Animated.View>
       )}
 
+      <PhotoViewer profile={rec?.profile} index={viewing} onClose={() => setViewing(null)}
+        onReact={(id) => { setViewing(null); setTarget({ kind: 'photo', id }); }} />
       <ReactSheet profile={rec?.profile} target={target} onClose={() => setTarget(null)}
         onDone={(matched) => { setReacted((n) => n + 1); advance(matched ? t('pick.matched', { name: rec?.profile.firstName }) : t(CLOUD ? (rec?.profile.isDemo ? 'cloud.sentToDemo' : 'pick.sent') : DEMO_MODE ? 'pick.sentDemo' : 'pick.sent')); }} />
     </Screen>

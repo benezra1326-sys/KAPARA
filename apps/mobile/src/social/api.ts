@@ -121,6 +121,16 @@ export function useLiveMessages(id: string) {
   }, [id, qc]);
 }
 
+/** What each person liked when the conversation opened (real accounts only; the demo has none). */
+export function useLikesBetween(otherId?: string) {
+  return useQuery({
+    queryKey: ['likes-between', otherId],
+    enabled: CLOUD && !!otherId,
+    staleTime: 5 * 60_000,
+    queryFn: () => cloud.likesBetween(otherId!),
+  });
+}
+
 export function useCloseConversation() {
   const qc = useQueryClient();
   return useMutation({
