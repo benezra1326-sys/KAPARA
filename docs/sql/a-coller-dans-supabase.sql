@@ -1,4 +1,6 @@
--- MOTEK : à coller en entier dans l'éditeur SQL de Supabase, puis Run. Tout passe ou rien ne passe.
+-- MOTEK, 26/11 : Live au hasard + suppression de compte + lecture du dossier photos.
+-- À coller en entier dans l'éditeur SQL de Supabase (nouvelle requête vide), puis Run.
+-- Tout passe ou rien ne passe ; peut être relancé sans erreur.
 begin;
 -- MOTEK : Live façon Azar. On ne parcourt plus une liste : on lance une recherche, et l'app envoie
 -- 3 ou 4 demandes d'appel en même temps à des membres présents dans le Live, au hasard.
@@ -9,7 +11,7 @@ alter table public.calls add column if not exists context text not null default 
   check (context in ('match', 'live'));
 
 -- Qui est dans le Live en ce moment (rafraîchi toutes les ~20 s par l'app).
-create table public.live_presence (
+create table if not exists public.live_presence (
   member_id text primary key references public.members(id) on delete cascade,
   updated_at timestamptz not null default now(),
   want_gender text check (want_gender in ('woman', 'man', 'nonbinary')),
@@ -18,7 +20,7 @@ create table public.live_presence (
 alter table public.live_presence enable row level security; -- aucune politique : accès par les fonctions seulement
 
 -- Droit aux filtres du Live (genre, ville) : défini par l'offre (chantier premium, table public.plans).
-create function public.live_filters_allowed() returns boolean
+create or replace function public.live_filters_allowed() returns boolean
 language plpgsql stable security definer set search_path = '' as $$
 declare ok boolean;
 begin
@@ -36,7 +38,7 @@ grant execute on function public.live_filters_allowed() to authenticated;
 
 -- Être présent dans le Live (et donc pouvoir recevoir des demandes). Les filtres ne sont gardés
 -- que si l'offre les permet.
-create function public.live_here(want_gender text default null, want_region text default null) returns jsonb
+create or replace function public.live_here(want_gender text default null, want_region text default null) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   me text := (auth.uid())::text;
@@ -56,7 +58,7 @@ revoke execute on function public.live_here(text, text) from public, anon;
 grant execute on function public.live_here(text, text) to authenticated;
 
 -- Quitter le Live : je ne reçois plus rien, mes demandes en attente s'arrêtent.
-create function public.live_leave() returns void
+create or replace function public.live_leave() returns void
 language sql security definer set search_path = '' as $$
   delete from public.live_presence where member_id = (auth.uid())::text;
   update public.calls set state = 'expired', ended_at = now(), updated_at = now()
@@ -67,7 +69,7 @@ grant execute on function public.live_leave() to authenticated;
 
 -- Envoyer des demandes au hasard jusqu'à en avoir `want` en attente (3 ou 4).
 -- `fresh` = début d'une nouvelle recherche : c'est elle qui compte dans le quota du jour.
-create function public.live_search(want int default 3, fresh boolean default false) returns jsonb
+create or replace function public.live_search(want int default 3, fresh boolean default false) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   me text := (auth.uid())::text;
