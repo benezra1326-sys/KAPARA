@@ -171,8 +171,12 @@ export const cloudAccount = {
     loadedFor = null;
     const id = current.id;
     // Photos first (the member's folder in the bucket), then the account itself.
+    // The bucket has no read policy, so list() comes back empty for the member:
+    // the profile's own photo ids ("<uid>/<file>.jpg") are the reliable source.
     const { data: files } = await sb.storage.from('photos').list(id, { limit: 100 });
-    if (files?.length) await sb.storage.from('photos').remove(files.map((f) => `${id}/${f.name}`));
+    const paths = new Set<string>((files ?? []).map((f) => `${id}/${f.name}`));
+    for (const ph of meStore.get().photos as MyPhoto[]) if (ph.id?.startsWith(`${id}/`)) paths.add(ph.id);
+    if (paths.size) await sb.storage.from('photos').remove([...paths]);
     const { error } = await sb.rpc('delete_my_account');
     if (error) await sb.from('members').delete().eq('id', id);
     await sb.auth.signOut();

@@ -20,3 +20,4 @@ export * from './Logo';
 export * from './MeetWays';
 export * from './CityPicker';
 export * from './imageFade';
+export * from './switchThumb';
