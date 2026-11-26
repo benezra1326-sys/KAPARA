@@ -109,6 +109,12 @@
       "statut": "en_revue",
       "avancement": 90,
       "responsable": "apps-design"
+    },
+    {
+      "nom": "Aimer une photo ou une réponse précise (façon Hinge) : photo plein écran, choix de l'élément, mot facultatif, élément visible chez l'autre",
+      "statut": "en_revue",
+      "avancement": 90,
+      "responsable": "apps-dev"
     }
   ],
   "liens": [
@@ -167,6 +173,6 @@
       "fait": "Appels : choix vidéo ou audio, réponse en audio seul possible, caméra coupée à tout moment ; vrais appels directs entre deux membres en contact (WebRTC, signalisation Supabase), essayés entre deux navigateurs."
     }
   ],
-  "maj_le": "2026-11-23T14:30:00Z",
+  "maj_le": "2026-11-26T11:10:00Z",
   "demo_web": "https://motek-demo.vercel.app"
 }

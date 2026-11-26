@@ -64,6 +64,15 @@ export const cloud = {
     return data ? { matched: true, conversationId: data.id } : { matched: false };
   },
 
+  /** The two likes that opened a conversation (each readable by both people): what each one liked. */
+  async likesBetween(otherId: string): Promise<{ mine: LikeRow | null; theirs: LikeRow | null }> {
+    const me = await uid();
+    const rows = must(await sb.from('likes').select('from_id, target')
+      .or(`and(from_id.eq.${me},to_id.eq.${otherId}),and(from_id.eq.${otherId},to_id.eq.${me})`)) as { from_id: string; target: LikeRow['target'] }[];
+    const pick = (who: string) => { const r = rows.find((x) => x.from_id === who); return r ? { target: r.target } : null; };
+    return { mine: pick(me), theirs: pick(otherId) };
+  },
+
   async conversations(): Promise<ConversationSummary[]> {
     return must(await sb.rpc('my_conversations')) as ConversationSummary[];
   },
@@ -117,3 +126,6 @@ export const cloud = {
     if (r.alsoBlock !== false) await cloud.block(r.userId);
   },
 };
+
+/** A like as the other person can read it back: what it was about. */
+export type LikeRow = { target: { kind?: 'photo' | 'prompt'; id?: string } | null };
