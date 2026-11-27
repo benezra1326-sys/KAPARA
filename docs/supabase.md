@@ -53,7 +53,14 @@ Supabase → projet → Authentication → **URL Configuration** :
 
 Tant qu'un fournisseur n'est pas activé, son bouton le dit (« en cours d'activation ») au lieu de faire semblant.
 
-### 4. Apple
+### 4. Téléphone (SMS par Twilio, 15 minutes)
+Détail et précautions : `docs/connexion-telephone.md`.
+1. https://www.twilio.com → créer un compte, ajouter un moyen de paiement (chaque SMS est payé à Twilio).
+2. Twilio → Messaging → **Services** → créer un service « ZIV » et lui ajouter un expéditeur (numéro Twilio, ou nom alphanumérique « ZIV » là où c'est permis).
+3. Copier **Account SID**, **Auth Token** (page d'accueil Twilio) et **Messaging Service SID** (MG…).
+4. Supabase → Authentication → Sign In / Providers → **Phone** → activer, fournisseur **Twilio**, coller les trois valeurs, enregistrer.
+
+### 5. Apple
 Attend le compte Apple Developer (99 $/an). Le bouton l'annonce.
 
 ### Plus tard

@@ -13,7 +13,8 @@ import { ProviderButtons } from './ProviderButtons';
 import { GOOGLE_WEB, GoogleWebButton } from '../cloud/google-web';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const NAME: Record<Exclude<SignInProvider, 'email'>, string> = { apple: 'Apple', google: 'Google', facebook: 'Facebook' };
+type Social = 'apple' | 'google' | 'facebook';
+const NAME: Record<Social, string> = { apple: 'Apple', google: 'Google', facebook: 'Facebook' };
 
 /** After any sign-in: straight into the app when the profile exists, otherwise finish it. */
 export function afterSignIn(hasProfile: boolean) {
@@ -22,6 +23,8 @@ export function afterSignIn(hasProfile: boolean) {
 
 export type SignInIntent = 'create' | 'signin';
 const SOCIAL = ['apple', 'google', 'facebook'] as const;
+/** Everything the server can switch on, in the order shown: providers, then phone. */
+const EXTERNAL = [...SOCIAL, 'phone'] as const;
 
 /**
  * Which sign-in methods really work here. Real accounts (Supabase): e-mail,
@@ -33,11 +36,11 @@ export function useSignInMethods() {
   const q = useQuery({ queryKey: ['auth-providers'], queryFn: enabledProviders, enabled: CLOUD, staleTime: 10 * 60_000 });
   if (CLOUD) {
     const on = q.data ?? {};
-    const live = SOCIAL.filter((p) => on[p]);
-    return { methods: [...live, 'email'] as SignInProvider[], soon: q.data ? SOCIAL.filter((p) => !on[p]) : [], checking: q.isLoading, simulated: false };
+    const live = EXTERNAL.filter((p) => on[p]);
+    return { methods: [...live, 'email'] as SignInProvider[], soon: q.data ? EXTERNAL.filter((p) => !on[p]) : [], checking: q.isLoading, simulated: false };
   }
-  if (DEMO_MODE) return { methods: [...SOCIAL, 'email'] as SignInProvider[], soon: [], checking: false, simulated: true };
-  return { methods: ['email'] as SignInProvider[], soon: [...SOCIAL], checking: false, simulated: false };
+  if (DEMO_MODE) return { methods: [...EXTERNAL, 'email'] as SignInProvider[], soon: [], checking: false, simulated: true };
+  return { methods: ['email'] as SignInProvider[], soon: [...EXTERNAL], checking: false, simulated: false };
 }
 
 /**
@@ -54,7 +57,7 @@ export function SignInChoices({ intent = 'create' }: { intent?: SignInIntent }) 
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { methods, soon, checking, simulated } = useSignInMethods();
-  const [sheet, setSheet] = useState<Exclude<SignInProvider, 'email'> | null>(null);
+  const [sheet, setSheet] = useState<Social | null>(null);
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState<SignInProvider | null>(null);
   const clean = email.trim().toLowerCase();
@@ -64,6 +67,12 @@ export function SignInChoices({ intent = 'create' }: { intent?: SignInIntent }) 
 
   const press = (p: SignInProvider) => {
     if (p === 'email') { router.push({ pathname: '/onboarding/email', params: { mode: intent === 'create' ? 'signup' : 'signin' } }); return; }
+    // Phone: its own screen (number, then the SMS code), real or simulated.
+    if (p === 'phone') {
+      if (CLOUD || DEMO_MODE) router.push('/onboarding/phone');
+      else say(t('signin.notConfigured', { provider: t('signin.provider.phone') }));
+      return;
+    }
     if (CLOUD) { void real(p); return; }
     if (DEMO_MODE) { setEmail(''); setSheet(p); return; }
     const msg = t('signin.notConfigured', { provider: NAME[p] });
@@ -71,7 +80,7 @@ export function SignInChoices({ intent = 'create' }: { intent?: SignInIntent }) 
   };
 
   /** Real sign-in: Google and Facebook through Supabase once switched on; Apple waits for the Apple Developer account. */
-  const real = async (p: Exclude<SignInProvider, 'email'>) => {
+  const real = async (p: Social) => {
     if (p === 'apple') { say(t('cloud.appleSoon')); return; }
     setBusy(p);
     try {
@@ -102,7 +111,7 @@ export function SignInChoices({ intent = 'create' }: { intent?: SignInIntent }) 
           <GoogleWebButton fallback={fallback} onSignedIn={(has) => { qc.clear(); afterSignIn(has); }} onError={() => say(t('cloud.err.generic'))} />
         ) } : undefined} />
       {checking ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.checking')}</Text> : null}
-      {soon.length ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.soon', { list: soon.map((p) => NAME[p]).join(', ') })}</Text> : null}
+      {soon.length ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.soon', { list: soon.map((p) => (p === 'phone' ? t('signin.provider.phone') : NAME[p])).join(', ') })}</Text> : null}
       {simulated ? <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('entry.demoMethods')}</Text> : null}
       <Sheet visible={!!sheet} onClose={() => setSheet(null)}>
         {sheet ? (
