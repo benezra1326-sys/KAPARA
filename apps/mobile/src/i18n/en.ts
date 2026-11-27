@@ -1141,7 +1141,7 @@ const en: DeepPartial<typeof fr> = {
     day: 'Day',
     month: 'Month',
     year: 'Year',
-    birthHint: 'Only your age is shown.',
+    birthHint: 'ZIV is for people aged 18 and over. Only your age is shown, never the date.',
     badDate: 'This date doesn’t look valid.',
     tooYoung: 'You must be at least {{min}}.',
     gender: 'I am',
@@ -1512,5 +1512,67 @@ const en: DeepPartial<typeof fr> = {
     homeBody: 'Your city appears on your profile and decides who you meet in Pour toi. Only the city is shown, never the neighbourhood.',
     moiHint: '{{city}} · another city with Plus',
   },
+  // beta:start (bêta publique : âge, environnements, aide, règles)
+  beta: {
+    underage: {
+      title: "ZIV is for adults only",
+      body: "You need to be at least {{min}} to join ZIV. Thank you for your interest: we will be glad to welcome you then.",
+      nothingKept: "Nothing you entered is kept: the account being created and the birth date are erased.",
+      error: "The account being created could not be erased. Check your connection and try again.",
+      retry: "Try again",
+      back: "Back to the welcome screen",
+    },
+    env: {
+      demo: "Demo · nothing leaves this device",
+      test: "Test database · demo profiles labelled",
+      api: "ZIV server · {{host}}",
+    },
+    config: {
+      title: "Incomplete configuration",
+      body: "This version of ZIV is not connected to its server. It does not open rather than show fictional data.",
+    },
+    save: {
+      saving: "Saving…",
+      saved: "Saved",
+      failed: "Could not save",
+      retry: "Try again",
+      failedTitle: "Not saved",
+      failedBody: "The change could not be saved. Check your connection and try again.",
+    },
+    delete: {
+      failedTitle: "Account not deleted",
+      failedBody: "The deletion did not go through. Nothing was half-erased: try again, or write to support if it keeps happening.",
+    },
+    live: {
+      offTitle: "Live is coming soon",
+      offBody: "Audio and video calls will open as soon as the calling service is in place. No call is simulated in the meantime.",
+    },
+    help: {
+      title: "Help and rules",
+      contact: "Write to support",
+      notSet: "Support address coming before the public opening.",
+    },
+    legal: {
+      draft: "Working draft, to be validated by a legal professional before the public opening.",
+      write: "Write to {{email}}",
+      privacy: {
+        title: "Privacy",
+        body: "ZIV only asks for what helps introduce you to people: first name, birth date (only your age is shown), gender, city, photos and the answers you choose to give.\n\nAnswers about Jewish life are optional and private by default. Each one is stored only after your explicit consent, and you choose who sees it and whether it is used for suggestions. Withdrawing consent erases the answer.\n\nCrossed uses your location only while the app is open, if you turn it on, rounded and never shown: nobody sees where or when you crossed someone. You can turn it off and erase the history at any time.\n\nPhotos are stripped of their metadata (including GPS location) on your phone before they are sent.\n\nYour data is neither sold nor sent to an artificial intelligence service. Deleting your account erases your profile, photos, answers, conversations and preferences.",
+      },
+      terms: {
+        title: "Terms of use",
+        body: "ZIV is for adults (18 and over). By creating an account, you confirm you are at least 18 and give accurate information about yourself.\n\nYou remain responsible for what you post and for your conversations. Paid plans are not open yet: no payment is requested during the beta.\n\nZIV may hide a profile or suspend an account that breaks the community rules, after reviewing a report.\n\nThe final text (publisher, governing law, mediation, termination) will be published before the public opening.",
+      },
+      rules: {
+        title: "Community rules",
+        body: "Respect first: no insults, harassment, hateful speech, pressure or requests for money.\n\nBe yourself: your own photos, your real first name and your real age. No fake profiles, no profile for someone else.\n\nConsent matters: an invitation can be declined without explanation; the camera only turns on if you choose; an introduction by a friend only goes ahead if both people accept.\n\nTap “Report” on a profile, in a conversation or after a call. A report blocks the person by default and is reviewed by the team.",
+      },
+      safety: {
+        title: "Safety and account deletion",
+        body: "If you are in immediate danger, call emergency services (112 in Europe).\n\nReport: from a profile, a conversation or a call. The person is blocked for you at once, everywhere in ZIV. The team reviews every report and may hide a profile, remove a photo or suspend an account.\n\nBlock: the person no longer sees you, and your ongoing conversations and introductions close, without them being told.\n\nDelete your account: Me › Account › Delete my account. Your profile, photos and conversations are erased; a report received about you may be kept while it is reviewed, without your profile data.",
+      },
+    },
+  },
+  // beta:end
 };
 export default en;

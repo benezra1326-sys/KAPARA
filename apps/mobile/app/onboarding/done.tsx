@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { space } from '@kapara/design';
+import { ApiError } from '../../src/api/client';
 import { useSaveMe } from '../../src/me/api';
 import type { JLKey } from '../../src/me/fields';
 import { meStore, useMe } from '../../src/me/store';
@@ -21,7 +22,11 @@ export default function OnbDone() {
     const s = meStore.get();
     save.mutate(
       { force: true, basics: true, grant: Object.keys(s.consents) as JLKey[], answers: s.jewishLife, photos: true },
-      { onSuccess: () => { meStore.set({ onboarded: true }); router.replace('/'); if (to !== '/') router.push(to); } },
+      {
+        onSuccess: () => { meStore.set({ onboarded: true }); router.replace('/'); if (to !== '/') router.push(to); },
+        // The server applies the 18+ rule too (and has already deleted the account being created).
+        onError: (e) => { if (e instanceof ApiError && e.code === 'adults_only') router.replace('/onboarding/underage'); },
+      },
     );
   };
   return (

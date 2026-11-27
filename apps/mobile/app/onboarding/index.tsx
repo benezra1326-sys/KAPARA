@@ -12,7 +12,7 @@ import { DEMO_MODE } from '../../src/api/client';
 import { CLOUD } from '../../src/cloud/client';
 import { useMe } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
-import { BrandMark, Button, MeetWays, Sheet, Text, useLayout, Wordmark } from '../../src/ui';
+import { BrandMark, Button, EnvBadge, MeetWays, Sheet, Text, useLayout, Wordmark } from '../../src/ui';
 
 const EASE = Easing.out(Easing.cubic);
 
@@ -90,6 +90,7 @@ export default function Welcome() {
       <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center', marginTop: space.xs }}>
         {t('entry.privacy')}{DEMO_MODE && !CLOUD ? `\n${t('signin.demoNotice')}` : ''}
       </Text>
+      <EnvBadge />
     </Reveal>
   );
 

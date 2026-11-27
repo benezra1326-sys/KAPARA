@@ -21,3 +21,4 @@ export * from './MeetWays';
 export * from './CityPicker';
 export * from './imageFade';
 export * from './switchThumb';
+export * from './EnvBadge';

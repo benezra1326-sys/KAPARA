@@ -10,6 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed": "tsx prisma/seed.ts",
+    "purge-demo": "tsx prisma/purge-demo.ts",
     "test": "node --import tsx --test src/**/*.spec.ts"
   },
   "dependencies": {

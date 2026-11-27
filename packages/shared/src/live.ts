@@ -46,7 +46,8 @@ export const LiveSettings = z.object({
 export type LiveSettings = z.infer<typeof LiveSettings>;
 
 /** How calls are carried. `demo` = simulated, nothing is transmitted (announced in the UI). */
-export const LiveMode = z.enum(['livekit', 'demo']);
+/** `disabled`: production without a media server. Live is then off and said so, never simulated. */
+export const LiveMode = z.enum(['livekit', 'demo', 'disabled']);
 export type LiveMode = z.infer<typeof LiveMode>;
 
 export const LiveStatus = z.object({

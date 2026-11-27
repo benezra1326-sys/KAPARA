@@ -12,14 +12,18 @@ const AUDIO_VIDEO = [TrackSource.MICROPHONE, TrackSource.CAMERA];
  * Media rooms. Camera consent is enforced by the media server, not only by
  * the app: tokens allow the microphone only, and the camera source is
  * granted to both participants only once both accepted video.
- * Without LIVEKIT_* variables, everything runs in an announced demo mode.
+ * Without LIVEKIT_* variables: an announced demo mode in development, Live off in production.
  */
 @Injectable()
 export class LiveKitService {
   private readonly log = new Logger(LiveKitService.name);
   private rooms?: RoomServiceClient;
 
-  get mode(): 'livekit' | 'demo' { return liveKitConfigured() ? 'livekit' : 'demo'; }
+  /** Simulated media only outside production; production without LiveKit switches Live off. */
+  get mode(): 'livekit' | 'demo' | 'disabled' {
+    if (liveKitConfigured()) return 'livekit';
+    return env().NODE_ENV === 'production' ? 'disabled' : 'demo';
+  }
 
   async join(room: string, identity: string): Promise<JoinInfo> {
     if (!liveKitConfigured()) return { mode: 'demo', room, notice: 'demo_call_simulated' };

@@ -94,6 +94,7 @@ export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     if (!b) return { ok: false, error: 'invalid_input' };
     const me = s.data.userId as string;
     if (b.available) {
+      if (this.livekit.mode === 'disabled') return { ok: false, error: 'live_unavailable' };
       const facts = (await this.repo.facts([me])).get(me);
       if (!facts?.liveEnabled || facts.paused) return { ok: false, error: 'live_disabled' };
     }
@@ -125,6 +126,7 @@ export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const b = parse(P.invite, body);
     if (!b) return { ok: false, error: 'invalid_input' };
     const me = s.data.userId as string;
+    if (this.livekit.mode === 'disabled') return { ok: false, error: 'live_unavailable' };
     const refusal = this.calls.check(me, b.to)
       ?? (this.presence.isAvailable(b.to) ? null : 'not_available')
       ?? (await this.policy(me, b.to));

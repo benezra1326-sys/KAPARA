@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { LAUNCH_REGION } from '@kapara/config';
+import { ageNow, LAUNCH_REGION } from '@kapara/config';
 import type { Gender, JewishLife, Prompt, ProfileUpdate, Visibility } from '@kapara/shared';
 import { DEMO_MODE } from '../api/client';
 import { CLOUD } from '../cloud/client';
@@ -90,18 +90,19 @@ export function useMe<T = MyProfile>(select: (s: MyProfile) => T = (s) => s as u
   return useSyncExternalStore(meStore.subscribe, () => select(state), () => select(state));
 }
 
+/** Device time zone (IANA), so the 18+ rule uses the member's local date. */
+export const deviceTimeZone = (): string | undefined => {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; } catch { return undefined; }
+};
+
+/** Age in calendar years on the device's local date (same rule as the API: @kapara/config checkAge). */
 export function ageFrom(birthDate?: string, now = new Date()): number | null {
   if (!birthDate) return null;
-  const d = new Date(`${birthDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  let age = now.getFullYear() - d.getFullYear();
-  const m = now.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
-  return age;
+  return ageNow(birthDate, deviceTimeZone(), now);
 }
 
 /** Full basics payload for PUT /profiles/me, or null while something required is missing. */
 export function basicsPayload(s: MyProfile): ProfileUpdate | null {
   if (!s.firstName || !s.birthDate || !s.gender) return null;
-  return { firstName: s.firstName, birthDate: s.birthDate, gender: s.gender, headline: s.headline || undefined, languages: s.languages, prompts: s.prompts as ProfileUpdate['prompts'], regionCode: s.regionCode };
+  return { firstName: s.firstName, birthDate: s.birthDate, gender: s.gender, headline: s.headline || undefined, languages: s.languages, prompts: s.prompts as ProfileUpdate['prompts'], regionCode: s.regionCode, timeZone: deviceTimeZone() };
 }

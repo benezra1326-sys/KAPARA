@@ -1,6 +1,21 @@
 import type { ExpoConfig } from 'expo/config';
 // Brand is centralised: rename the app in packages/config/src/brand.json.
 import brand from '../../packages/config/src/brand.json';
+// The .ts extension is required: Expo loads this file without resolving other TypeScript modules.
+// @ts-expect-error TS5097 (extension needed at runtime, see above)
+import { checkAppEnv } from '../../packages/config/src/backend.ts';
+
+// One explicit backend per build (demo | test | api). A production build that
+// is not on the real API, or has no real https address, is refused here.
+const env = checkAppEnv(process.env);
+if (process.env.EAS_BUILD_PROFILE === 'production' && env.appEnv !== 'production') {
+  env.errors.push('The EAS "production" profile must set EXPO_PUBLIC_APP_ENV=production.');
+}
+if (env.errors.length) {
+  const msg = `ZIV configuration (${env.appEnv}, backend ${env.backend}):\n- ${env.errors.join('\n- ')}`;
+  if (env.appEnv === 'production' || process.env.EAS_BUILD_PROFILE === 'production') throw new Error(msg);
+  console.warn(msg);
+}
 
 const CAMERA = `${brand.name} n’utilise l’appareil photo que si vous prenez une photo de profil ou acceptez la vidéo pendant un appel.`;
 
@@ -46,7 +61,7 @@ const config: ExpoConfig = {
     }],
   ],
   experiments: { typedRoutes: true },
-  extra: { apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000' },
+  extra: { apiUrl: env.apiUrl, backend: env.backend, appEnv: env.appEnv },
 };
 
 export default config;

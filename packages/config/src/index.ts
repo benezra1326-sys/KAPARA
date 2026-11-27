@@ -6,6 +6,9 @@
 import brand from './brand.json';
 
 export const APP = brand;
+export * from './age';
+export * from './support';
+export * from './backend';
 
 export type LocaleCode = 'fr' | 'en' | 'he';
 export const SUPPORTED_LOCALES: LocaleCode[] = ['fr', 'en', 'he'];
@@ -52,6 +55,7 @@ export const LAUNCH_REGION = REGIONS[0]!;
 
 /** Product rules shared by app and API. */
 export const RULES = {
+  /** Members must be adults. Same value as MIN_AGE (age.ts). */
   minAge: 18,
   /** "Croisés": two members are considered crossed under this distance… */
   crossedRadiusMeters: 250,

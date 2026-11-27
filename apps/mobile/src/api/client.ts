@@ -4,9 +4,16 @@ import { useSyncExternalStore } from 'react';
 import type { AuthTokens, OtpRequestResult } from '@kapara/shared';
 import { Session, type SessionStatus, type StoredSession } from './session';
 
-export const API_BASE = (Constants.expoConfig?.extra?.apiUrl as string | undefined) ?? 'http://localhost:3000';
-/** Demo mode: the app runs on local fictional data, no server needed. EXPO_PUBLIC_DEMO=0 connects to the API. */
-export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO !== '0';
+import { BACKEND, ENV } from '../env';
+
+/** ZIV API address. Empty unless the build uses EXPO_PUBLIC_BACKEND=api (production never falls back to localhost). */
+export const API_BASE = BACKEND === 'api' ? ((Constants.expoConfig?.extra?.apiUrl as string | undefined) || ENV.apiUrl) : '';
+/**
+ * Local fictional data for the features that have no server in this build:
+ * everything with BACKEND=demo; Croisés, Live and introductions with
+ * BACKEND=test (Supabase does not cover them yet). Always false with the API.
+ */
+export const DEMO_MODE = BACKEND !== 'api';
 
 /**
  * API error. `code` is the machine-readable reason (`invalid_code`,

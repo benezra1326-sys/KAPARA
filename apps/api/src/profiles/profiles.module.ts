@@ -1,8 +1,8 @@
 import {
-  BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, Module, NotFoundException, Param, Put, Post, Req, UseGuards,
+  BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpCode, Module, NotFoundException, Param, Put, Post, Req, UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
-import { RULES } from '@kapara/config';
+import { checkAge, isTimeZone, localDate, REGIONS, RULES } from '@kapara/config';
 import {
   AccountSettings, ConsentGrant, JewishLife, JewishLifeField, LocationUpdate, PhotosUpdate, PreferencesInput, ProfileUpdate,
   PHOTO_LIMITS, SENSITIVE_POLICY_VERSION,
@@ -10,7 +10,6 @@ import {
 import { AccountsService } from '../auth/accounts.service';
 import { AuthGuard, CurrentUser, type AuthUser } from '../auth/auth.guard';
 import { SessionsService } from '../auth/sessions.service';
-import { ageOn } from '../common/age';
 import { ZodPipe } from '../common/zod.pipe';
 import { requestBase, type HttpRequest } from '../media/http';
 import { MediaModule } from '../media/media.module';
@@ -70,13 +69,27 @@ class ProfilesController {
     return v ? { ...v, birthDate: p.birthDate.toISOString().slice(0, 10), gender: p.gender } : null;
   }
 
-  /** Creates (end of onboarding) or edits the basic profile. */
+  /**
+   * Creates (end of onboarding) or edits the basic profile.
+   * 18+ rule, applied here whatever the client sent: age in calendar years on
+   * the member's local date (their time zone, else their city's, else UTC).
+   * A minor never gets a profile: an account still being created is deleted
+   * on the spot, so no partial profile or birth date is kept. The database
+   * refuses it too (trigger "profile_adults_only").
+   */
   @Put('me')
   async upsert(@CurrentUser() me: AuthUser, @Body(new ZodPipe(ProfileUpdate)) b: ProfileUpdate) {
+    const user = await this.prisma.user.findUnique({ where: { id: me.id }, select: { regionCode: true, profile: { select: { userId: true } } } });
+    const zone = isTimeZone(b.timeZone) ? b.timeZone : REGIONS.find((r) => r.code === (b.regionCode ?? user?.regionCode))?.timezone;
+    const verdict = checkAge(b.birthDate, localDate(zone));
+    if (!verdict.ok && verdict.reason === 'invalid_birth_date') throw new BadRequestException('invalid_birth_date');
+    if (!verdict.ok) {
+      // Existing adult profile: refuse the change, keep the profile as it was.
+      if (user?.profile) throw new ForbiddenException({ code: 'adults_only', accountDeleted: false });
+      await this.deleteEverything(me.id);
+      throw new ForbiddenException({ code: 'adults_only', accountDeleted: true });
+    }
     const birth = new Date(`${b.birthDate}T00:00:00Z`);
-    if (Number.isNaN(birth.getTime())) throw new BadRequestException('invalid_birth_date');
-    const age = ageOn(birth);
-    if (age < RULES.minAge || age > 120) throw new BadRequestException('adults_only');
     if (b.regionCode) await this.accounts.resolveRegion(b.regionCode);
     const data = { firstName: b.firstName, birthDate: birth, gender: b.gender, headline: b.headline ?? null, languages: b.languages, prompts: b.prompts };
     await this.prisma.$transaction([
@@ -183,11 +196,26 @@ class ProfilesController {
   /** Deletes the account and everything attached to it. Safety reports are kept. */
   @Delete('me')
   async deleteAccount(@CurrentUser() me: AuthUser) {
-    await this.sessions.revokeAll(me.id);
-    const files = await this.prisma.photo.findMany({ where: { profileId: me.id, storageKey: { not: null } }, select: { storageKey: true } });
-    await this.prisma.user.delete({ where: { id: me.id } });
+    const files = await this.deleteEverything(me.id);
+    return { ok: true, photosDeleted: files };
+  }
+
+  /**
+   * Account deletion: sessions, then the user row (every personal table
+   * cascades: profile, answers, consents, likes, messages, sightings, zones,
+   * preferences), then the photo files. Reports keep only opaque ids.
+   */
+  private async deleteEverything(userId: string): Promise<number> {
+    await this.sessions.revokeAll(userId);
+    const files = await this.prisma.photo.findMany({ where: { profileId: userId, storageKey: { not: null } }, select: { storageKey: true } });
+    await this.prisma.$transaction([
+      // Not linked by a foreign key: removed explicitly (the introducer's note mentions the member).
+      this.prisma.introduction.deleteMany({ where: { OR: [{ personAId: userId }, { personBId: userId }, { introducerId: userId }] } }),
+      this.prisma.callLog.deleteMany({ where: { OR: [{ callerId: userId }, { calleeId: userId }] } }),
+      this.prisma.user.deleteMany({ where: { id: userId } }),
+    ]);
     await this.storage.remove(files.map((f) => f.storageKey!));
-    return { ok: true };
+    return files.length;
   }
 
   @Get(':id')

@@ -5,15 +5,17 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, shadow, space } from '@kapara/design';
 import { CLOUD, deleteAccount, signOut as doSignOut, useAccountInfo, useRole } from '../../src/account';
-import { confirm } from '../../src/account/confirm';
+import { confirm, notify } from '../../src/account/confirm';
 import { loadPaused, savePaused } from '../../src/cloud/account';
-import { DEMO_MODE } from '../../src/api/client';
+import { api, DEMO_MODE } from '../../src/api/client';
+import { SUPPORT, supportConfigured } from '@kapara/config';
+import { Linking } from 'react-native';
 import { cityOf, nameAndAge } from '../../src/me/identity';
 import { useMe } from '../../src/me/store';
 import { openPaywall, usePlan } from '../../src/premium/store';
 import { photoSource } from '../../src/demo/images';
 import { appearance, useAppearance, useTheme } from '../../src/theme';
-import { Button, CitySheet, DemoBadge, Icon, Screen, Text } from '../../src/ui';
+import { Button, CitySheet, DemoBadge, EnvBadge, Icon, Screen, Text } from '../../src/ui';
 import { useBrowseRegion } from '../../src/me/browse';
 import { Row, Section, SwitchRow } from '../../src/ui/Rows';
 
@@ -31,10 +33,16 @@ export default function Me() {
   const [cityOpen, setCityOpen] = useState(false);
   const browse = useBrowseRegion();
   // With real accounts the pause is saved: a paused profile disappears from everyone's selection.
-  useEffect(() => { if (CLOUD) void loadPaused().then(setPausedState); }, []);
+  // With the API too (PUT /profiles/me/settings). A failed save puts the switch back and says so.
+  useEffect(() => {
+    if (CLOUD) void loadPaused().then(setPausedState);
+    else if (!DEMO_MODE) void api<{ paused?: boolean }>('/profiles/me').then((r) => setPausedState(!!r.paused)).catch(() => undefined);
+  }, []);
   const setPaused = (v: boolean) => {
     setPausedState(v);
-    if (CLOUD) void savePaused(v).catch(() => setPausedState(!v));
+    const undo = () => { setPausedState(!v); notify(t('beta.save.failedTitle'), t('beta.save.failedBody')); };
+    if (CLOUD) void savePaused(v).catch(undo);
+    else if (!DEMO_MODE) void api('/profiles/me/settings', { method: 'PUT', body: JSON.stringify({ paused: v }) }).catch(undo);
   };
   const go = (href: Href) => () => router.push(href);
   const photo = me.photos[0];
@@ -46,9 +54,12 @@ export default function Me() {
   const sub = plan.data?.subscribed ?? 'free';
   // The tabs layout clears cached data and returns to the welcome screen.
   const signOut = () => confirm(t('me.signOutTitle'), t(CLOUD ? 'cloud.signOutBody' : DEMO_MODE ? 'signin.signOutDemoBody' : 'me.signOutBody'), t('me.signOut'), t('common.cancel'), () => void doSignOut());
-  const forget = () => CLOUD
-    ? confirm(t('cloud.deleteTitle'), t('cloud.deleteBody'), t('cloud.delete'), t('common.cancel'), () => void deleteAccount())
-    : confirm(t('signin.forgetTitle'), t('signin.forgetBody'), t('signin.forget'), t('common.cancel'), () => void deleteAccount());
+  // The account is deleted on the server first; a refusal is shown, never a false "deleted".
+  const remove = () => void deleteAccount().catch(() => notify(t('beta.delete.failedTitle'), t('beta.delete.failedBody')));
+  const forget = () => DEMO_MODE && !CLOUD
+    ? confirm(t('signin.forgetTitle'), t('signin.forgetBody'), t('signin.forget'), t('common.cancel'), remove)
+    : confirm(t('cloud.deleteTitle'), t('cloud.deleteBody'), t('cloud.delete'), t('common.cancel'), remove);
+  const mail = (to: string) => () => { void Linking.openURL(`mailto:${to}`); };
   const via = account ? t('signin.connectedVia', { provider: t(`signin.provider.${account.provider ?? 'email'}`) }) + (account.email ? ` · ${account.email}` : '') : undefined;
 
   return (
@@ -117,8 +128,19 @@ export default function Me() {
         <SwitchRow first title={t('me.pause')} value={paused} onValueChange={setPaused} />
         {via ? <Row title={t('signin.account')} value={via} /> : null}
         <Row title={t('me.signOut')} onPress={signOut} trailing={null} />
-        {CLOUD && account ? <Row title={t('cloud.delete')} onPress={forget} trailing={null} /> : DEMO_MODE && account ? <Row title={t('signin.forget')} onPress={forget} trailing={null} /> : null}
+        {CLOUD && account ? <Row title={t('cloud.delete')} onPress={forget} trailing={null} /> : DEMO_MODE && account ? <Row title={t('signin.forget')} onPress={forget} trailing={null} /> : !DEMO_MODE ? <Row title={t('cloud.delete')} onPress={forget} trailing={null} /> : null}
       </Section>
+
+      <Section title={t('beta.help.title')}>
+        {supportConfigured()
+          ? <Row first title={t('beta.help.contact')} value={SUPPORT.email} onPress={mail(SUPPORT.email)} />
+          : <Row first title={t('beta.help.contact')} value={t('beta.help.notSet')} trailing={null} />}
+        <Row title={t('beta.legal.safety.title')} onPress={go('/legal/safety')} />
+        <Row title={t('beta.legal.rules.title')} onPress={go('/legal/rules')} />
+        <Row title={t('beta.legal.privacy.title')} onPress={go('/legal/privacy')} />
+        <Row title={t('beta.legal.terms.title')} onPress={go('/legal/terms')} />
+      </Section>
+      <View style={{ alignItems: 'center', marginBottom: space.xl }}><EnvBadge /></View>
     </Screen>
   );
 }
