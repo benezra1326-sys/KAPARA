@@ -42,6 +42,17 @@ export interface LiveTransport {
    * call (join + state events); the other requests stop.
    */
   search?(o: { fresh: boolean; filters: LiveSearchFilters; want: number; demo?: boolean }): Promise<Ack<{ pending: CallSnapshot[] }>>;
+  /**
+   * Live with a choice (since 27/11): profiles present in Live are proposed,
+   * the member picks who to call; up to 5 video calls ring at once and the
+   * first one who answers takes the call (the others stop).
+   * `liveHere` keeps me present (others can see and call me).
+   */
+  liveHere?(filters: LiveSearchFilters): Promise<Ack>;
+  liveSuggestions?(filters: LiveSearchFilters): Promise<Ack<{ members: LiveMember[] }>>;
+  liveCall?(peerId: string): Promise<Ack<{ pending: CallSnapshot[] }>>;
+  livePending?(): Promise<Ack<{ pending: CallSnapshot[] }>>;
+  liveCancel?(callId: string): Promise<Ack>;
   /** Leave Live: my pending requests stop and nobody can reach me through it. */
   searchStop?(): Promise<void>;
   /** May I choose gender and city? (paid plans) */

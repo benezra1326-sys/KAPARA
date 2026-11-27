@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { REGIONS } from '@kapara/config';
-import type { CallSnapshot, LiveSearchFilters } from '@kapara/shared';
+import type { CallSnapshot, LiveMember, LiveSearchFilters } from '@kapara/shared';
 import { radius, shadow, space } from '@kapara/design';
 import { Icon } from '../../src/live/icons';
 import { useLive, useLiveStore } from '../../src/live/LiveProvider';
 import { Pulse } from '../../src/live/Pulse';
 import { formatDuration, useNow } from '../../src/live/useNow';
 import { liveFiltersUpsell } from '../../src/live/quota';
-import { LIVE_PARALLEL_REQUESTS } from '../../src/live/store';
+import { LIVE_MAX_RINGING } from '../../src/live/store';
 import { useTheme } from '../../src/theme';
 import { Button, DemoBadge, EmptyState, Screen, Text } from '../../src/ui';
 import { photoSource } from '../../src/demo/images';
@@ -20,10 +20,10 @@ import { imageFade } from '../../src/ui/imageFade';
 import { cityOf } from '../../src/me/identity';
 
 /**
- * Live, Azar-style: no list of who is online. The member starts a search and
- * the app sends a few video requests at once to random members present in
- * Live; the first one who accepts starts the call, a "no" sends another one.
- * Free: anyone, anywhere. Paid plans choose gender and city.
+ * Live: profiles present now are proposed; the member chooses who to call in
+ * video. Up to five calls ring at once; the first one who answers takes the
+ * call, the others stop, and a call without an answer frees its place.
+ * Free: anyone, anywhere (gender sought always respected). Paid plans choose gender and city.
  * Consents stay separate: each person answers, and may keep the camera off.
  */
 export default function Live() {
@@ -46,21 +46,23 @@ export default function Live() {
     router.push({ pathname: '/call/[id]', params: { id: s.searchMatch } });
     store.clearSearchMatch();
   }, [s.searchMatch, router, store]);
-  // Leaving Live while searching stops the requests.
-  useFocusEffect(useCallback(() => () => { if (store.get().search.status === 'searching') void store.stopSearch(); }, [store]));
+  // On Live: fresh profiles. Leaving Live stops the calls still ringing.
+  useFocusEffect(useCallback(() => {
+    if (store.get().settings?.liveEnabled) void store.loadSuggestions();
+    return () => { if (store.get().search.status === 'searching' && !store.get().call) void store.cancelAllCalls(); };
+  }, [store]));
 
   const errorNotice = (
     <Pressable onPress={() => store.clearError()} accessibilityRole="alert" accessibilityLiveRegion="polite">
       <Notice tone={s.error === 'live_soon' ? 'highlight' : 'danger'} text={t(`live.errors.${s.error}`, { defaultValue: t('live.errors.unknown') })} />
     </Pressable>
   );
-  const nobodyForAWhile = searching && !s.search.demo && s.search.emptySince !== null && now - s.search.emptySince > 6_000;
 
   return (
-    <Screen title={t('live.title')} subtitle={t('liveRandom.subtitle')}
+    <Screen title={t('live.title')} subtitle={t('liveChoose.subtitle')}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.accent} />}>
       {/* Real build: calls between real members are real, so the demo notice is only for fictional profiles. */}
-      {s.local || (searching && s.search.demo) ? (
+      {s.local ? (
         <Notice tone="highlight" text={s.local ? t('live.demoLocalNotice') : t('live.demoNotice')} />
       ) : null}
       {s.connection === 'offline' && !s.local ? <Notice tone="danger" text={t('live.offline')} /> : null}
@@ -76,21 +78,11 @@ export default function Live() {
         <Intro onEnable={() => void store.saveSettings({ ...s.settings!, liveEnabled: true })} onSettings={() => router.push('/settings/live')} />
       ) : (
         <View style={{ gap: space.lg }}>
-          <SearchStage pending={s.search.pending} searching={searching} demo={s.search.demo}
-            onStart={() => void store.startSearch(false)} onStop={() => void store.stopSearch()} disabled={!!s.call} />
-          {/* Right under the button, so the answer to « Lancer » is on screen. */}
+          <ProfilesStage members={s.suggestions} status={s.suggestionsStatus} pending={s.search.pending} busy={!!s.call}
+            onCall={(m) => void store.callMember(m)} onCancel={(id) => void store.cancelCall(id)}
+            onCancelAll={() => void store.cancelAllCalls()} onMore={() => void store.loadSuggestions()} />
+          {/* Right under the profiles, so the answer to a call is on screen. */}
           {s.error && !s.call ? errorNotice : null}
-          {s.error === 'live_soon' && !searching ? (
-            <View style={{ alignItems: 'center' }}>
-              <Button kind="ghost" label={t('liveRandom.tryDemo')} onPress={() => { store.clearError(); void store.startSearch(true); }} />
-            </View>
-          ) : null}
-          {nobodyForAWhile ? (
-            <View style={{ marginHorizontal: space.lg, gap: space.sm, alignItems: 'center' }}>
-              <Text variant="caption" tone="textMuted" style={{ textAlign: 'center' }}>{t('liveRandom.nobody')}</Text>
-              <Button kind="ghost" label={t('liveRandom.tryDemo')} onPress={() => void store.startSearch(true)} />
-            </View>
-          ) : null}
           <Filters allowed={s.filtersAllowed === true} value={s.search.filters} onChange={(f) => store.setFilters(f)} />
         </View>
       )}
@@ -111,57 +103,98 @@ export default function Live() {
   );
 }
 
-/** The search: a calm card, one action. While searching, the people being called ring softly. */
-function SearchStage({ pending, searching, demo, onStart, onStop, disabled }: {
-  pending: CallSnapshot[]; searching: boolean; demo: boolean; onStart: () => void; onStop: () => void; disabled: boolean;
+/**
+ * Who is in Live now: a few proposed profiles. I choose who to call (video);
+ * up to five calls can ring at once, the first one who answers takes the call.
+ */
+function ProfilesStage({ members, status, pending, busy, onCall, onCancel, onCancelAll, onMore }: {
+  members: LiveMember[]; status: 'idle' | 'loading' | 'ready' | 'error'; pending: CallSnapshot[]; busy: boolean;
+  onCall: (m: LiveMember) => void; onCancel: (callId: string) => void; onCancelAll: () => void; onMore: () => void;
 }) {
   const { t } = useTranslation();
   const { c } = useTheme();
-  const slots = Array.from({ length: LIVE_PARALLEL_REQUESTS }, (_, i) => pending[i] ?? null);
+  const ringingBy = new Map(pending.map((p) => [p.peer.userId, p.callId]));
+  const full = pending.length >= LIVE_MAX_RINGING;
   return (
-    <View style={[{ marginHorizontal: space.lg, paddingVertical: space.xxl, paddingHorizontal: space.xl, borderRadius: radius.xl, backgroundColor: c.surface, alignItems: 'center', gap: space.xl }, shadow.card]}>
-      <View style={{ alignItems: 'center', gap: space.sm }}>
-        <Text variant="overline" tone="textSubtle">{searching ? t('liveRandom.searching') : t('liveRandom.overline')}</Text>
-        <Text variant="title" style={{ textAlign: 'center' }}>{t('liveRandom.title')}</Text>
-        <Text tone="textMuted" style={{ textAlign: 'center', maxWidth: 340 }}>
-          {searching ? t('liveRandom.ringing', { count: pending.length }) : t('liveRandom.body', { count: LIVE_PARALLEL_REQUESTS })}
-        </Text>
+    <View style={{ gap: space.lg }}>
+      <View style={{ marginHorizontal: space.lg, gap: space.xs }}>
+        <Text variant="heading">{t('liveChoose.title')}</Text>
+        <Text tone="textMuted">{t('liveChoose.body', { count: LIVE_MAX_RINGING })}</Text>
       </View>
 
-      <View accessibilityRole="list" accessibilityLabel={t('liveRandom.ringing', { count: pending.length })}
-        style={{ flexDirection: 'row', gap: space.lg, minHeight: 96, alignItems: 'center' }}>
-        {slots.map((p, i) => <Slot key={p?.callId ?? `empty-${i}`} call={p} searching={searching} />)}
-      </View>
-      {demo && searching ? <DemoBadge compact /> : null}
+      {pending.length ? (
+        <View style={{ marginHorizontal: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.md }} accessibilityLiveRegion="polite">
+          <View style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
+            <Pulse color={c.live} size={20} active />
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.live }} />
+          </View>
+          <Text variant="label" style={{ flex: 1 }}>{t('liveChoose.ringing', { count: pending.length, max: LIVE_MAX_RINGING })}</Text>
+          <Pressable onPress={onCancelAll} accessibilityRole="button" hitSlop={12} style={{ minHeight: 48, justifyContent: 'center' }}>
+            <Text variant="label" tone="accent">{t('liveChoose.stopAll')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
-      {searching ? (
-        <Button kind="secondary" label={t('liveRandom.stop')} onPress={onStop} style={{ alignSelf: 'stretch' }} />
+      {status === 'loading' && !members.length ? (
+        <ActivityIndicator color={c.accent} style={{ marginVertical: space.xl }} accessibilityLabel={t('common.loading')} />
+      ) : !members.length ? (
+        <EmptyState title={t('liveChoose.emptyTitle')} body={t('liveChoose.emptyBody')} action={{ label: t('liveChoose.more'), onPress: onMore }} />
       ) : (
-        <Pressable onPress={onStart} disabled={disabled} accessibilityRole="button" accessibilityLabel={t('liveRandom.start')}
-          accessibilityHint={t('liveRandom.startHint')} accessibilityState={{ disabled }}
-          style={({ pressed }) => ({ alignSelf: 'stretch', minHeight: 56, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm,
-            backgroundColor: pressed ? c.accentPressed : c.accent, opacity: disabled ? 0.45 : 1 })}>
-          <Icon name="video" size={20} color={c.onAccent} />
-          <Text variant="bodyStrong" style={{ color: c.onAccent }}>{t('liveRandom.start')}</Text>
-        </Pressable>
+        <View accessibilityRole="list" style={{ paddingHorizontal: space.lg, flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
+          {members.map((m) => {
+            const callId = ringingBy.get(m.userId);
+            return <ProfileCard key={m.userId} m={m} ringing={!!callId} disabled={busy || (!callId && full)}
+              onCall={() => onCall(m)} onCancel={() => callId && onCancel(callId)} />;
+          })}
+        </View>
       )}
-      <Text variant="caption" tone="textSubtle" style={{ textAlign: 'center' }}>{t('live.inviteHint')}</Text>
+
+      {members.length ? (
+        <View style={{ alignItems: 'center' }}>
+          <Button kind="ghost" label={t('liveChoose.more')} onPress={onMore} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
-function Slot({ call, searching }: { call: CallSnapshot | null; searching: boolean }) {
+function ProfileCard({ m, ringing, disabled, onCall, onCancel }: { m: LiveMember; ringing: boolean; disabled: boolean; onCall: () => void; onCancel: () => void }) {
+  const { t } = useTranslation();
   const { c } = useTheme();
-  const size = 76;
+  const city = m.regionCode ? cityOf(m.regionCode) : null;
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}
-      accessibilityLabel={call ? `${call.peer.firstName}, ${call.peer.age}` : undefined}>
-      <Pulse color={c.live} size={size} active={searching && !!call} />
-      <View style={{ width: size - 8, height: size - 8, borderRadius: (size - 8) / 2, overflow: 'hidden', backgroundColor: c.surfaceAlt,
-        borderWidth: 1, borderColor: call ? c.live : c.border, alignItems: 'center', justifyContent: 'center' }}>
-        {call?.peer.photoUrl ? (
-          <Image source={photoSource(call.peer.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(300)} />
-        ) : searching ? <ActivityIndicator color={c.textSubtle} /> : <Icon name="video" size={20} color={c.textSubtle} />}
+    <View style={[{ flexGrow: 1, flexBasis: '45%', maxWidth: 260, borderRadius: radius.lg, backgroundColor: c.surface, overflow: 'hidden' }, shadow.card]}>
+      <View style={{ aspectRatio: 4 / 5, backgroundColor: c.surfaceAlt }}>
+        {m.photoUrl ? (
+          <Image source={photoSource(m.photoUrl)} style={{ width: '100%', height: '100%' }} contentFit="cover" contentPosition="top" transition={imageFade(250)}
+            accessibilityLabel={m.firstName} />
+        ) : null}
+        <View style={{ position: 'absolute', top: space.sm, left: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.xs,
+          paddingHorizontal: space.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.live }} />
+          <Text variant="caption" style={{ color: '#fff' }}>{t('liveChoose.online')}</Text>
+        </View>
+      </View>
+      <View style={{ padding: space.md, gap: space.xs }}>
+        <Text variant="bodyStrong" numberOfLines={1}>{`${m.firstName}, ${m.age}`}</Text>
+        {city ? <Text variant="caption" tone="textMuted" numberOfLines={1}>{city}</Text> : null}
+        {m.isDemo ? <DemoBadge compact /> : null}
+        {ringing ? (
+          <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel={`${t('liveChoose.cancel')} : ${m.firstName}`}
+            style={({ pressed }) => ({ minHeight: 48, marginTop: space.xs, borderRadius: radius.pill, borderWidth: 1, borderColor: c.live,
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, backgroundColor: pressed ? c.surfaceAlt : 'transparent' })}>
+            <ActivityIndicator color={c.live} size="small" />
+            <Text variant="label">{t('liveChoose.ringingOne')}</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={onCall} disabled={disabled} accessibilityRole="button" accessibilityLabel={`${t('liveChoose.call')} : ${m.firstName}`}
+            accessibilityHint={m.isDemo ? t('liveChoose.demoHint') : t('live.inviteHint')} accessibilityState={{ disabled }}
+            style={({ pressed }) => ({ minHeight: 48, marginTop: space.xs, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm,
+              backgroundColor: pressed ? c.accentPressed : c.accent, opacity: disabled ? 0.45 : 1 })}>
+            <Icon name="video" size={18} color={c.onAccent} />
+            <Text variant="label" style={{ color: c.onAccent }}>{t('liveChoose.call')}</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

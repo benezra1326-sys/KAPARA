@@ -12,6 +12,7 @@ export const DEMO_LIVE_MEMBERS: LiveMember[] = DEMO_PICKS.map((r) => ({
   photoUrl: r.profile.photos[0]?.url,
   verified: r.profile.verified,
   isDemo: true,
+  regionCode: r.profile.regionCode,
 }));
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -99,6 +100,44 @@ export class DemoTransport implements LiveTransport {
       if (Math.random() < 0.6) this.laterSearch(2500 + Math.random() * 4500, () => this.dropPending(snap.callId, true));
     }
     return { ok: true, pending: this.pending.map((p) => ({ ...p })) };
+  }
+
+  /* --- Live with a choice, simulated (fictional profiles, announced) --- */
+  async liveHere(): Promise<Ack> { return this.settings.liveEnabled ? { ok: true } : { ok: false, error: 'live_disabled' }; }
+
+  async liveSuggestions(): Promise<Ack<{ members: LiveMember[] }>> {
+    if (!this.settings.liveEnabled) return { ok: false, error: 'live_disabled' };
+    const ringing = new Set(this.pending.map((p) => p.peer.userId));
+    return { ok: true, members: [...DEMO_LIVE_MEMBERS].filter((m) => !ringing.has(m.userId)).sort(() => Math.random() - 0.5) };
+  }
+
+  /** A fictional member "rings": some say no after a few seconds, some say yes. */
+  async liveCall(peerId: string): Promise<Ack<{ pending: CallSnapshot[] }>> {
+    if (!this.settings.liveEnabled) return { ok: false, error: 'live_disabled' };
+    if (this.call) return { ok: false, error: 'not_allowed' };
+    const peer = DEMO_LIVE_MEMBERS.find((m) => m.userId === peerId);
+    if (!peer) return { ok: false, error: 'not_available' };
+    if (!this.pending.some((p) => p.peer.userId === peerId)) {
+      if (this.pending.length >= 5) return { ok: false, error: 'too_many_calls' };
+      const snap: CallSnapshot = { callId: `demo-${Date.now()}-${peer.userId}`, state: 'invited', peer, direction: 'outgoing', mode: 'video' };
+      this.pending.push(snap);
+      if (Math.random() < 0.5) this.laterSearch(4000 + Math.random() * 5000, () => this.acceptPending(snap.callId));
+      else this.laterSearch(3000 + Math.random() * 4000, () => this.dropPending(snap.callId, true));
+    }
+    return this.livePending();
+  }
+
+  async livePending(): Promise<Ack<{ pending: CallSnapshot[] }>> { return { ok: true, pending: this.pending.map((p) => ({ ...p })) }; }
+  async liveCancel(callId: string): Promise<Ack> { this.dropPending(callId, false); return { ok: true }; }
+
+  private acceptPending(callId: string) {
+    const chosen = this.pending.find((p) => p.callId === callId);
+    if (!chosen || this.call) return;
+    this.stopSearchTimers();
+    this.pending = [];
+    this.call = { ...chosen };
+    this.set('accepted');
+    this.connect2(chosen.callId, true);
   }
 
   async searchStop() { this.stopSearchTimers(); this.pending = []; }

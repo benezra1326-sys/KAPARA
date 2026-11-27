@@ -16,8 +16,10 @@ export interface LiveSearch {
   filters: LiveSearchFilters;
 }
 
-/** How many requests ring at the same time. */
+/** How many requests ring at the same time (random search). */
 export const LIVE_PARALLEL_REQUESTS = 3;
+/** Live with a choice: how many calls I can make ring at once. */
+export const LIVE_MAX_RINGING = 5;
 
 export interface LiveState {
   /** demo = nothing is transmitted. `local` = no server at all (fictional members). */
@@ -40,6 +42,9 @@ export interface LiveState {
   filtersAllowed: boolean | null;
   /** Someone accepted one of my random requests: the Live screen opens this call. */
   searchMatch: string | null;
+  /** Profiles present in Live, proposed to call (real first, fictional ones flagged). */
+  suggestions: LiveMember[];
+  suggestionsStatus: 'idle' | 'loading' | 'ready' | 'error';
 }
 
 const initial = (local: boolean): LiveState => ({
@@ -48,6 +53,7 @@ const initial = (local: boolean): LiveState => ({
   members: [], membersStatus: 'idle',
   call: null, join: null, connectedAt: null, lastEnded: null, error: null,
   search: { status: 'idle', pending: [], demo: false, emptySince: null, filters: {} }, filtersAllowed: null, searchMatch: null,
+  suggestions: [], suggestionsStatus: 'idle',
 });
 
 const TERMINAL = new Set(['ended', 'declined', 'expired']);
@@ -57,6 +63,7 @@ export class LiveStore {
   private state: LiveState;
   private readonly listeners = new Set<() => void>();
   private heartbeatTimer?: ReturnType<typeof setInterval>;
+  private presenceTimer?: ReturnType<typeof setInterval>;
   private context: CallContext = 'live';
   private pendingJoinFor: string | null = null;
   private onIncoming?: (call: CallSnapshot) => void;
@@ -105,8 +112,72 @@ export class LiveStore {
   async start() {
     await this.t.connect();
     this.heartbeatTimer = setInterval(() => void this.beat(), 30_000);
+    // With Live turned on, I stay present while the app is open: others can see me and call me.
+    this.presenceTimer = setInterval(() => {
+      if (this.state.settings?.liveEnabled && !this.state.call) void this.t.liveHere?.(this.state.search.filters).catch(() => undefined);
+    }, 15_000);
   }
-  stop() { clearInterval(this.heartbeatTimer); this.stopSearchLoop(); this.t.disconnect(); }
+  stop() { clearInterval(this.heartbeatTimer); clearInterval(this.presenceTimer); this.stopSearchLoop(); this.t.disconnect(); }
+
+  /* --- Live with a choice: proposed profiles, up to 5 calls ringing at once --- */
+  async loadSuggestions() {
+    if (!this.t.liveSuggestions) return;
+    this.patch({ suggestionsStatus: this.state.suggestions.length ? 'ready' : 'loading' });
+    const r = await this.t.liveSuggestions(this.state.search.filters).catch(() => ({ ok: false as const, error: 'offline' }));
+    if (!r.ok) { this.patch({ suggestionsStatus: 'error', error: r.error }); return; }
+    const ringing = new Set(this.state.search.pending.map((p) => p.peer.userId));
+    // Keep the people I am calling on screen, add the new ones after them.
+    const kept = this.state.suggestions.filter((m) => ringing.has(m.userId));
+    this.patch({ suggestions: [...kept, ...r.members.filter((m) => !ringing.has(m.userId))], suggestionsStatus: 'ready', error: null });
+  }
+
+  /** Call a proposed profile (video). The first one who answers takes the call. */
+  async callMember(m: LiveMember) {
+    if (!this.t.liveCall || this.state.call) return false;
+    this.patch({ error: null, lastEnded: null });
+    if (this.state.search.pending.length >= LIVE_MAX_RINGING) { this.patch({ error: 'too_many_calls' }); return false; }
+    const allowed = await callQuota().check({ mode: 'video', context: 'live' });
+    if (!allowed.ok) { this.patch({ error: allowed.reason }); return false; }
+    const r = await this.t.liveCall(m.userId).catch(() => ({ ok: false as const, error: 'offline' }));
+    if (!r.ok) {
+      // Someone who is no longer reachable leaves the list: the place is free for another profile.
+      if (r.error === 'not_available') this.patch({ suggestions: this.state.suggestions.filter((x) => x.userId !== m.userId) });
+      this.patch({ error: r.error });
+      return false;
+    }
+    this.context = 'live';
+    this.setRinging(r.pending);
+    if (!this.searchTimer) this.searchTimer = setInterval(() => void this.pollRinging(), 2000);
+    return true;
+  }
+
+  async cancelCall(callId: string) {
+    await this.t.liveCancel?.(callId).catch(() => undefined);
+    this.setRinging(this.state.search.pending.filter((p) => p.callId !== callId));
+  }
+
+  async cancelAllCalls() {
+    const ids = this.state.search.pending.map((p) => p.callId);
+    this.setRinging([]);
+    await Promise.all(ids.map((id) => this.t.liveCancel?.(id).catch(() => undefined)));
+  }
+
+  private async pollRinging() {
+    if (!this.t.livePending || this.state.call) return;
+    const r = await this.t.livePending().catch(() => null);
+    if (!r?.ok || this.state.call || this.state.search.status !== 'searching') return;
+    this.setRinging(r.pending);
+  }
+
+  /** Update the ringing calls; a call that stopped without an answer frees its place. */
+  private setRinging(pending: CallSnapshot[]) {
+    const still = new Set(pending.map((p) => p.peer.userId));
+    const gone = new Set(this.state.search.pending.filter((p) => !still.has(p.peer.userId)).map((p) => p.peer.userId));
+    const suggestions = this.state.suggestions.filter((m) => !gone.has(m.userId));
+    this.patch({ suggestions, search: { ...this.state.search, pending, status: pending.length ? 'searching' : 'idle', demo: false, emptySince: null } });
+    if (!pending.length) this.stopSearchLoop();
+    if (gone.size && suggestions.length < 4) void this.loadSuggestions();
+  }
 
   /* --- Live "au hasard" --- */
   get canSearch() { return typeof this.t.search === 'function'; }
@@ -120,7 +191,7 @@ export class LiveStore {
 
   setFilters(filters: LiveSearchFilters) {
     this.patch({ search: { ...this.state.search, filters } });
-    if (this.state.search.status === 'searching') void this.tick(true);
+    void this.loadSuggestions();
   }
 
   /** Start sending random video requests. `demo`: with fictional profiles. */
@@ -193,6 +264,7 @@ export class LiveStore {
     this.patch({ settings: s, error: null }); // optimistic
     try {
       this.patch({ settings: await this.t.saveSettings(s) });
+      if (s.liveEnabled) void this.loadSuggestions();
       if (!s.liveEnabled && this.state.availableUntil) await this.setAvailable(false);
       return true;
     } catch {
@@ -246,6 +318,8 @@ export class LiveStore {
       if (this.state.search.status === 'searching') {
         this.context = 'live';
         if (call.direction === 'outgoing') this.patch({ searchMatch: call.callId });
+        // The first answer takes the call: every other ringing call stops (fictional ones included).
+        void this.t.searchStop?.().catch(() => undefined);
       }
       this.pauseSearch();
     }
@@ -257,12 +331,9 @@ export class LiveStore {
         lastEnded: { peer: call.peer, state: call.state as EndedCall['state'], durationSec, direction: call.direction },
       });
       void this.loadMembers();
-      if (this.resumeSearch) {
-        this.resumeSearch = false;
-        // Declined or missed: back to searching. After a real conversation, the member decides.
-        if (!durationSec && call.direction === 'incoming') void this.startSearch(this.state.search.demo);
-        else void this.t.searchStop?.().catch(() => undefined);
-      }
+      this.resumeSearch = false;
+      // Back on Live: fresh profiles to choose from.
+      if (call.context === 'live' || this.context === 'live') void this.loadSuggestions();
       return;
     }
     const connectedAt = this.state.connectedAt ?? (call.state === 'connected' || call.state === 'video_on' ? Date.now() : null);
