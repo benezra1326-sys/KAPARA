@@ -5,6 +5,7 @@ import { api, DEMO_MODE } from '../api/client';
 import { loadPreferences, savePreferences } from '../cloud/account';
 import { CLOUD } from '../cloud/client';
 import { meStore } from './store';
+import { effectiveSeeks } from './seeks';
 
 /** What the member is looking for. Same shape as PUT /v1/preferences. */
 export type Prefs = PreferencesInput;
@@ -68,9 +69,10 @@ export function usePreferences() {
     queryFn: async (): Promise<Prefs & { isDefault?: boolean }> => {
       if (CLOUD) {
         const saved = await loadPreferences();
-        if (saved) return normalize(saved as Partial<Prefs>);
-        const g = meStore.get().gender;
-        return { ...demoPrefs, soft: {}, genders: g === 'woman' ? ['man'] : g === 'man' ? ['woman'] : ['woman', 'man'], isDefault: true };
+        // "Je recherche" (profile) and "Mes préférences" are the same answer.
+        const me = meStore.get();
+        if (saved) return normalize({ ...(saved as Partial<Prefs>), ...(me.seeks?.length ? { genders: me.seeks } : {}) });
+        return { ...demoPrefs, soft: {}, genders: effectiveSeeks(me.gender, me.seeks), isDefault: true };
       }
       if (DEMO_MODE) return demoPrefs;
       const r = await api<Prefs & { isDefault: boolean }>('/preferences');
