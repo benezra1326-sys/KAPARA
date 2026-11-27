@@ -3,7 +3,7 @@
 -- vidéo en même temps. La première personne qui répond prend l'appel, les autres sonneries s'arrêtent
 -- (call_respond), et une personne qui répond trop tard voit « appel manqué ».
 -- Gratuit : ni genre ni ville au choix (les filtres de live_here ne sont gardés que pour les abonnés).
--- Dans tous les cas, le genre recherché de chacun (members.seeks) est respecté, dans les deux sens.
+-- Dans tous les cas, « Je recherche » est respecté dans les deux sens (public.seeks_match).
 
 -- Qui je peux appeler maintenant (règle commune aux suggestions et à l'appel).
 create function public.live_can_call(me public.members, pres public.live_presence, m public.members, p public.live_presence)
@@ -15,9 +15,8 @@ returns boolean language sql stable security definer set search_path = '' as $$
     and not exists (select 1 from public.calls k where k.ended_at is null and k.state <> 'invited' and m.id in (k.caller_id, k.callee_id))
     -- une personne qui m'a dit non ne me revoit pas avant une heure
     and not exists (select 1 from public.calls k where k.caller_id = me.id and k.callee_id = m.id and k.state = 'declined' and k.created_at > now() - interval '1 hour')
-    -- genre recherché, dans les deux sens
-    and (coalesce(cardinality(me.seeks), 0) = 0 or m.gender = any(me.seeks))
-    and (coalesce(cardinality(m.seeks), 0) = 0 or me.gender = any(m.seeks))
+    -- « Je recherche », dans les deux sens (règle commune, migration 20261127150000)
+    and public.seeks_match(me, m)
     -- filtres du Live (abonnement) : les miens et les siens
     and (pres.want_gender is null or m.gender = pres.want_gender)
     and (pres.want_region is null or m.region_code = pres.want_region)

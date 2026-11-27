@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { useSyncExternalStore } from 'react';
 import { LAUNCH_REGION } from '@kapara/config';
 import { meStore, type MyProfile } from '../me/store';
+import { effectiveSeeks } from '../me/seeks';
 import type { MyPhoto } from '../me/photos';
 import { CLOUD, must, sb, signupFn } from './client';
 
@@ -38,13 +39,13 @@ type Row = {
 /** Photos still uploading or only on this device (blob:, file:) are not saved. */
 const savedPhotos = (list: MyPhoto[]) => list.filter((p) => !p.status && /^https?:\/\//.test(p.url)).map(({ id, url, caption }) => ({ id, url, ...(caption ? { caption } : {}), isDemo: false }));
 
-const SEEKS: Record<string, string[]> = { woman: ['man'], man: ['woman'], nonbinary: [] };
-
 function toRow(id: string, p: MyProfile, provider: string) {
   return {
     id, first_name: p.firstName.slice(0, 40), gender: p.gender ?? null, birth_date: p.birthDate ?? null, region_code: p.regionCode,
     headline: p.headline.slice(0, 140), languages: p.languages, prompts: p.prompts, photos: savedPhotos(p.photos as MyPhoto[]),
     jewish_life: p.jewishLife, consents: p.consents, onboarded: p.onboarded, provider,
+    // "Je recherche": asked at sign-up; until then a default from the member's gender.
+    seeks: effectiveSeeks(p.gender, p.seeks),
     last_seen_at: new Date().toISOString(),
   };
 }
@@ -52,22 +53,20 @@ function toRow(id: string, p: MyProfile, provider: string) {
 function fromRow(r: Row): Partial<MyProfile> {
   return {
     onboarded: r.onboarded, firstName: r.first_name, gender: r.gender ?? undefined, birthDate: r.birth_date ?? undefined,
+    seeks: (r.seeks ?? []).length ? (r.seeks as MyProfile['seeks']) : undefined,
     regionCode: r.region_code || LAUNCH_REGION.code, headline: r.headline, languages: r.languages, prompts: r.prompts ?? [],
     photos: r.photos ?? [], jewishLife: r.jewish_life ?? {}, consents: r.consents ?? {},
   };
 }
 
-let hasPrefs = false;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let saving: PromiseLike<unknown> = Promise.resolve();
 async function saveNow() {
   if (!current || loadedFor !== current.id) return;
   const p = meStore.get();
   const row = toRow(current.id, p, current.provider);
-  // Until the member sets "Mes préférences", who they see follows a default from their gender.
-  const seeks = hasPrefs ? {} : { seeks: p.gender ? SEEKS[p.gender] ?? [] : [] };
   setSave('saving');
-  saving = sb.from('members').upsert({ ...row, ...seeks }, { onConflict: 'id' }).then(({ error }) => {
+  saving = sb.from('members').upsert(row, { onConflict: 'id' }).then(({ error }) => {
     if (!error) { setSave('saved'); return; }
     // The database refuses minors (trigger members_adults_only): the app shows why.
     setSave(/adults_only/.test(`${error.message} ${error.details ?? ''} ${error.hint ?? ''}`) ? 'adults_only' : 'error');
@@ -90,7 +89,39 @@ function scheduleSave() {
   saveTimer = setTimeout(() => { saveTimer = null; void saveNow(); }, 600);
 }
 
-async function adopt(session: Session | null) {
+/**
+ * Supabase announces one sign-in several times (INITIAL_SESSION, SIGNED_IN,
+ * getSession, the sign-in call itself). Loading the profile runs once per
+ * account and every caller waits for that same run, so a second run can never
+ * blank the profile already on screen (and send the member back to sign-up).
+ */
+let adopting: { id: string | null; run: Promise<void> } | null = null;
+function adopt(session: Session | null): Promise<void> {
+  const id = session?.user.id ?? null;
+  if (adopting && adopting.id === id) return adopting.run;
+  if (id && current?.id === id && loadedFor === id) return Promise.resolve();
+  const run = (async () => {
+    if (adopting && adopting.id !== id) await adopting.run.catch(() => undefined);
+    await load(session);
+  })();
+  adopting = { id, run };
+  void run.finally(() => { if (adopting?.run === run) adopting = null; });
+  return run;
+}
+
+/** The profile could not be read (network, server): never treated as a new account. */
+export class ProfileLoadError extends Error { constructor() { super('profile_load_failed'); } }
+
+async function readRow(id: string): Promise<{ row: Row | null } | null> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const { data, error } = await sb.from('members').select('*').eq('id', id).maybeSingle<Row>();
+    if (!error) return { row: data ?? null };
+    await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+  }
+  return null;
+}
+
+async function load(session: Session | null) {
   if (!session) {
     current = null; loadedFor = null; meStore.reset(); status = 'signedOut'; emit();
     return;
@@ -99,21 +130,38 @@ async function adopt(session: Session | null) {
   if (current?.id === u.id && loadedFor === u.id) return;
   const provider = (u.app_metadata?.provider as string | undefined) ?? 'email';
   const { data: admin } = await sb.rpc('is_admin');
+  const read = await readRow(u.id);
+  if (!read) {
+    // Reading failed (network): nothing is saved and sign-up is never shown in its place.
+    // The app keeps waiting; the start-up path tries again a few seconds later.
+    throw new ProfileLoadError();
+  }
+  const { row } = read;
   current = { id: u.id, email: u.email ?? undefined, provider, role: admin ? 'admin' : 'member' };
-  const { data: row } = await sb.from('members').select('*').eq('id', u.id).maybeSingle<Row>();
-  meStore.reset();
-  hasPrefs = !!row && Object.keys(row.preferences ?? {}).length > 0;
   if (row) {
+    meStore.reset();
     meStore.set(fromRow(row));
   } else {
     // First sign-in: the name given by Google/Facebook pre-fills the first step.
     const given = (u.user_metadata?.given_name ?? u.user_metadata?.full_name ?? u.user_metadata?.name ?? '') as string;
+    meStore.reset();
     meStore.set({ onboarded: false, firstName: given.split(' ')[0]?.slice(0, 40) ?? '', photos: [] });
+    // Insert only: if a profile appeared in the meantime (another tab), it is never overwritten.
+    await sb.from('members').upsert(toRow(u.id, meStore.get(), provider), { onConflict: 'id', ignoreDuplicates: true });
+    const again = await readRow(u.id);
+    if (again?.row?.onboarded) { meStore.reset(); meStore.set(fromRow(again.row)); }
   }
   loadedFor = u.id;
-  if (!row) await saveNow();
   status = 'signedIn';
   emit();
+}
+
+/** Start-up and auth events: a profile that could not be read is read again, never replaced. */
+function adoptInBackground(session: Session | null) {
+  adopt(session).catch(() => {
+    // Again a few seconds later, with the session as it is then (signed out meanwhile: nothing to load).
+    setTimeout(() => { void sb.auth.getSession().then(({ data }) => adoptInBackground(data.session)); }, 5000);
+  });
 }
 
 let ready: Promise<void> | null = null;
@@ -131,10 +179,10 @@ export const cloudAccount = {
       unsubscribeMe ??= meStore.subscribe(scheduleSave);
       sb.auth.onAuthStateChange((event, session) => {
         // Supabase forbids awaiting its own calls inside the callback.
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') setTimeout(() => void adopt(session), 0);
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') setTimeout(() => adoptInBackground(session), 0);
       });
       const { data } = await sb.auth.getSession();
-      await adopt(data.session);
+      await adopt(data.session).catch(() => adoptInBackground(data.session));
     })();
     return ready;
   },
@@ -143,7 +191,7 @@ export const cloudAccount = {
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) return { ok: false, code: /confirm/i.test(error.message) ? 'email_not_confirmed' : 'invalid_credentials' };
     const { data } = await sb.auth.getSession();
-    await adopt(data.session);
+    try { await adopt(data.session); } catch { return { ok: false, code: 'profile_load_failed' }; }
     return { ok: true, hasProfile: meStore.get().onboarded };
   },
 
@@ -177,7 +225,7 @@ export const cloudAccount = {
   async signInWithGoogleToken(token: string, nonce: string): Promise<{ hasProfile: boolean } | null> {
     const { data, error } = await sb.auth.signInWithIdToken({ provider: 'google', token, nonce });
     if (error || !data.session) return null;
-    await adopt(data.session);
+    try { await adopt(data.session); } catch { return null; }
     return { hasProfile: meStore.get().onboarded };
   },
 
@@ -196,7 +244,7 @@ export const cloudAccount = {
   async verifyPhoneCode(phone: string, token: string): Promise<{ ok: true; hasProfile: boolean } | { ok: false; code: string }> {
     const { data, error } = await sb.auth.verifyOtp({ phone, token, type: 'sms' });
     if (error || !data.session) return { ok: false, code: /expired/i.test(error?.message ?? '') ? 'code_expired' : 'invalid_code' };
-    await adopt(data.session);
+    try { await adopt(data.session); } catch { return { ok: false, code: 'profile_load_failed' }; }
     return { ok: true, hasProfile: meStore.get().onboarded };
   },
 
@@ -249,7 +297,7 @@ export async function savePreferences(prefs: { genders: string[] } & Record<stri
   if (!current) throw new Error('signed_out');
   const { error } = await sb.from('members').update({ preferences: prefs, seeks: prefs.genders }).eq('id', current.id);
   if (error) throw new Error(error.message);
-  hasPrefs = true;
+  meStore.set({ seeks: prefs.genders as MyProfile['seeks'] });
 }
 
 export function useCloudAccount() {

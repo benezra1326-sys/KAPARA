@@ -4,7 +4,7 @@ import type { CallMode, CallReportReason, CallSnapshot, LiveMember, LiveSearchFi
 import { IS_PRODUCTION } from '../env';
 import { sb } from '../cloud/client';
 import { cloud } from '../cloud/data';
-import { DemoTransport, DEMO_LIVE_MEMBERS } from './demo-transport';
+import { DemoTransport, isDemoLiveMember } from './demo-transport';
 import { RtcSession, rtcSessions } from './rtc';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
@@ -97,7 +97,7 @@ export class CloudTransport implements LiveTransport {
   }
 
   /* --- Live with a choice: proposed profiles, up to 5 calls ringing at once --- */
-  private isDemoMember(id: string) { return DEMO_LIVE_MEMBERS.some((m) => m.userId === id); }
+  private isDemoMember(id: string) { return isDemoLiveMember(id); }
   /** Fictional profiles complete the list outside production (badge « démo », simulated call announced). */
   private get withDemo() { return !IS_PRODUCTION; }
 
@@ -163,7 +163,7 @@ export class CloudTransport implements LiveTransport {
 
   /* --- Calls --- */
   async invite(to: string, mode: CallMode): Promise<Ack<{ call: CallSnapshot }>> {
-    if (DEMO_LIVE_MEMBERS.some((m) => m.userId === to)) {
+    if (isDemoLiveMember(to)) {
       // A fictional Live member is not reachable for real; Live without a setting turned on would refuse anyway.
       return this.demo.invite(to, mode);
     }

@@ -1169,6 +1169,13 @@ export default {
       man: 'Un homme',
       nonbinary: 'Non-binaire',
     },
+    seeks: 'Je recherche',
+    seeksHint: 'Plusieurs choix possibles. Vous ne voyez que les personnes qui vous recherchent aussi.',
+    seeking: {
+      woman: 'Une femme',
+      man: 'Un homme',
+      nonbinary: 'Une personne non-binaire',
+    },
     headline: 'Une phrase sur vous',
     headlineHint: 'Facultatif.',
     headlinePlaceholder: 'Architecte, toujours un carnet dans le sac',

@@ -2,6 +2,7 @@ import type { ProfilePublic, Recommendation } from '@kapara/shared';
 import { REGIONS, RULES } from '@kapara/config';
 import { ageOf, DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId, momentUrl, personByKey, portraitUrl, type DemoPerson, type Gender } from './people';
 import { DEMO_PICKS_PLAN } from './scenarios';
+import { seeksMatch } from '../me/seeks';
 
 /**
  * Offline demo data for the app (EXPO_PUBLIC_DEMO, the default).
@@ -45,10 +46,9 @@ export const DEMO_PICKS: Recommendation[] = DEMO_PICKS_PLAN.map((pick, i) => ({
  * Today's plan first when it is in that city, then the other members there
  * who would also be interested in the viewer, up to RULES.dailyPicks.
  */
-export function demoPicksIn(regionCode: string, viewerGender?: Gender, viewerKey = DEMO_VIEWER_KEY): Recommendation[] {
-  const seeks: Gender[] = viewerGender === 'man' ? ['woman'] : viewerGender === 'woman' ? ['man'] : [];
-  const fits = (p: DemoPerson) => p.key !== viewerKey && p.regionCode === regionCode
-    && (!seeks.length || seeks.includes(p.gender)) && (!viewerGender || !p.seeks.length || p.seeks.includes(viewerGender));
+export function demoPicksIn(regionCode: string, viewer: { gender?: Gender; seeks?: Gender[] } = {}, viewerKey = DEMO_VIEWER_KEY): Recommendation[] {
+  // "Je recherche", both ways (same rule as the database): see src/me/seeks.ts.
+  const fits = (p: DemoPerson) => p.key !== viewerKey && p.regionCode === regionCode && seeksMatch(viewer, p);
   const planned = DEMO_PICKS_PLAN.filter((x) => fits(personByKey(x.key)));
   const others = DEMO_PEOPLE.filter((p) => fits(p) && !planned.some((x) => x.key === p.key));
   return [

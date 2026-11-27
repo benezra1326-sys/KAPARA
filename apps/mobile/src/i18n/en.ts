@@ -1167,6 +1167,13 @@ const en: DeepPartial<typeof fr> = {
       man: 'A man',
       nonbinary: 'Non-binary',
     },
+    seeks: 'I’m looking for',
+    seeksHint: 'Choose one or more. You only see people who are looking for you too.',
+    seeking: {
+      woman: 'A woman',
+      man: 'A man',
+      nonbinary: 'A non-binary person',
+    },
     headline: 'A line about you',
     headlineHint: 'Optional.',
     headlinePlaceholder: 'Architect, always a notebook in my bag',

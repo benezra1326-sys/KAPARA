@@ -16,7 +16,7 @@ export function useForYou() {
     queryKey: ['for-you', regionCode],
     queryFn: async (): Promise<Recommendation[]> => {
       if (CLOUD) return cloud.forYou(regionCode);
-      if (DEMO_MODE) return demoPicksIn(regionCode, meStore.get().gender);
+      if (DEMO_MODE) return demoPicksIn(regionCode, meStore.get());
       // The API returns today's picks already filtered for the viewer (visibility, consents, blocks).
       const r = await api<{ picks: Recommendation[] }>('/for-you');
       return r.picks.filter((p) => !p.profile.regionCode || p.profile.regionCode === regionCode);

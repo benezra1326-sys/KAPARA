@@ -14,6 +14,8 @@ export interface MyProfile {
   firstName: string;
   birthDate?: string; // YYYY-MM-DD
   gender?: Gender;
+  /** Who the member wants to meet ("Je recherche"). Asked at sign-up; drives Pour toi, Croisés and Live. */
+  seeks?: Gender[];
   headline: string;
   languages: string[];
   regionCode: string;
