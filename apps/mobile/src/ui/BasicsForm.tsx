@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { LAUNCH_REGION, REGIONS, RULES } from '@kapara/config';
+import { checkAge, localDate, LAUNCH_REGION, MIN_AGE, REGIONS } from '@kapara/config';
 import { Gender, type ProfileUpdate } from '@kapara/shared';
 import { space } from '@kapara/design';
 import { LANGUAGE_OPTIONS } from '../me/fields';
-import { ageFrom, meStore, useMe, type MyProfile } from '../me/store';
+import { deviceTimeZone, meStore, useMe, type MyProfile } from '../me/store';
 import { useTheme } from '../theme';
 import { CitySheet } from './CityPicker';
 import { Icon } from './Icon';
@@ -29,11 +29,11 @@ export function useBasicsForm(me: MyProfile) {
   const [touched, setTouched] = useState(false);
 
   const birthDate = `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  const validDate = /^\d{4}$/.test(year) && +month >= 1 && +month <= 12 && +day >= 1 && +day <= 31 && new Date(`${birthDate}T00:00:00`).getDate() === +day;
-  const age = validDate ? ageFrom(birthDate) : null;
+  // Same rule as the API and the database: calendar years on the local date, 18 today is accepted.
+  const verdict = /^\d{4}$/.test(year) && month && day ? checkAge(birthDate, localDate(deviceTimeZone())) : null;
   const errors = {
     firstName: firstName.trim() ? undefined : 'required',
-    birthDate: !validDate ? 'date' : age !== null && age < RULES.minAge ? 'age' : age !== null && age > 110 ? 'date' : undefined,
+    birthDate: !verdict ? 'date' : verdict.ok ? undefined : verdict.reason === 'adults_only' ? 'age' : 'date',
     gender: gender ? undefined : 'required',
   };
   const valid = !errors.firstName && !errors.birthDate && !errors.gender;
@@ -41,6 +41,8 @@ export function useBasicsForm(me: MyProfile) {
 
   return {
     valid, value, touch: () => setTouched(true),
+    /** The date is a real one, but the person is under 18: the sign-up stops here. */
+    underage: errors.birthDate === 'age',
     render: () => <BasicsFields {...{ firstName, setFirstName, day, setDay, month, setMonth, year, setYear, gender, setGender, headline, setHeadline, languages, setLanguages, errors: touched ? errors : {} }} />,
   };
 }
@@ -67,7 +69,7 @@ function BasicsFields(p: {
           <View style={{ flex: 1.4 }}><Field label={t('basics.year')} value={p.year} onChangeText={(v) => p.setYear(digits(v))} keyboardType="number-pad" maxLength={4} placeholder={t('basics.yearPh')} /></View>
         </View>
         <Text variant="caption" tone={p.errors.birthDate ? 'danger' : 'textSubtle'}>
-          {p.errors.birthDate === 'age' ? t('basics.tooYoung', { min: RULES.minAge }) : p.errors.birthDate ? t('basics.badDate') : t('basics.birthHint')}
+          {p.errors.birthDate === 'age' ? t('basics.tooYoung', { min: MIN_AGE }) : p.errors.birthDate ? t('basics.badDate') : t('basics.birthHint')}
         </Text>
       </View>
       <View style={{ gap: space.sm }}>

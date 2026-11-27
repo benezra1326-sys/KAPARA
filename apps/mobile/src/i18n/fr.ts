@@ -1143,7 +1143,7 @@ export default {
     day: 'Jour',
     month: 'Mois',
     year: 'Année',
-    birthHint: 'Seul votre âge est affiché.',
+    birthHint: 'ZIV est réservé aux 18 ans et plus. Seul votre âge est affiché, jamais la date.',
     badDate: 'Cette date ne semble pas valide.',
     tooYoung: 'Il faut avoir au moins {{min}} ans.',
     gender: 'Je suis',
@@ -1514,4 +1514,66 @@ export default {
     homeBody: 'Votre ville apparaît sur votre profil et décide qui vous rencontrez dans Pour toi. Seule la ville est montrée, jamais le quartier.',
     moiHint: '{{city}} · une autre ville avec Plus',
   },
+  // beta:start (bêta publique : âge, environnements, aide, règles)
+  beta: {
+    underage: {
+      title: "ZIV est réservé aux adultes",
+      body: "Pour rejoindre ZIV, il faut avoir au moins {{min}} ans. Merci de votre intérêt : nous serons heureux de vous accueillir à ce moment-là.",
+      nothingKept: "Rien de ce que vous avez saisi n’est conservé : le compte en cours de création et la date de naissance sont effacés.",
+      error: "Le compte en cours de création n’a pas pu être effacé. Vérifiez votre connexion et réessayez.",
+      retry: "Réessayer",
+      back: "Revenir à l’accueil",
+    },
+    env: {
+      demo: "Démonstration · rien ne quitte cet appareil",
+      test: "Base de test · profils démo signalés",
+      api: "Serveur ZIV · {{host}}",
+    },
+    config: {
+      title: "Configuration incomplète",
+      body: "Cette version de ZIV n’est pas reliée à son serveur. Elle ne s’ouvre pas plutôt que d’afficher des données fictives.",
+    },
+    save: {
+      saving: "Enregistrement…",
+      saved: "Enregistré",
+      failed: "Échec de l’enregistrement",
+      retry: "Réessayer",
+      failedTitle: "Pas enregistré",
+      failedBody: "La modification n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.",
+    },
+    delete: {
+      failedTitle: "Compte non supprimé",
+      failedBody: "La suppression n’a pas abouti. Rien n’a été effacé à moitié : réessayez, ou écrivez au support si cela continue.",
+    },
+    live: {
+      offTitle: "Live arrive bientôt",
+      offBody: "Les appels audio et vidéo s’ouvriront dès que le service d’appel sera en place. Aucun appel n’est simulé en attendant.",
+    },
+    help: {
+      title: "Aide et règles",
+      contact: "Écrire au support",
+      notSet: "Adresse du support à venir avant l’ouverture publique.",
+    },
+    legal: {
+      draft: "Version de travail, à faire valider par un professionnel du droit avant l’ouverture publique.",
+      write: "Écrire à {{email}}",
+      privacy: {
+        title: "Confidentialité",
+        body: "ZIV ne demande que ce qui sert à vous présenter des personnes : prénom, date de naissance (seul l’âge est montré), genre, ville, photos et réponses que vous choisissez de donner.\n\nLes réponses sur la vie juive sont facultatives et privées par défaut. Chacune n’est enregistrée qu’après votre accord explicite, et vous choisissez qui la voit et si elle sert aux suggestions. Retirer votre accord efface la réponse.\n\nCroisés n’utilise votre position qu’au premier plan, si vous l’activez, arrondie et jamais montrée : personne ne voit où ni quand vous avez croisé quelqu’un. Vous pouvez désactiver Croisés et effacer l’historique à tout moment.\n\nLes photos sont débarrassées de leurs métadonnées (dont la position GPS) sur votre téléphone avant l’envoi.\n\nVos données ne sont ni vendues ni envoyées à un service d’intelligence artificielle. Supprimer votre compte efface votre profil, vos photos, vos réponses, vos conversations et vos préférences.",
+      },
+      terms: {
+        title: "Conditions d’utilisation",
+        body: "ZIV est réservé aux personnes majeures (18 ans et plus). En créant un compte, vous confirmez avoir au moins 18 ans et donner des informations exactes sur vous.\n\nVous restez responsable de ce que vous publiez et de vos échanges. Les offres payantes ne sont pas encore ouvertes : aucun paiement n’est demandé pendant la bêta.\n\nZIV peut masquer un profil ou suspendre un compte qui ne respecte pas les règles de la communauté, après examen d’un signalement.\n\nLe texte définitif (éditeur, droit applicable, médiation, résiliation) sera publié avant l’ouverture publique.",
+      },
+      rules: {
+        title: "Règles de la communauté",
+        body: "Respect d’abord : pas d’insulte, de harcèlement, de propos haineux, de pression ni de demande d’argent.\n\nSoyez vous-même : vos propres photos, votre vrai prénom et votre âge réel. Pas de faux profil, pas de profil pour quelqu’un d’autre.\n\nLe consentement compte : une invitation peut être refusée sans explication ; la caméra ne s’allume que si vous le choisissez ; une présentation par un ami n’avance que si les deux personnes acceptent.\n\nTouchez « Signaler » sur un profil, dans une conversation ou après un appel. Un signalement bloque la personne par défaut et est examiné par l’équipe.",
+      },
+      safety: {
+        title: "Sécurité et suppression de compte",
+        body: "En cas de danger immédiat, appelez les secours (112 en Europe).\n\nSignaler : depuis un profil, une conversation ou un appel. La personne est bloquée aussitôt pour vous, partout dans ZIV. L’équipe examine chaque signalement et peut masquer un profil, retirer une photo ou suspendre un compte.\n\nBloquer : la personne ne vous voit plus, vos conversations et présentations en cours se ferment, sans qu’elle soit prévenue.\n\nSupprimer votre compte : Moi › Compte › Supprimer mon compte. Votre profil, vos photos et vos échanges sont effacés ; un signalement reçu à votre sujet peut être gardé le temps de son examen, sans vos données de profil.",
+      },
+    },
+  },
+  // beta:end
 };

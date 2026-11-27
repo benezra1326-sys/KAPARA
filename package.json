@@ -8,6 +8,7 @@
     "db:up": "docker compose -f infra/docker-compose.yml up -d",
     "db:migrate": "npm run prisma:migrate -w @kapara/api",
     "db:seed": "npm run seed -w @kapara/api",
+    "db:purge-demo": "npm run purge-demo -w @kapara/api",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
   },

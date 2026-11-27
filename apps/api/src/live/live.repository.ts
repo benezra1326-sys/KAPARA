@@ -3,7 +3,7 @@ import type { CallState, LiveCallsFrom, LiveMember, LiveSettings, CallReportReas
 import { PrismaService } from '../prisma/prisma.service';
 import type { MemberFacts, Relationship } from './call-policy';
 
-const ageOf = (d: Date) => Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000));
+import { ageOn as ageOf } from '../common/age';
 const asCallsFrom = (v: string | undefined): LiveCallsFrom => (v === 'nobody' || v === 'members' ? v : 'matches');
 
 /** Every database access of the Live domain. Nothing here logs personal data. */

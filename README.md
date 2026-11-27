@@ -30,9 +30,13 @@ npm run dev:api       # http://localhost:3000/health
 npm run dev:mobile    # puis i (iOS), a (Android) ou w (web)
 ```
 
+### Environnements
+
+Une compilation parle à un seul backend : `EXPO_PUBLIC_BACKEND=demo` (défaut, données fictives sur l’appareil), `test` (Supabase de test, aperçu web) ou `api` (API ZIV, seul backend autorisé en production). Une compilation de production mal configurée est refusée. Détails : [docs/environnements.md](docs/environnements.md). ZIV est réservé aux 18 ans et plus : [docs/age-18-ans.md](docs/age-18-ans.md).
+
 ### Mode connecté
 
-`EXPO_PUBLIC_DEMO=0 EXPO_PUBLIC_API_URL=http://<ip-de-la-machine>:3000 npm run dev:mobile` branche l’app sur l’API :
+`EXPO_PUBLIC_BACKEND=api EXPO_PUBLIC_API_URL=http://<ip-de-la-machine>:3000 npm run dev:mobile` branche l’app sur l’API :
 
 - **Connexion par code e-mail** (pas de mot de passe) : adresse → code à 6 chiffres → l’app. Un compte qui existe déjà va directement aux onglets, un nouveau compte continue l’onboarding, qui enregistre le profil dans l’API. Sans `RESEND_API_KEY`, le serveur de développement renvoie le code à l’app, qui l’affiche dans un encadré « Serveur de développement : aucun email n’est envoyé » ; en production, l’envoi est obligatoire.
 - **Session** (`apps/mobile/src/api/session.ts`) : jeton d’accès de 15 min et jeton de rafraîchissement à rotation, rangés dans le trousseau du téléphone (`expo-secure-store`). Le jeton est rafraîchi une minute avant expiration, et une seule fois même si plusieurs requêtes partent en même temps, parce que l’API révoque toute la session si un jeton de rafraîchissement déjà utilisé est présenté de nouveau. Un 401 déclenche un rafraîchissement et un nouvel essai. Si le rafraîchissement est refusé, l’app revient à l’accueil et vide tout ce qu’elle avait en mémoire. Une coupure réseau, elle, ne déconnecte pas.
@@ -45,7 +49,7 @@ Comptes de démo seedés : `demo1@demo.kapara.invalid` (Ilan, le membre « vous 
 
 | Fonction | État |
 | --- | --- |
-| Appels audio/vidéo | **Simulés** tant que `LIVEKIT_URL/API_KEY/API_SECRET` ne sont pas fournis. L’app l’annonce clairement. Avec les clés, l’API émet de vrais jetons LiveKit. |
+| Appels audio/vidéo | Avec `LIVEKIT_URL/API_KEY/API_SECRET` : vrais jetons LiveKit. Sans eux : **simulés et annoncés** en développement, **désactivés** en production (« Live arrive bientôt »), jamais simulés. |
 | Paiement | Aucun en v1. |
 | IA | Aucune. « Pour toi » est un score explicable (critères déclarés + proximité + retours « pas pour moi »). |
 | Photos de profil | **Réelles** : choix dans la photothèque (sélecteur système, sans accès à toute la galerie) ou appareil photo, recadrage 4:5, ré-encodage JPEG 1600 px sur le téléphone (métadonnées et position GPS retirées), envoi direct vers un stockage compatible S3 par URL pré-signée. Sans `S3_*` : stockage sur le disque de l’API en développement (annoncé `mode: "local"`), refus en production. App en mode démo : les photos restent sur le téléphone. |
@@ -134,7 +138,7 @@ Pendant l’appel : signaler et bloquer en un geste (l’appel s’arrête). Auc
 
 | Contexte | Ce qui se passe |
 | --- | --- |
-| App sans API (`EXPO_PUBLIC_DEMO` ≠ `0`) | Simulation locale avec profils fictifs badgés ; bandeau « appels simulés ». |
+| App sans API (`EXPO_PUBLIC_BACKEND=demo`) | Simulation locale avec profils fictifs badgés ; bandeau « appels simulés ». |
 | API sans clés LiveKit | Vraie signalisation (présence, invitations, consentements) mais média simulé, annoncé comme tel. |
 | API + clés LiveKit + *development build* | Vrais appels audio/vidéo. Expo Go ne contient pas WebRTC : l’app l’indique. |
 | Web | Démo uniquement pour l’instant. |

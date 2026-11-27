@@ -11,7 +11,7 @@ import { BlockService } from '../safety/safety.module';
 import { ShabbatService } from '../shabbat/shabbat.module';
 import { INTRO_TTL_DAYS, IntroError, MAX_OPEN_PER_INTRODUCER, OPEN_STATUSES, myAnswer, outcome, respond, type IntroStatus } from './intro-machine';
 
-const ageOf = (d: Date) => Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000));
+import { ageOn as ageOf } from '../common/age';
 const mini = { id: true, isDemo: true, profile: { select: { firstName: true, birthDate: true, photos: { orderBy: { position: 'asc' as const }, take: 1 } } } };
 
 /**

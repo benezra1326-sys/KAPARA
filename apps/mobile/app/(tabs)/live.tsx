@@ -65,7 +65,10 @@ export default function Live() {
       ) : null}
       {s.connection === 'offline' && !s.local ? <Notice tone="danger" text={t('live.offline')} /> : null}
 
-      {!s.settings ? (
+      {s.mode === 'disabled' ? (
+        // Production without a media server: Live is off, said plainly, never simulated.
+        <EmptyState title={t('beta.live.offTitle')} body={t('beta.live.offBody')} />
+      ) : !s.settings ? (
         s.settingsError
           ? <EmptyState title={t('live.offline')} action={{ label: t('common.retry'), onPress: () => void store.refresh() }} />
           : <ActivityIndicator color={c.accent} style={{ marginTop: space.xxl }} accessibilityLabel={t('common.loading')} />

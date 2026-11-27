@@ -16,7 +16,12 @@ export default function OnbBasics() {
   const leave = async () => { await signOut(); router.replace('/onboarding'); };
   return (
     <Screen back="back" title={t('onb.basicsTitle')} subtitle={t('onb.step', { n: 1, total: 4 })}
-      footer={<Button label={t('onb.continue')} onPress={() => { form.touch(); if (form.value) { meStore.set(form.value); router.push('/onboarding/photos'); } }} />}>
+      footer={<Button label={t('onb.continue')} onPress={() => {
+        form.touch();
+        // Under 18: never stored, the account being created is removed (see onboarding/underage).
+        if (form.underage) { router.replace('/onboarding/underage'); return; }
+        if (form.value) { meStore.set(form.value); router.push('/onboarding/photos'); }
+      }} />}>
       <View style={{ marginBottom: space.xl }}><Progress total={4} current={0} /></View>
       <View style={{ paddingHorizontal: space.xl, gap: space.xl }}>
         {account ? (

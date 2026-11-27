@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { APP } from '@kapara/config';
-import { liveKitConfigured } from '../common/env';
+import { env, liveKitConfigured } from '../common/env';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('health')
@@ -14,6 +14,6 @@ export class HealthController {
       await this.prisma.$queryRaw`SELECT 1`;
       db = 'up';
     } catch {}
-    return { app: APP.name, db, live: liveKitConfigured() ? 'livekit' : 'demo' };
+    return { app: APP.name, db, live: liveKitConfigured() ? 'livekit' : env().NODE_ENV === 'production' ? 'disabled' : 'demo', environment: env().NODE_ENV };
   }
 }

@@ -48,6 +48,8 @@ export const ProfileUpdate = z.object({
   languages: z.array(z.string().min(2).max(10)).max(8).default([]),
   prompts: z.array(Prompt.extend({ id: z.enum(PROMPT_KEYS) })).max(4).default([]),
   regionCode: z.string().max(40).optional(),
+  /** Member's IANA time zone, so the 18+ rule uses their local date (birthday at local midnight). Never stored. */
+  timeZone: z.string().max(64).optional(),
 });
 export type ProfileUpdate = z.infer<typeof ProfileUpdate>;
 

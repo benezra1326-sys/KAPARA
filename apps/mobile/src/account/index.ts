@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import { auth, DEMO_MODE, session } from '../api/client';
+import { api, auth, DEMO_MODE, session } from '../api/client';
+import { meStore } from '../me/store';
 import type { SessionStatus } from '../api/session';
 import { cloudAccount, useCloudAccount } from '../cloud/account';
 import { CLOUD } from '../cloud/client';
@@ -38,4 +39,16 @@ export function useAccountInfo(): { email?: string; provider?: string } | null {
 }
 
 export const signOut = () => (CLOUD ? cloudAccount.signOut() : DEMO_MODE ? demoAccount.signOut() : auth.signOut());
-export const deleteAccount = () => (CLOUD ? cloudAccount.deleteAccount() : demoAccount.deleteAccount());
+/**
+ * Deletes the account everywhere it lives: Supabase (photos, profile, auth
+ * user), the API (DELETE /profiles/me: data, photo files, sessions) or the
+ * demo account on this device. Throws if the server refused, so the screen
+ * can say so instead of pretending.
+ */
+export async function deleteAccount(): Promise<void> {
+  if (CLOUD) { await cloudAccount.deleteAccount(); return; }
+  if (DEMO_MODE) { await demoAccount.deleteAccount(); return; }
+  if (session.status === 'signedIn') await api('/profiles/me', { method: 'DELETE' });
+  await auth.signOut().catch(() => undefined);
+  meStore.reset();
+}

@@ -1,22 +1,42 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_DEMO": "1" },
-      "ios": { "simulator": false },
-      "android": { "buildType": "apk" }
+      "env": {
+        "EXPO_PUBLIC_BACKEND": "demo",
+        "EXPO_PUBLIC_APP_ENV": "development"
+      },
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "apk"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_DEMO": "1" },
-      "android": { "buildType": "apk" }
+      "env": {
+        "EXPO_PUBLIC_BACKEND": "demo",
+        "EXPO_PUBLIC_APP_ENV": "preview"
+      },
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_DEMO": "0" }
+      "env": {
+        "EXPO_PUBLIC_BACKEND": "api",
+        "EXPO_PUBLIC_APP_ENV": "production"
+      }
     }
   },
-  "submit": { "production": {} }
+  "submit": {
+    "production": {}
+  }
 }

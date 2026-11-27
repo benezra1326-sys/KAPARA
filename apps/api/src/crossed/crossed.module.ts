@@ -14,7 +14,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BlockService } from '../safety/safety.module';
 import { ShabbatService } from '../shabbat/shabbat.module';
 
-const ageOf = (d: Date) => Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000));
+import { ageOn as ageOf } from '../common/age';
 const MIN_PING_GAP_SECONDS = 5 * 60;
 
 /**

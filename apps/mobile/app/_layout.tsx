@@ -26,6 +26,8 @@ import { palette } from '@kapara/design';
 import { LiveProvider } from '../src/live/LiveProvider';
 import { ThemeProvider, useTheme } from '../src/theme';
 import { useLayout } from '../src/ui/layout';
+import { CONFIG_BLOCKED } from '../src/env';
+import { ConfigError } from '../src/ui/EnvBadge';
 
 void SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } });
@@ -61,6 +63,7 @@ function Root() {
   // Navigation surfaces (behind narrow columns on a desktop) take the page colour, never a default grey.
   const base = dark ? DarkTheme : DefaultTheme;
   const navTheme = { ...base, colors: { ...base.colors, background: c.bg, card: c.bg, border: c.border, text: c.text, primary: c.accent } };
+  if (CONFIG_BLOCKED) return <ConfigError />;
   return (
     <NavThemeProvider value={navTheme}>
     <LiveProvider>

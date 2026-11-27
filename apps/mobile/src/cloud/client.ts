@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import { kv } from '../account/kv';
+import { ENV } from '../env';
 
 /**
  * Real backend (Supabase): accounts, profiles, likes, conversations, reports,
@@ -9,8 +10,9 @@ import { kv } from '../account/kv';
  * backed by the database (Croisés, Live, introductions) keep their demo,
  * announced as such.
  */
-const URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const KEY = process.env.EXPO_PUBLIC_SUPABASE_KEY ?? '';
+// Only with EXPO_PUBLIC_BACKEND=test: never mixed with the API or a production build.
+const URL = ENV.backend === 'test' ? ENV.supabaseUrl : '';
+const KEY = ENV.backend === 'test' ? ENV.supabaseKey : '';
 export const CLOUD = !!URL && !!KEY;
 export const SUPABASE_URL = URL;
 
