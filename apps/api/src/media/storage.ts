@@ -8,6 +8,9 @@ import { newPhotoKey, parsePhotoKey } from './keys';
 import { presign } from './sigv4';
 import { sniffImage } from './sniff';
 
+/** Signed photo links live two hours (see signedRead). */
+export const PHOTO_READ_SECONDS = 2 * 3600;
+
 /** What the API checked about an uploaded file before attaching it to a profile. */
 export type Inspected = { size: number; type: PhotoContentType | null };
 
@@ -67,6 +70,23 @@ export class PhotoStorage {
       return base ? `${base}/${key}` : this.objectUrl(key);
     }
     return `${this.apiBase(requestBase)}/v1/media/local/${key.split('/').slice(1).join('/')}`;
+  }
+
+  /** Private bucket (no S3_PUBLIC_URL): photos are only reachable through signed links. */
+  get privateReads(): boolean { return this.mode === 's3' && !env().S3_PUBLIC_URL; }
+
+  /** Prefix of every stored photo URL in the private bucket. */
+  get privatePrefix(): string { return this.objectUrl('profiles/'); }
+
+  /**
+   * Signed GET link for a stored photo URL. Signed at the start of the hour and
+   * valid two hours, so the link stays the same within the hour (image caches)
+   * and always works at least an hour after it is handed out.
+   */
+  signedRead(url: string, now = new Date()): string {
+    if (!this.privateReads || !url.startsWith(this.privatePrefix)) return url;
+    const hour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000);
+    return presign({ ...this.s3(), method: 'GET', url, expiresSeconds: PHOTO_READ_SECONDS, now: hour });
   }
 
   /** Best effort: a file that cannot be removed now is logged, never blocks the member. */
