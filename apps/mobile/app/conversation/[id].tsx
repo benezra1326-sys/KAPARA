@@ -37,6 +37,7 @@ export default function Conversation() {
   const close = useCloseConversation();
   const [draft, setDraft] = useState('');
   const [failed, setFailed] = useState<string | null>(null);
+  const [limit, setLimit] = useState<string | null>(null);
   const list = useRef<FlatList<ChatMessage>>(null);
   const name = conv?.other.firstName ?? '';
   const live = useLiveStore();
@@ -62,6 +63,7 @@ export default function Conversation() {
     const text = body.trim();
     if (!text) return;
     setFailed(null);
+    setLimit(null);
     send.mutate({ body: text, confirmed }, {
       onSuccess: () => { setDraft(''); list.current?.scrollToOffset({ offset: 0, animated: true }); },
       onError: (e) => {
@@ -72,6 +74,9 @@ export default function Conversation() {
           ]);
         } else if (e.message === 'conversation_closed') {
           void convs.refetch();
+        } else if (['rate_limited', 'daily_limit', 'duplicate_spam', 'wait_for_reply'].includes(e.message)) {
+          // Anti-spam refusal from the server: said plainly, the draft stays.
+          setLimit(e.message);
         } else {
           setFailed(text);
         }
@@ -145,7 +150,9 @@ export default function Conversation() {
       {conv.other.isDemo ? <View style={{ paddingHorizontal: space.lg, paddingBottom: space.sm }}><DemoBadge /></View> : null}
       <DemoNotice real />
 
-      {q.isLoading ? <Loading /> : (
+      {q.isLoading ? <Loading /> : q.isError && !q.data ? (
+        <EmptyState title={t('beta.messages.loadError')} action={{ label: t('common.retry'), onPress: () => void q.refetch() }} />
+      ) : (
         <FlatList
           ref={list}
           inverted
@@ -164,6 +171,11 @@ export default function Conversation() {
         />
       )}
 
+      {limit ? (
+        <View accessibilityLiveRegion="polite" style={{ paddingHorizontal: space.xl, paddingBottom: space.xs }}>
+          <Text variant="caption" style={{ color: c.danger }}>{t(`beta.messages.${limit}`)}</Text>
+        </View>
+      ) : null}
       {failed ? (
         <Pressable onPress={() => submit(failed)} accessibilityRole="button" style={{ paddingHorizontal: space.xl, paddingBottom: space.xs }}>
           <Text variant="caption" style={{ color: c.danger }}>{t('messages.failed')}</Text>

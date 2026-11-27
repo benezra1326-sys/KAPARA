@@ -35,7 +35,7 @@ export class LiveRepository {
     const users = await this.prisma.user.findMany({
       where: { id: { in: ids }, deletedAt: null },
       select: {
-        id: true, paused: true,
+        id: true, paused: true, hiddenAt: true, suspendedAt: true,
         privacy: { select: { liveEnabled: true, liveCallsFrom: true } },
         profile: { select: { gender: true, birthDate: true } },
         preferences: { select: { genders: true, ageMin: true, ageMax: true } },
@@ -43,7 +43,8 @@ export class LiveRepository {
     });
     return new Map(users.map((u) => [u.id, {
       exists: true,
-      paused: u.paused,
+      // Hidden or suspended by moderation: unreachable, like a paused profile.
+      paused: u.paused || !!u.hiddenAt || !!u.suspendedAt,
       liveEnabled: u.privacy?.liveEnabled ?? false,
       liveCallsFrom: asCallsFrom(u.privacy?.liveCallsFrom),
       gender: u.profile?.gender ?? null,

@@ -91,7 +91,7 @@ class CrossedController {
         AND abs(extract(epoch FROM other.at - mine.at)) < ${RULES.crossedTimeToleranceMinutes * 60}
         AND ST_DWithin(mine.cell, other.cell, ${RULES.crossedRadiusMeters})
       JOIN "PrivacySettings" ps ON ps."userId" = other."userId" AND ps."crossedEnabled"
-      JOIN "User" u ON u.id = other."userId" AND u."deletedAt" IS NULL AND NOT u.paused
+      JOIN "User" u ON u.id = other."userId" AND u."deletedAt" IS NULL AND NOT u.paused AND u."hiddenAt" IS NULL AND u."suspendedAt" IS NULL
       WHERE mine."userId" = ${me.id}
         AND mine.at > now() - make_interval(hours => ${RULES.crossedWindowHours})
         AND mine.at < now() - make_interval(hours => ${RULES.crossedDisplayDelayHours})

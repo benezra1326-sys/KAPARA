@@ -1514,6 +1514,29 @@ const en: DeepPartial<typeof fr> = {
   },
   // beta:start (bêta publique : âge, environnements, aide, règles)
   beta: {
+    pay: {
+      soon: "Subscriptions coming soon",
+      soonBody: "During the beta, ZIV is free: no payment is requested or recorded. Plus and Cercle will open with App Store and Google Play in-app purchase.",
+    },
+    report: {
+      profile: "Report or block {{name}}",
+      afterCall: "Report {{name}}",
+      sentBody: "Your report is saved and will be reviewed by the team. The person is blocked if you chose so.",
+      demoSent: "Demo: report not sent",
+      demoSentBody: "In the demo, nothing leaves your device. Blocking is simulated.",
+      failed: "The report could not be sent. Check your connection and try again.",
+      tooMany: "You have sent many reports today. Write to support if it is urgent.",
+    },
+    moderation: {
+      removePhoto: "Remove the reported photo",
+    },
+    messages: {
+      rate_limited: "You are sending many messages in a short time. Please wait a minute.",
+      daily_limit: "Daily message limit reached. You can write again tomorrow.",
+      duplicate_spam: "This same message was already sent to several people. Write something personal.",
+      wait_for_reply: "Wait for a reply before sending more messages.",
+      loadError: "Messages could not be loaded.",
+    },
     underage: {
       title: "ZIV is for adults only",
       body: "You need to be at least {{min}} to join ZIV. Thank you for your interest: we will be glad to welcome you then.",

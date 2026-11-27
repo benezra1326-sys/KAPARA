@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, Module, NotFoundException, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Module, NotFoundException, Post, UseGuards } from '@nestjs/common';
+import { LIMITS, type PlanId } from '@kapara/config';
 import { Like, RecommendationFeedbackInput } from '@kapara/shared';
 import { AuthGuard, CurrentUser, type AuthUser } from '../auth/auth.guard';
 import { ZodPipe } from '../common/zod.pipe';
@@ -6,6 +7,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ProfilesModule } from '../profiles/profiles.module';
 import { ProfilesService } from '../profiles/profiles.service';
 import { DiscoveryService } from './discovery.service';
+
+/** Until a store purchase is validated server-side (Apple / Google), every member is on the free plan. */
+const MEMBER_PLAN: PlanId = 'free';
 
 /** "Pour toi": a finite, explained daily selection. Likes target a photo or a prompt. */
 @Controller('for-you')
@@ -41,6 +45,14 @@ class DiscoveryController {
     if (!target) throw new NotFoundException('profile_not_found');
     const ok = b.target.kind === 'photo' ? target.photos.some((p) => p.id === b.target.id) : target.prompts.some((p) => p.id === b.target.id);
     if (!ok) throw new NotFoundException('target_not_found');
+    // Daily limit from the single offer table (@kapara/config LIMITS). No purchase is validated
+    // by this server yet, so every member is on the free plan: nothing unlocks from the app.
+    const max = LIMITS[MEMBER_PLAN].likesPerDay;
+    const already = await this.prisma.like.findUnique({ where: { fromId_toId: { fromId: me.id, toId: b.toProfileId } }, select: { id: true } });
+    if (max != null && !already) {
+      const sent = await this.prisma.like.count({ where: { fromId: me.id, createdAt: { gt: new Date(Date.now() - 86_400_000) } } });
+      if (sent >= max) throw new HttpException({ code: 'quota_exceeded', limit: max }, HttpStatus.TOO_MANY_REQUESTS);
+    }
 
     const reciprocal = await this.prisma.like.findUnique({ where: { fromId_toId: { fromId: b.toProfileId, toId: me.id } } });
     const status = reciprocal ? 'matched' : 'pending';

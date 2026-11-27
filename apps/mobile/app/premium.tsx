@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { APP } from '@kapara/config';
 import { fonts, hitSlop, palette, radius, space } from '@kapara/design';
 import { LIMITS, PRICES, saving, total, type Months, type PlanId } from '../src/premium/plans';
-import { useCancelPlan, usePlan, useSetDiscreet, useSubscribe, type PaywallReason } from '../src/premium/store';
+import { PAYMENTS, useCancelPlan, usePlan, useSetDiscreet, useSubscribe, type PaywallReason } from '../src/premium/store';
 import { Icon, Text, useLayout } from '../src/ui';
 import { switchThumb } from '../src/ui/switchThumb';
 
@@ -127,10 +127,22 @@ export default function Premium() {
       {p && !done && current !== 'cercle' && !p.isAdmin ? (
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingTop: space.md, paddingBottom: insets.bottom + space.md, backgroundColor: N.bg, borderTopWidth: 1, borderTopColor: N.line }}>
           <View style={{ width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: space.xl, gap: space.sm }}>
-            <SandButton label={t('premium.cta', { plan: t(`premium.plan.${choice}`), price: money(total(choice, months)), count: months })}
-              onPress={buy} loading={subscribe.isPending} />
-            {subscribe.isError ? <Text variant="caption" style={{ color: '#FF7A6B', textAlign: 'center' }}>{t('premium.error')}</Text> : null}
-            <Text variant="caption" style={{ color: N.subtle, textAlign: 'center' }}>{t('premium.demoPayment')}</Text>
+            {PAYMENTS === 'closed' ? (
+              // Production: no purchase can be validated by the server yet, so nothing can be bought or look bought.
+              <>
+                <View accessibilityRole="text" style={{ minHeight: 56, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: N.line }}>
+                  <Text style={{ color: N.muted, fontFamily: fonts.bodySemibold }}>{t('beta.pay.soon')}</Text>
+                </View>
+                <Text variant="caption" style={{ color: N.subtle, textAlign: 'center' }}>{t('beta.pay.soonBody')}</Text>
+              </>
+            ) : (
+              <>
+                <SandButton label={t('premium.cta', { plan: t(`premium.plan.${choice}`), price: money(total(choice, months)), count: months })}
+                  onPress={buy} loading={subscribe.isPending} />
+                {subscribe.isError ? <Text variant="caption" style={{ color: '#FF7A6B', textAlign: 'center' }}>{t('premium.error')}</Text> : null}
+                <Text variant="caption" style={{ color: N.subtle, textAlign: 'center' }}>{t('premium.demoPayment')}</Text>
+              </>
+            )}
           </View>
         </View>
       ) : null}

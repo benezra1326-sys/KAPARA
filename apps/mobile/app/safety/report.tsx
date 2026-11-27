@@ -1,11 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, space } from '@kapara/design';
 import { ReportReason, type ReportCreate } from '@kapara/shared';
 import { useReport } from '../../src/social/api';
+import { notify } from '../../src/account/confirm';
+import { DEMO_MODE } from '../../src/api/client';
+import { CLOUD } from '../../src/cloud/client';
 import { Card, DemoNotice, RowGroup, Section, StackHeader, ToggleRow } from '../../src/social/ui';
 import { useTheme } from '../../src/theme';
 import { Button, fontFor, Text } from '../../src/ui';
@@ -24,8 +27,12 @@ export default function Report() {
   const submit = () => {
     if (!reason || !userId) return;
     report.mutate({ userId, reason, details: details.trim() || undefined, context, alsoBlock }, {
-      onSuccess: () => Alert.alert(t('safety.sent'), undefined, [{ text: t('common.close'), onPress: () => router.dismissTo('/messages') }]),
-      onError: () => Alert.alert(t('common.error')),
+      // "Sent" only once the server has saved it. The demo says it is a demo.
+      onSuccess: () => {
+        notify(t(DEMO_MODE && !CLOUD ? 'beta.report.demoSent' : 'safety.sent'), t(DEMO_MODE && !CLOUD ? 'beta.report.demoSentBody' : 'beta.report.sentBody'));
+        if (router.canGoBack()) router.back(); else router.replace('/');
+      },
+      onError: (e) => notify(t('common.error'), t((e as { code?: string })?.code === 'too_many_reports' ? 'beta.report.tooMany' : 'beta.report.failed')),
     });
   };
 

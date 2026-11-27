@@ -4,6 +4,7 @@ import type { ProfilePublic } from '@kapara/shared';
 import { useRole } from '../account';
 import { kv } from '../account/kv';
 import { CLOUD, must, sb } from '../cloud/client';
+import { DEMO_MODE } from '../api/client';
 import { DEMO_PICKS } from '../demo/profiles';
 import i18n from '../i18n';
 import { meStore } from '../me/store';
@@ -31,6 +32,14 @@ export interface PlanState {
   /** Live: may choose gender and city (paid plan or administrator). */
   liveFiltersAllowed: boolean;
 }
+
+/**
+ * Payments. `simulated`: demo and test builds, announced as a demo.
+ * `closed`: the ZIV API (production) — no Apple / Google purchase is validated
+ * by the server yet, so nothing can be bought and everyone is on the free
+ * plan, whose limits the server applies.
+ */
+export const PAYMENTS: 'simulated' | 'closed' = DEMO_MODE ? 'simulated' : 'closed';
 
 export type PaywallReason = 'like' | 'liveFilters' | 'picks' | 'seeLikes' | 'rewind' | 'discreet' | 'otherCity' | 'browse';
 export const openPaywall = (reason: PaywallReason = 'browse') => router.push({ pathname: '/premium', params: { reason } });
@@ -90,7 +99,19 @@ async function readCloud(): Promise<PlanState> {
 
 export function usePlan() {
   localAdmin = useRole() === 'admin';
-  return useQuery({ queryKey: [...KEY, localAdmin], queryFn: async () => (CLOUD ? readCloud() : localState(await readLocal())), staleTime: 15_000 });
+  return useQuery({
+    queryKey: [...KEY, localAdmin],
+    queryFn: async () => (CLOUD ? readCloud() : PAYMENTS === 'closed' ? apiState() : localState(await readLocal())),
+    staleTime: 15_000,
+  });
+}
+
+/** ZIV API: the free plan for everyone; the server counts and refuses beyond the limits. */
+function apiState(): PlanState {
+  return {
+    plan: 'free', subscribed: 'free', until: null, source: null, isAdmin: false, limits: LIMITS.free, used: { like: 0, liveCall: 0 },
+    resetsAt: nextMidnight(), discreetOn: false, liveFiltersAllowed: false,
+  };
 }
 
 /** Refresh after anything that spends a quota. */
@@ -104,6 +125,7 @@ export function useSubscribe() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ plan, months }: { plan: Exclude<PlanId, 'free'>; months: Months }) => {
+      if (PAYMENTS === 'closed') throw new Error('payments_closed');
       await new Promise((r) => setTimeout(r, 700));
       if (CLOUD) { must(await sb.rpc('subscribe_demo', { plan_id: plan, months })); return; }
       const v = await readLocal();

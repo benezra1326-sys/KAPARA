@@ -1,6 +1,6 @@
 # ZIV
 
-Application de rencontres mobile pour la communauté juive, conçue pour l’international (lancement : Paris).
+Application de rencontres mobile pour la communauté juive, ouverte partout dans le monde dès la bêta : n’importe qui peut s’inscrire depuis n’importe quelle ville.
 **ZIV est le nom de travail actuel** : il est centralisé dans [`packages/config/src/brand.json`](packages/config/src/brand.json). Les identifiants techniques restent `kapara` pendant le prototype.
 
 Trois façons de se rencontrer, un seul profil :

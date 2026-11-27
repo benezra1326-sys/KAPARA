@@ -6,6 +6,7 @@ import { FIELD_GROUPS, MAX_PROMPTS, answerLabel, type FieldMeta } from '../../sr
 import { nameAndAge } from '../../src/me/identity';
 import { useMe, type SensitiveField } from '../../src/me/store';
 import { useTheme } from '../../src/theme';
+import { SaveStatus } from '../../src/cloud/SaveStatus';
 import { Button, Icon, PhotoGrid, Row, Screen, Section, Text, VisibilityTag } from '../../src/ui';
 
 const formatBirth = (d: string) => d.split('-').reverse().join('/');
@@ -19,6 +20,7 @@ export default function EditProfile() {
   return (
     <Screen back="back" title={t('edit.title')} subtitle={nameAndAge(me) || undefined}
       right={<Button kind="ghost" label={t('edit.preview')} onPress={() => router.push('/profile/preview')} />}>
+      <SaveStatus />
       <Section title={t('edit.photos')}>
         <PhotoGrid />
       </Section>

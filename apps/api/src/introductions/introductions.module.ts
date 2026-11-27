@@ -34,7 +34,7 @@ class IntroductionsController {
     if (a === bId || a === me.id || bId === me.id) throw new ForbiddenException('invalid_pair');
 
     const people = await this.prisma.user.findMany({
-      where: { id: { in: [a, bId] }, deletedAt: null, paused: false },
+      where: { id: { in: [a, bId] }, deletedAt: null, paused: false, hiddenAt: null, suspendedAt: null },
       select: { id: true, privacy: { select: { introducible: true } } },
     });
     // Same answer for "does not exist", "paused" and "opted out": nothing leaks.

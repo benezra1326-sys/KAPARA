@@ -67,6 +67,8 @@ export class ProfilesService {
       if (!u?.profile || blocked.has(id)) continue;
       const relation: ViewerRelation = id === viewerId ? 'self' : matched.has(id) ? 'match' : 'member';
       if (u.paused && relation === 'member') continue;
+      // Moderation: a hidden or suspended profile is visible to nobody but its owner.
+      if ((u.hiddenAt || u.suspendedAt) && relation !== 'self') continue;
       if (relation !== 'self' && !u.profile.photos.length) continue;
       const p = u.profile;
       out.push({

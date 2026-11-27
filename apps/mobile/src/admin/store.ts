@@ -2,11 +2,13 @@ import { useSyncExternalStore } from 'react';
 import type { ReportReason } from '@kapara/shared';
 import { DEMO_PEOPLE, ageOf, demoUserId, momentUrl, portraitUrl } from '../demo/people';
 import { CLOUD, must, sb } from '../cloud/client';
+import { api, DEMO_MODE } from '../api/client';
 
 /**
  * Back-office data for the demo: fictional members, reports and photos
  * waiting for review, derived from the demo people. Decisions taken here
- * live in memory only (connected mode will call the API's admin routes).
+ * live in memory only. With the API or Supabase, every decision is saved on
+ * the server first and shown only once saved (never a local fake).
  */
 export type MemberStatus = 'active' | 'paused' | 'suspended';
 export type ReportStatus = 'open' | 'dismissed' | 'warned' | 'suspended';
@@ -19,8 +21,8 @@ export interface AdminMember {
   email?: string | null; provider?: string | null; onboarded?: boolean; isAdmin?: boolean;
 }
 export interface AdminReport {
-  id: string; reportedKey: string; reporterKey: string; reason: ReportReason; context: 'profile' | 'conversation' | 'live' | 'crossed';
-  details: string; hoursAgo: number; status: ReportStatus;
+  id: string; reportedKey: string; reporterKey: string; reason: ReportReason; context: 'profile' | 'conversation' | 'live' | 'crossed' | 'introduction';
+  details: string; hoursAgo: number; status: ReportStatus; photoId?: string | null; decisionNote?: string | null;
 }
 export interface AdminPhoto { id: string; key: string; url: string; kind: 'portrait' | 'moment'; hoursAgo: number; status: PhotoStatus }
 
@@ -59,7 +61,8 @@ function build() {
 
 type State = ReturnType<typeof build> & { cloud?: CloudStats; loading?: boolean; error?: string };
 export type CloudStats = { members: number; onboarded: number; demo: number; suspended: number; likes: number; conversations: number; messages: number; openReports: number; signups7d: number };
-let state: State = CLOUD ? { members: [], reports: [], photos: [], loading: true } : build();
+const SERVER = CLOUD || !DEMO_MODE;
+let state: State = SERVER ? { members: [], reports: [], photos: [], loading: true } : build();
 const listeners = new Set<() => void>();
 const set = (next: State) => { state = next; listeners.forEach((l) => l()); };
 
@@ -96,28 +99,81 @@ async function loadCloud() {
 
 async function cloudSuspend(key: string, suspended: boolean) {
   const { error } = await sb.from('members').update({ suspended }).eq('id', key);
-  if (error) set({ ...state, error: error.message });
+  if (error) throw new Error(error.message);
 }
+
+type ApiPerson = { id: string; firstName: string; isDemo: boolean; regionCode: string; age: number | null; gender: string | null; photoUrl: string | null;
+  email: string | null; createdAt: string; hidden: boolean; suspended: boolean; paused: boolean; deleted: boolean; reports: number };
+type ApiReport = { id: string; reason: ReportReason; details: string | null; context: AdminReport['context']; status: 'open' | 'dismissed' | 'actioned';
+  photoId: string | null; createdAt: string; decisionNote: string | null; reported: ApiPerson; reporter: ApiPerson };
+
+const personToMember = (m: ApiPerson): AdminMember => ({
+  key: m.id, firstName: m.firstName || '—', regionCode: m.regionCode, gender: m.gender, photoUrl: m.photoUrl, isDemo: m.isDemo, age: m.age,
+  status: m.suspended ? 'suspended' : m.paused || m.hidden ? 'paused' : 'active', verified: false, reportsCount: m.reports, email: m.email,
+  joinedDaysAgo: Math.floor((minutesSince(m.createdAt) ?? 0) / 1440), lastActiveMinutesAgo: null,
+});
+
+/** ZIV API (production): GET /v1/moderation/reports, moderators only. Members come with their reports. */
+async function loadApi() {
+  set({ ...state, loading: true, error: undefined });
+  try {
+    const r = await api<{ reports: ApiReport[] }>('/moderation/reports');
+    const people = new Map<string, AdminMember>();
+    for (const x of r.reports) for (const p of [x.reported, x.reporter]) if (p && !p.deleted && p.firstName !== undefined) people.set(p.id, personToMember(p));
+    set({
+      photos: [], loading: false,
+      members: [...people.values()],
+      reports: r.reports.map((x) => ({
+        id: x.id, reportedKey: x.reported.id, reporterKey: x.reporter.id, reason: x.reason, context: x.context, details: x.details ?? '',
+        hoursAgo: Math.floor((minutesSince(x.createdAt) ?? 0) / 60), photoId: x.photoId, decisionNote: x.decisionNote,
+        status: x.status === 'open' ? 'open' : x.status === 'dismissed' ? 'dismissed' : x.reported.suspended ? 'suspended' : 'warned',
+      })),
+    });
+  } catch (e) {
+    set({ ...state, loading: false, error: e instanceof Error ? e.message : 'error' });
+  }
+}
+
+const post = (path: string, body: unknown = {}) => api(path, { method: 'POST', body: JSON.stringify(body) });
 
 export const adminStore = {
   subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },
   get: () => state,
-  load: () => (CLOUD ? loadCloud() : Promise.resolve()),
-  setMemberStatus(key: string, status: MemberStatus) {
-    set({ ...state, members: state.members.map((m) => (m.key === key ? { ...m, status } : m)) });
-    if (CLOUD) void cloudSuspend(key, status === 'suspended');
+  load: () => (CLOUD ? loadCloud() : !DEMO_MODE ? loadApi() : Promise.resolve()),
+  /** Saved on the server first; the screen changes only once it is saved. Throws (and sets `error`) otherwise. */
+  async setMemberStatus(key: string, status: MemberStatus, reportId?: string) {
+    try {
+      if (CLOUD) await cloudSuspend(key, status === 'suspended');
+      else if (!DEMO_MODE) await post(`/moderation/users/${key}/${status === 'suspended' ? 'suspend' : status === 'paused' ? 'hide' : 'restore'}`, { reportId });
+    } catch (e) { set({ ...state, error: e instanceof Error ? e.message : 'error' }); return false; }
+    set({ ...state, error: undefined, members: state.members.map((m) => (m.key === key ? { ...m, status } : m)) });
+    return true;
   },
-  decideReport(id: string, status: Exclude<ReportStatus, 'open'>) {
+  /** Reported photo: removed and its file deleted (API). */
+  async removePhoto(reportId: string, photoId: string) {
+    try { await api(`/moderation/photos/${photoId}`, { method: 'DELETE', body: JSON.stringify({ reportId }) }); }
+    catch (e) { set({ ...state, error: e instanceof Error ? e.message : 'error' }); return false; }
+    set({ ...state, error: undefined, reports: state.reports.map((x) => (x.id === reportId ? { ...x, photoId: null } : x)) });
+    return true;
+  },
+  async decideReport(id: string, status: Exclude<ReportStatus, 'open'>) {
     const r = state.reports.find((x) => x.id === id);
-    if (CLOUD) {
-      void sb.from('reports').update({ status, handled_at: new Date().toISOString() }).eq('id', id);
-      if (status === 'suspended' && r) void cloudSuspend(r.reportedKey, true);
-    }
+    try {
+      if (CLOUD) {
+        const { error } = await sb.from('reports').update({ status, handled_at: new Date().toISOString() }).eq('id', id);
+        if (error) throw new Error(error.message);
+        if (status === 'suspended' && r) await cloudSuspend(r.reportedKey, true);
+      } else if (!DEMO_MODE) {
+        await post(`/moderation/reports/${id}/decision`, { decision: status === 'dismissed' ? 'dismissed' : 'actioned' });
+        if (status === 'suspended' && r) await post(`/moderation/users/${r.reportedKey}/suspend`, { reportId: id });
+      }
+    } catch (e) { set({ ...state, error: e instanceof Error ? e.message : 'error' }); return false; }
     set({
       ...state,
       reports: state.reports.map((x) => (x.id === id ? { ...x, status } : x)),
       members: status === 'suspended' && r ? state.members.map((m) => (m.key === r.reportedKey ? { ...m, status: 'suspended' } : m)) : state.members,
     });
+    return true;
   },
   decidePhoto(id: string, status: Exclude<PhotoStatus, 'pending'>) {
     set({ ...state, photos: state.photos.map((p) => (p.id === id ? { ...p, status } : p)) });

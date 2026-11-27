@@ -72,7 +72,7 @@ export class DiscoveryService {
       JOIN "Profile" cp ON cp."userId" = c.id
       JOIN "Region" cr ON cr.code = c."regionCode"
       LEFT JOIN "Preferences" pr ON pr."userId" = c.id
-      WHERE c.id <> me.id AND c."deletedAt" IS NULL AND NOT c.paused
+      WHERE c.id <> me.id AND c."deletedAt" IS NULL AND NOT c.paused AND c."hiddenAt" IS NULL AND c."suspendedAt" IS NULL
         AND EXISTS (SELECT 1 FROM "Photo" ph WHERE ph."profileId" = c.id)
         AND (cardinality(${genders}::"Gender"[]) = 0 OR cp.gender = ANY(${genders}::"Gender"[]))
         AND (pr.genders IS NULL OR cardinality(pr.genders) = 0 OR me.gender = ANY(pr.genders))

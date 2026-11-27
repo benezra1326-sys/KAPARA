@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import { useLikesInbox } from '../../src/premium/store';
 import { likedItem } from '../../src/social/liked';
 import { useTheme } from '../../src/theme';
 import { LikedItemQuote } from '../../src/ui/LikedItem';
-import { EmptyState, Screen, Text } from '../../src/ui';
+import { Button, EmptyState, Screen, Text } from '../../src/ui';
 import { ProfileCard } from '../../src/ui/ProfileCard';
 import { PhotoViewer } from '../../src/ui/PhotoViewer';
 import { ReactSheet, type ReactSheetTarget } from '../../src/ui/ReactSheet';
@@ -50,6 +50,12 @@ export default function Profile() {
         onReact={(photoId) => { setViewing(null); setTarget({ kind: 'photo', id: photoId }); }} />
       <ReactSheet profile={p} target={target} onClose={() => setTarget(null)}
         onDone={(matched) => { setTarget(null); setNotice(matched ? t('pick.matched', { name: p.firstName }) : t(CLOUD ? (p.isDemo ? 'cloud.sentToDemo' : 'pick.sent') : DEMO_MODE ? 'pick.sentDemo' : 'pick.sent')); }} />
+      {p.id !== 'me' ? (
+        <View style={{ alignItems: 'center', marginVertical: space.xl }}>
+          <Button kind="ghost" label={t('beta.report.profile', { name: p.firstName })}
+            onPress={() => router.push({ pathname: '/safety/report', params: { userId: p.id, name: p.firstName, context: 'profile' } })} />
+        </View>
+      ) : null}
     </Screen>
   );
 }

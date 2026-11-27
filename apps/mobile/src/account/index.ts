@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 import { api, auth, DEMO_MODE, session } from '../api/client';
 import { meStore } from '../me/store';
@@ -27,8 +28,15 @@ export function useAuthStatus(): SessionStatus {
 export function useRole(): Role {
   const demo = useDemoAccount();
   const cloud = useCloudAccount();
+  // ZIV API: moderators are named on the server (MODERATOR_EMAILS); the app only asks.
+  const status = useSyncExternalStore(session.subscribe.bind(session), () => session.status, () => session.status);
+  const mod = useQuery({
+    queryKey: ['moderator'], enabled: !CLOUD && !DEMO_MODE && status === 'signedIn', staleTime: 5 * 60_000,
+    queryFn: () => api<{ moderator: boolean }>('/moderation/me').catch(() => ({ moderator: false })),
+  });
   if (CLOUD) return cloud?.role ?? 'member';
-  return DEMO_MODE ? demo?.role ?? 'member' : 'member';
+  if (!DEMO_MODE) return mod.data?.moderator ? 'admin' : 'member';
+  return demo?.role ?? 'member';
 }
 
 /** The signed-in account, as screens show it (e-mail, provider). */

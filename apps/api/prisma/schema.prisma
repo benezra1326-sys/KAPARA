@@ -54,6 +54,10 @@ model User {
   region        Region    @relation(fields: [regionCode], references: [code])
   isDemo        Boolean   @default(false)
   paused        Boolean   @default(false)
+  /// Moderation: profile hidden from everyone (Pour toi, Croisés, Live, introductions) after review.
+  hiddenAt      DateTime?
+  /// Moderation: account suspended after review. Sign-in refused, sessions revoked, hidden everywhere.
+  suspendedAt   DateTime?
   shabbatMode   Boolean   @default(false)
   verifiedAt    DateTime?
   profile       Profile?
@@ -241,10 +245,32 @@ model Report {
   details    String?
   /// "profile" | "conversation" | "live" | "crossed" | "introduction"
   context    String   @default("profile")
-  /// "open" | "reviewed" | "actioned"
+  /// "open" | "dismissed" | "actioned"
   status     String   @default("open")
+  /// Photo concerned, when the report is about one picture.
+  photoId    String?
+  /// Moderator who took the last decision, and its note (internal, never shown to members).
+  reviewedById String?
+  decisionNote String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
   @@index([status, createdAt])
+  @@index([reportedId])
+}
+
+/// Audit trail of every moderation decision. Append-only.
+model ModerationAction {
+  id           String   @id @default(cuid())
+  actorId      String
+  /// "report_dismissed" | "report_actioned" | "profile_hidden" | "profile_shown" | "account_suspended" | "account_restored" | "photo_removed"
+  action       String
+  targetUserId String
+  reportId     String?
+  photoId      String?
+  note         String?
+  createdAt    DateTime @default(now())
+  @@index([targetUserId, createdAt])
+  @@index([reportId])
 }
 
 model CallLog {

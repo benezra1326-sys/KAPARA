@@ -112,6 +112,8 @@ export const ReportCreate = z.object({
   details: z.string().max(1000).optional(),
   /** Where it happened, to help moderation. */
   context: z.enum(['profile', 'conversation', 'live', 'crossed', 'introduction']).default('profile'),
+  /** The photo concerned, when the report is about one picture. */
+  photoId: z.string().max(40).optional(),
   /** A report always blocks too, unless the member explicitly opts out. */
   alsoBlock: z.boolean().default(true),
 });

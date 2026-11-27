@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Delete, Get, HttpCode, Injectable, Module, NotFoundException, Param, Post, Query,
+  HttpException, HttpStatus, Body, Controller, Delete, Get, HttpCode, Injectable, Module, NotFoundException, Param, Post, Query,
   UnprocessableEntityException, UseGuards, ForbiddenException,
 } from '@nestjs/common';
 import { SendMessage, type ChatMessage, type ConversationSummary } from '@kapara/shared';
@@ -8,6 +8,7 @@ import { ZodPipe } from '../common/zod.pipe';
 import { PrismaService } from '../prisma/prisma.service';
 import { BlockService } from '../safety/safety.module';
 import { mayHurt } from './kindness';
+import { MESSAGE_LIMITS, sendRefusal, type SendStats } from './anti-spam';
 
 type Origin = ConversationSummary['origin'];
 const PAGE = 50;
@@ -85,6 +86,8 @@ class ConversationsController {
     if (other && (await this.blocks.eitherBlocked(me.id, other))) throw new ForbiddenException('conversation_closed');
     // The member sees "Send anyway?" and decides. Nothing is stored or logged.
     if (!b.confirmed && mayHurt(b.body)) throw new UnprocessableEntityException('kindness_check');
+    const refusal = sendRefusal(await this.sendStats(me.id, id, b.body));
+    if (refusal) throw new HttpException({ code: refusal }, HttpStatus.TOO_MANY_REQUESTS);
     const m = await this.prisma.message.create({ data: { conversationId: id, senderId: me.id, body: b.body } });
     // TODO(notifications): push to `other` unless ShabbatService.isResting(other); then hold until the window ends.
     return toMessage(m, me.id);
@@ -96,6 +99,18 @@ class ConversationsController {
   async close(@CurrentUser() me: AuthUser, @Param('id') id: string) {
     await this.assertMember(me.id, id);
     await this.prisma.conversation.update({ where: { id }, data: { closedAt: new Date() } });
+  }
+
+  private async sendStats(me: string, conversationId: string, body: string): Promise<SendStats> {
+    const now = Date.now();
+    const [lastMinute, lastDay, same, tail] = await Promise.all([
+      this.prisma.message.count({ where: { senderId: me, createdAt: { gt: new Date(now - 60_000) } } }),
+      this.prisma.message.count({ where: { senderId: me, createdAt: { gt: new Date(now - 86_400_000) } } }),
+      this.prisma.message.findMany({ where: { senderId: me, body, conversationId: { not: conversationId }, createdAt: { gt: new Date(now - 600_000) } }, distinct: ['conversationId'], select: { conversationId: true } }),
+      this.prisma.message.findMany({ where: { conversationId }, orderBy: { createdAt: 'desc' }, take: MESSAGE_LIMITS.unansweredInARow, select: { senderId: true } }),
+    ]);
+    const firstOther = tail.findIndex((m) => m.senderId !== me);
+    return { lastMinute, lastDay, sameTextElsewhere: same.length, unansweredInARow: firstOther === -1 ? tail.length : firstOther };
   }
 
   private async assertMember(userId: string, conversationId: string) {

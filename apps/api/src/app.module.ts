@@ -7,6 +7,7 @@ import { DiscoveryModule } from './discovery/discovery.module';
 import { HealthController } from './health/health.controller';
 import { IntroductionsModule } from './introductions/introductions.module';
 import { LiveModule } from './live/live.module';
+import { ModerationModule } from './moderation/moderation.module';
 import { PrismaModule } from './prisma/prisma.service';
 import { ProfilesModule } from './profiles/profiles.module';
 import { SafetyModule } from './safety/safety.module';
@@ -21,7 +22,7 @@ import { ShabbatModule } from './shabbat/shabbat.module';
         redact: ['req.headers.authorization', 'req.body', 'res.body'],
       },
     }),
-    PrismaModule, AuthModule, SafetyModule, ShabbatModule, ProfilesModule, DiscoveryModule, CrossedModule, LiveModule, IntroductionsModule, ConversationsModule,
+    PrismaModule, AuthModule, SafetyModule, ShabbatModule, ProfilesModule, DiscoveryModule, CrossedModule, LiveModule, IntroductionsModule, ConversationsModule, ModerationModule,
   ],
   controllers: [HealthController],
 })
