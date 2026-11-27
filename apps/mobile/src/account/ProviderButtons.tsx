@@ -21,12 +21,13 @@ function Logo({ provider, color }: { provider: SignInProvider; color: string }) 
       <Path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
     </Svg>
   );
+  if (provider === 'phone') return <Icon name="phone" size={20} color={color} />;
   return <Icon name="messages" size={20} color={color} />;
 }
 
 /**
  * Sign-in buttons in each provider's own look (Apple: black/white, Google:
- * white with the four-colour G, Facebook: blue), then e-mail. Only the
+ * white with the four-colour G, Facebook: blue), then phone and e-mail. Only the
  * providers passed are shown (see useSignInMethods).
  */
 export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'email'], onPress, busy, wrap }: {
@@ -40,6 +41,7 @@ export function ProviderButtons({ providers = ['apple', 'google', 'facebook', 'e
     apple: dark ? { bg: '#FFFFFF', fg: '#000000' } : { bg: '#000000', fg: '#FFFFFF' },
     google: { bg: '#FFFFFF', fg: '#1F1F1F', border: dark ? undefined : '#DADCE0' },
     facebook: { bg: '#1877F2', fg: '#FFFFFF' },
+    phone: { bg: 'transparent', fg: c.text, border: c.border },
     email: { bg: 'transparent', fg: c.text, border: c.border },
   };
   return (

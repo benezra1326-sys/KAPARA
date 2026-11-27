@@ -3,8 +3,8 @@ import { useAuthStatus } from '../../src/account';
 import { useTheme } from '../../src/theme';
 import { useLayout } from '../../src/ui/layout';
 
-/** Steps reachable before signing in: welcome, e-mail and code. The profile steps need an account. */
-const PUBLIC = new Set(['index', 'email', 'code', 'underage']);
+/** Steps reachable before signing in: welcome, e-mail, code and phone. The profile steps need an account. */
+const PUBLIC = new Set(['index', 'email', 'code', 'phone', 'underage']);
 
 export default function OnboardingLayout() {
   const { c } = useTheme();

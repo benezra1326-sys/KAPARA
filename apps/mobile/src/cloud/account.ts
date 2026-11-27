@@ -13,6 +13,8 @@ import { CLOUD, must, sb, signupFn } from './client';
  * - E-mail: create an account (password, 8 characters minimum) or sign in.
  * - Google, Facebook: OAuth through Supabase, once switched on in the dashboard
  *   (docs/supabase.md). Apple waits for the Apple Developer account.
+ * - Phone: a 6-digit code by SMS (Supabase Auth with Twilio), once the phone
+ *   provider is switched on (docs/connexion-telephone.md).
  * - Administrator: decided by the database (public.is_admin(), verified e-mail
  *   among the administrator hashes), never by the app.
  */
@@ -177,6 +179,25 @@ export const cloudAccount = {
     if (error || !data.session) return null;
     await adopt(data.session);
     return { hasProfile: meStore.get().onboarded };
+  },
+
+  /** Phone: sends a 6-digit code by SMS. The number is in international form (+33612345678). */
+  async sendPhoneCode(phone: string): Promise<{ ok: true } | { ok: false; code: string }> {
+    const { error } = await sb.auth.signInWithOtp({ phone, options: { shouldCreateUser: true, channel: 'sms' } });
+    if (!error) return { ok: true };
+    const m = `${error.message} ${(error as { code?: string }).code ?? ''}`;
+    if (/rate|too many|over_sms_send_rate|seconds/i.test(m)) return { ok: false, code: 'too_many_requests' };
+    if (/invalid.*phone|phone.*invalid|validation/i.test(m)) return { ok: false, code: 'phone_invalid' };
+    if (/provider|disabled|unsupported/i.test(m)) return { ok: false, code: 'phone_off' };
+    return { ok: false, code: 'sms_failed' };
+  },
+
+  /** Phone: checks the SMS code; a known number opens its account, a new one starts its profile. */
+  async verifyPhoneCode(phone: string, token: string): Promise<{ ok: true; hasProfile: boolean } | { ok: false; code: string }> {
+    const { data, error } = await sb.auth.verifyOtp({ phone, token, type: 'sms' });
+    if (error || !data.session) return { ok: false, code: /expired/i.test(error?.message ?? '') ? 'code_expired' : 'invalid_code' };
+    await adopt(data.session);
+    return { ok: true, hasProfile: meStore.get().onboarded };
   },
 
   async signOut() {

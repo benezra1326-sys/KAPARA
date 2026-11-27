@@ -14,7 +14,7 @@ import { kv } from './kv';
  * One account per e-mail: Google and e-mail with the same address are the
  * same account, as they will be with real sign-in (verified e-mail linking).
  */
-export type SignInProvider = 'apple' | 'google' | 'facebook' | 'email';
+export type SignInProvider = 'apple' | 'google' | 'facebook' | 'phone' | 'email';
 export type Role = 'member' | 'admin';
 
 export interface DemoAccount {
@@ -82,10 +82,11 @@ export const demoAccount = {
    * Simulated sign-in. Returns whether this account already has a finished
    * profile (then the app opens directly) or must go through onboarding.
    */
-  async signIn(provider: SignInProvider, email?: string): Promise<{ account: DemoAccount; hasProfile: boolean }> {
+  async signIn(provider: SignInProvider, email?: string, phone?: string): Promise<{ account: DemoAccount; hasProfile: boolean }> {
     await demoAccount.init();
     const clean = email?.trim().toLowerCase() || undefined;
-    const id = clean ? `mail:${clean}` : `${provider}:device`;
+    // The same number (demo phone sign-in) finds the same account again.
+    const id = clean ? `mail:${clean}` : phone ? `tel:${phone}` : `${provider}:device`;
     const now = new Date().toISOString();
     const prev = accounts[id];
     const account: DemoAccount = {
