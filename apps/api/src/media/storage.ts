@@ -84,7 +84,7 @@ export class PhotoStorage {
    * and always works at least an hour after it is handed out.
    */
   signedRead(url: string, now = new Date()): string {
-    if (!this.privateReads || !url.startsWith(this.privatePrefix)) return url;
+    if (!this.privateReads || !url.startsWith(this.privatePrefix) || url.includes('X-Amz-Signature=')) return url;
     const hour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000);
     return presign({ ...this.s3(), method: 'GET', url, expiresSeconds: PHOTO_READ_SECONDS, now: hour });
   }
