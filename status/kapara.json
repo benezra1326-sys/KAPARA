@@ -1,7 +1,7 @@
 {
   "id": "kapara",
   "nom": "ZIV",
-  "description": "Application de rencontres pour la communauté juive : Croisés, Pour toi et Live dans un même profil. Lancement à Paris, conçue pour l'international.",
+  "description": "Application de rencontres pour la communauté juive : Croisés, Pour toi et Live dans un même profil. Ouverte partout dans le monde dès la bêta.",
   "depot": "benezra1326-sys/KAPARA",
   "etape": "developpement",
   "statut": "en_cours",
@@ -173,6 +173,6 @@
       "fait": "Appels : choix vidéo ou audio, réponse en audio seul possible, caméra coupée à tout moment ; vrais appels directs entre deux membres en contact (WebRTC, signalisation Supabase), essayés entre deux navigateurs."
     }
   ],
-  "maj_le": "2026-11-26T14:00:00Z",
+  "maj_le": "2026-11-27",
   "demo_web": "https://ziv-demo.vercel.app"
 }

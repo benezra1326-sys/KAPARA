@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Global, HttpCode, Injectable, Logger, Module, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Global, HttpCode, HttpException, HttpStatus, Injectable, Logger, Module, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { ReportCreate } from '@kapara/shared';
 import { AuthGuard, CurrentUser, type AuthUser } from '../auth/auth.guard';
 import { ZodPipe } from '../common/zod.pipe';
@@ -89,13 +89,20 @@ class SafetyController {
   @HttpCode(201)
   async report(@CurrentUser() me: AuthUser, @Body(new ZodPipe(ReportCreate)) b: ReportCreate) {
     if (b.userId === me.id) throw new ForbiddenException('cannot_report_self');
+    // Anti-abuse: a member cannot flood the queue (blocking stays unlimited).
+    const recent = await this.prisma.report.count({ where: { reporterId: me.id, createdAt: { gt: new Date(Date.now() - 86_400_000) } } });
+    if (recent >= 20) throw new HttpException({ code: 'too_many_reports' }, HttpStatus.TOO_MANY_REQUESTS);
+    const target = await this.prisma.user.findUnique({ where: { id: b.userId }, select: { id: true } });
+    if (!target) throw new NotFoundException('member_not_found');
+    const photoId = b.photoId && (await this.prisma.photo.count({ where: { id: b.photoId, profileId: b.userId } })) ? b.photoId : null;
     const r = await this.prisma.report.create({
-      data: { reporterId: me.id, reportedId: b.userId, reason: b.reason, details: b.details, context: b.context },
+      data: { reporterId: me.id, reportedId: b.userId, reason: b.reason, details: b.details, context: b.context, photoId },
     });
     if (b.alsoBlock) await this.blocks.block(me.id, b.userId);
     // Ids and reason only: details may contain sensitive information.
     this.log.warn({ reportId: r.id, reason: b.reason, context: b.context }, 'report received');
-    return { id: r.id, blocked: b.alsoBlock };
+    // Persisted before answering: the app's "sent" is a real one.
+    return { id: r.id, status: r.status, createdAt: r.createdAt, blocked: b.alsoBlock };
   }
 }
 

@@ -1516,6 +1516,29 @@ export default {
   },
   // beta:start (bêta publique : âge, environnements, aide, règles)
   beta: {
+    pay: {
+      soon: "Abonnements bientôt disponibles",
+      soonBody: "Pendant la bêta, ZIV est gratuit : aucun paiement n’est demandé ni enregistré. Les offres Plus et Cercle ouvriront avec l’achat intégré de l’App Store et de Google Play.",
+    },
+    report: {
+      profile: "Signaler ou bloquer {{name}}",
+      afterCall: "Signaler {{name}}",
+      sentBody: "Votre signalement est enregistré et sera examiné par l’équipe. La personne est bloquée si vous l’avez choisi.",
+      demoSent: "Démonstration : signalement non envoyé",
+      demoSentBody: "Dans la démonstration, rien ne quitte votre appareil. Le blocage est simulé.",
+      failed: "Le signalement n’a pas pu être envoyé. Vérifiez votre connexion et réessayez.",
+      tooMany: "Vous avez envoyé beaucoup de signalements aujourd’hui. Écrivez au support si c’est urgent.",
+    },
+    moderation: {
+      removePhoto: "Retirer la photo signalée",
+    },
+    messages: {
+      rate_limited: "Vous envoyez beaucoup de messages en peu de temps. Patientez une minute.",
+      daily_limit: "Limite de messages du jour atteinte. Vous pourrez écrire de nouveau demain.",
+      duplicate_spam: "Ce même message a déjà été envoyé à plusieurs personnes. Écrivez un mot personnel.",
+      wait_for_reply: "Attendez une réponse avant d’envoyer d’autres messages.",
+      loadError: "Les messages n’ont pas pu être chargés.",
+    },
     underage: {
       title: "ZIV est réservé aux adultes",
       body: "Pour rejoindre ZIV, il faut avoir au moins {{min}} ans. Merci de votre intérêt : nous serons heureux de vous accueillir à ce moment-là.",

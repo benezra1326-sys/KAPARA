@@ -15,7 +15,8 @@ import { Button, DemoBadge, fontFor, Screen, Text, columnsFor, useLayout } from 
 
 const ALL_TABS = ['overview', 'reports', 'photos', 'members'] as const;
 // Real accounts: no photo review queue yet (photos are visible as soon as they are added).
-const TABS = CLOUD ? ALL_TABS.filter((x) => x !== 'photos') : ALL_TABS;
+// With the API, a reported photo is handled from its report ("Retirer la photo").
+const TABS = CLOUD || !DEMO_MODE ? ALL_TABS.filter((x) => x !== 'photos') : ALL_TABS;
 type Tab = (typeof ALL_TABS)[number];
 const cityOf = (code: string) => REGIONS.find((r) => r.code === code)?.city ?? code;
 
@@ -35,7 +36,7 @@ export default function Admin() {
   return (
     <Screen back="back" title={t('admin.title')} subtitle={t('admin.subtitle')} width="wide">
       <View style={{ paddingHorizontal: space.lg, gap: space.xl, paddingBottom: space.xxxl }}>
-        {CLOUD ? (
+        {CLOUD || !DEMO_MODE ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
             <Text variant="caption" tone="textSubtle" style={{ flex: 1, minWidth: 200 }}>{all.error ? t('cloud.adminError') : t('cloud.adminNotice')}</Text>
             <Button kind="ghost" label={all.loading ? t('cloud.loading') : t('cloud.refresh')} onPress={() => void adminStore.load()} style={{ paddingHorizontal: space.md }} />
@@ -190,7 +191,7 @@ function Reports() {
           </View>
           <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
             <Tag label={t(`safety.reason.${r.reason}`)} color={c.accent} />
-            <Tag label={t(`admin.context.${r.context}`)} />
+            <Tag label={t(`admin.context.${r.context}`, { defaultValue: r.context })} />
             {r.status !== 'open' ? <Tag label={t(`admin.decision.${r.status}`)} color={c.live} /> : null}
           </View>
           <Text style={{ fontFamily: fonts.displayItalic, fontSize: 17, lineHeight: 25 }}>« {r.details} »</Text>
@@ -202,6 +203,9 @@ function Reports() {
               <Button kind="secondary" label={t('admin.warn')} onPress={() => adminStore.decideReport(r.id, 'warned')} style={{ flexGrow: 1 }} />
               <Button label={t('admin.suspend')} onPress={() => adminStore.decideReport(r.id, 'suspended')} style={{ flexGrow: 1 }} />
             </View>
+          ) : null}
+          {r.photoId ? (
+            <Button kind="secondary" label={t('beta.moderation.removePhoto')} onPress={() => void adminStore.removePhoto(r.id, r.photoId!)} />
           ) : null}
         </Panel>
       ))}

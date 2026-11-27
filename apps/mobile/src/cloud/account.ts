@@ -64,11 +64,24 @@ async function saveNow() {
   const row = toRow(current.id, p, current.provider);
   // Until the member sets "Mes préférences", who they see follows a default from their gender.
   const seeks = hasPrefs ? {} : { seeks: p.gender ? SEEKS[p.gender] ?? [] : [] };
+  setSave('saving');
   saving = sb.from('members').upsert({ ...row, ...seeks }, { onConflict: 'id' }).then(({ error }) => {
-    if (error) console.warn('profile save failed', error.message);
-  });
+    if (!error) { setSave('saved'); return; }
+    // The database refuses minors (trigger members_adults_only): the app shows why.
+    setSave(/adults_only/.test(`${error.message} ${error.details ?? ''} ${error.hint ?? ''}`) ? 'adults_only' : 'error');
+  }, () => setSave('error'));
   await saving;
 }
+
+/** What the member sees about their last save: never a silent failure. */
+export type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'adults_only';
+let saveState: SaveState = 'idle';
+const saveListeners = new Set<() => void>();
+function setSave(s: SaveState) { saveState = s; saveListeners.forEach((l) => l()); }
+export function useSaveState(): SaveState {
+  return useSyncExternalStore((l) => { saveListeners.add(l); return () => saveListeners.delete(l); }, () => saveState, () => saveState);
+}
+export function retrySave() { return saveNow(); }
 function scheduleSave() {
   if (!current || loadedFor !== current.id) return;
   if (saveTimer) clearTimeout(saveTimer);

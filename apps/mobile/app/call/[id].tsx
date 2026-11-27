@@ -69,7 +69,14 @@ export default function CallScreen() {
               </Text>
             ) : null}
           </Animated.View>
-          <Button label={t('call.back')} onPress={back} />
+          <View style={{ gap: space.sm }}>
+            {/* Reporting stays possible after the call: persisted by the server like any report. */}
+            {ended && !reported && !ended.peer.isDemo ? (
+              <Button kind="ghost" label={t('beta.report.afterCall', { name: ended.peer.firstName })}
+                onPress={() => router.push({ pathname: '/safety/report', params: { userId: ended.peer.userId, name: ended.peer.firstName, context: 'live' } })} />
+            ) : null}
+            <Button label={t('call.back')} onPress={back} />
+          </View>
         </View>
       </View>
     );

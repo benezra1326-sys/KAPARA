@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { LAUNCH_REGION, REGIONS, SUPPORTED_LOCALES } from '@kapara/config';
 import { PrismaService } from '../prisma/prisma.service';
 import type { VerifiedIdentity } from './oidc';
@@ -29,6 +29,7 @@ export class AccountsService {
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
       if (existing.deletedAt) throw new BadRequestException('account_deleted');
+      if (existing.suspendedAt) throw new ForbiddenException('account_suspended');
       return { user: existing, isNewUser: false };
     }
     const region = await this.resolveRegion(opts.regionCode);
@@ -50,6 +51,7 @@ export class AccountsService {
     const link = await this.prisma.authIdentity.findUnique({ where: { provider_subject: { provider: id.provider, subject: id.subject } }, include: { user: true } });
     if (link) {
       if (link.user.deletedAt) throw new BadRequestException('account_deleted');
+      if (link.user.suspendedAt) throw new ForbiddenException('account_suspended');
       return { user: link.user, isNewUser: false };
     }
     const email = id.email && id.emailVerified ? id.email : `${id.provider}.${id.subject}@users.invalid`;

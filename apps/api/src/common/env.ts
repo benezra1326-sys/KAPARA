@@ -35,6 +35,8 @@ const Env = z.object({
    * yet), so production refuses to start with API_INSTANCES > 1.
    */
   API_INSTANCES: z.coerce.number().int().min(1).default(1),
+  /** Comma-separated e-mail addresses of the people allowed to review reports (moderation routes). */
+  MODERATOR_EMAILS: z.string().optional().default(''),
   /** Escape hatch for a staging database seeded with demo members. Never in production. */
   ALLOW_DEMO_DATA: z.enum(['0', '1']).default('0'),
 });
