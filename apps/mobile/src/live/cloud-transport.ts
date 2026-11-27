@@ -1,6 +1,7 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { RULES } from '@kapara/config';
-import type { CallMode, CallReportReason, CallSnapshot, LiveSearchFilters, LiveSettings } from '@kapara/shared';
+import type { CallMode, CallReportReason, CallSnapshot, LiveMember, LiveSearchFilters, LiveSettings } from '@kapara/shared';
+import { IS_PRODUCTION } from '../env';
 import { sb } from '../cloud/client';
 import { cloud } from '../cloud/data';
 import { DemoTransport, isDemoLiveMember } from './demo-transport';
@@ -90,8 +91,64 @@ export class CloudTransport implements LiveTransport {
   }
 
   async searchStop() {
-    if (this.demoSearch) { this.demoSearch = false; await this.demo.searchStop(); return; }
+    this.demoSearch = false;
+    await this.demo.searchStop();
     await this.leave();
+  }
+
+  /* --- Live with a choice: proposed profiles, up to 5 calls ringing at once --- */
+  private isDemoMember(id: string) { return isDemoLiveMember(id); }
+  /** Fictional profiles complete the list outside production (badge « démo », simulated call announced). */
+  private get withDemo() { return !IS_PRODUCTION; }
+
+  async liveHere(filters: LiveSearchFilters): Promise<Ack> {
+    const { data, error } = await sb.rpc('live_here', { want_gender: filters.gender ?? null, want_region: filters.regionCode ?? null });
+    if (error) return { ok: false, error: missing(error) ? 'live_soon' : 'offline' };
+    if ((data as Ack).ok) this.hereAt = Date.now();
+    return data as Ack;
+  }
+
+  async liveSuggestions(filters: LiveSearchFilters): Promise<Ack<{ members: LiveMember[] }>> {
+    const here = await this.liveHere(filters);
+    let real: LiveMember[] = [];
+    let soon = false;
+    if (here.ok) {
+      const { data, error } = await sb.rpc('live_suggestions', { max_count: 12 });
+      if (error && !missing(error)) return { ok: false, error: 'offline' };
+      soon = !!error;
+      const r = data as { ok: boolean; error?: string; members?: LiveMember[] } | null;
+      if (r && !r.ok) return { ok: false, error: r.error ?? 'unknown' };
+      real = r?.members ?? [];
+    } else if (here.error === 'live_soon') soon = true;
+    else return here;
+    if (!this.withDemo) return soon ? { ok: false, error: 'live_soon' } : { ok: true, members: real };
+    // Real members first; fictional ones fill the list so the screen is never empty in the demo.
+    const demo = await this.demo.liveSuggestions();
+    return { ok: true, members: [...real, ...(demo.ok ? demo.members : [])].slice(0, Math.max(real.length, 8)) };
+  }
+
+  async liveCall(peerId: string): Promise<Ack<{ pending: CallSnapshot[] }>> {
+    if (this.isDemoMember(peerId)) {
+      const r = await this.demo.liveCall(peerId);
+      return r.ok ? this.livePending() : r;
+    }
+    const { data, error } = await sb.rpc('live_call', { peer: peerId });
+    if (error) return { ok: false, error: missing(error) ? 'live_soon' : 'offline' };
+    const r = data as { ok: boolean; error?: string };
+    if (!r.ok) return { ok: false, error: r.error ?? 'unknown' };
+    return this.livePending();
+  }
+
+  async livePending(): Promise<Ack<{ pending: CallSnapshot[] }>> {
+    const demo = await this.demo.livePending();
+    const { data, error } = await sb.rpc('live_pending');
+    if (error && !missing(error)) return { ok: false, error: 'offline' };
+    const real = (data as { pending?: CallSnapshot[] } | null)?.pending ?? [];
+    return { ok: true, pending: [...real, ...(demo.ok ? demo.pending : [])] };
+  }
+
+  liveCancel(callId: string): Promise<Ack> {
+    return this.isDemoCall(callId) ? this.demo.liveCancel(callId) : this.rpc('call_end', { call_id: callId });
   }
 
   async searchFiltersAllowed() {
@@ -180,6 +237,7 @@ export class CloudTransport implements LiveTransport {
     // Live "au hasard": one of my requests was accepted, the call starts (I make the offer).
     if (row.caller_id === this.me && row.context === 'live' && ACTIVE.has(row.state) && !this.call) {
       this.call = { id: row.id, state: 'invited', vrb: null, initiator: true };
+      void this.demo.searchStop(); // my simulated calls stop too
       this.events.emit({ type: 'join', callId: row.id, join: { mode: 'webrtc', room: row.id, initiator: true } });
     }
     if (this.call?.id !== row.id) return;

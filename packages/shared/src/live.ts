@@ -66,6 +66,8 @@ export const LiveMember = z.object({
   photoUrl: z.string().optional(),
   verified: z.boolean(),
   isDemo: z.boolean(),
+  /** City (region code), shown on Live cards. */
+  regionCode: z.string().optional(),
 });
 export type LiveMember = z.infer<typeof LiveMember>;
 
@@ -97,6 +99,8 @@ export const CallSnapshot = z.object({
   videoRequestedBy: z.enum(['me', 'peer']).optional(),
   /** What the caller proposed (absent = audio, older servers). */
   mode: CallMode.optional(),
+  /** Where the call comes from: Live or a conversation between matches. */
+  context: z.enum(['match', 'live']).optional(),
 });
 export type CallSnapshot = z.infer<typeof CallSnapshot>;
 
