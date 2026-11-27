@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { CallState, LiveCallsFrom, LiveMember, LiveSettings, CallReportReason } from '@kapara/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { PhotoStorage } from '../media/storage';
 import type { MemberFacts, Relationship } from './call-policy';
 
 import { ageOn as ageOf } from '../common/age';
@@ -10,7 +11,7 @@ const asCallsFrom = (v: string | undefined): LiveCallsFrom => (v === 'nobody' ||
 @Injectable()
 export class LiveRepository {
   private readonly log = new Logger(LiveRepository.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly storage: PhotoStorage) {}
 
   async settings(userId: string): Promise<LiveSettings> {
     const s = await this.prisma.privacySettings.findUnique({ where: { userId } });
@@ -93,7 +94,8 @@ export class LiveRepository {
       firstName: u.profile!.firstName,
       age: ageOf(u.profile!.birthDate),
       headline: u.profile!.headline ?? undefined,
-      photoUrl: u.profile!.photos[0]?.url,
+      // Signed here too: these cards also travel in socket events, outside the HTTP interceptor.
+      photoUrl: u.profile!.photos[0]?.url && this.storage.signedRead(u.profile!.photos[0].url),
       verified: Boolean(u.verifiedAt),
       isDemo: u.isDemo,
     }));

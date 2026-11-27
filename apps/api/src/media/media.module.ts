@@ -5,6 +5,8 @@ import { AuthGuard, CurrentUser, type AuthUser } from '../auth/auth.guard';
 import { RateLimiter } from '../auth/rate-limit';
 import { ZodPipe } from '../common/zod.pipe';
 import { LocalUploadError, PhotoStorage } from './storage';
+import { SignedPhotoUrls } from './signed-urls';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 
 /** 30 upload tickets per member per 10 minutes: plenty for 6 photos and retries. */
@@ -46,5 +48,5 @@ class MediaController {
   }
 }
 
-@Module({ controllers: [MediaController], providers: [PhotoStorage], exports: [PhotoStorage] })
+@Module({ controllers: [MediaController], providers: [PhotoStorage, { provide: APP_INTERCEPTOR, useClass: SignedPhotoUrls }], exports: [PhotoStorage] })
 export class MediaModule {}
