@@ -1,18 +1,34 @@
 import { RULES } from '@kapara/config';
 import type { CallMode, CallSnapshot, CallState, LiveMember, LiveSearchFilters, LiveSettings, LiveStatus } from '@kapara/shared';
-import { DEMO_PICKS } from '../demo/profiles';
+import { DEMO_PICKS, DEMO_PROFILES } from '../demo/profiles';
+import { DEMO_PEOPLE, DEMO_VIEWER_KEY, demoUserId } from '../demo/people';
+import { meStore } from '../me/store';
+import { seeksMatch } from '../me/seeks';
 import { Emitter, type Ack, type LiveServerEvent, type LiveTransport } from './transport';
 
-/** Fictional members shown in Live when the app runs without a server. Always flagged isDemo. */
-export const DEMO_LIVE_MEMBERS: LiveMember[] = DEMO_PICKS.map((r) => ({
-  userId: r.profile.id,
-  firstName: r.profile.firstName,
-  age: r.profile.age,
-  headline: r.profile.headline,
-  photoUrl: r.profile.photos[0]?.url,
-  verified: r.profile.verified,
-  isDemo: true,
-}));
+/** Every fictional member Live can show (always flagged isDemo), with who they are and who they seek. */
+const DEMO_LIVE_ALL = DEMO_PEOPLE.filter((p) => p.key !== DEMO_VIEWER_KEY).map((p) => {
+  const profile = DEMO_PROFILES[demoUserId(p.key)]!;
+  const member: LiveMember = {
+    userId: profile.id, firstName: profile.firstName, age: profile.age, headline: profile.headline,
+    photoUrl: profile.photos[0]?.url, verified: profile.verified, isDemo: true,
+  };
+  return { member, gender: p.gender, seeks: p.seeks };
+});
+/** Today's planned Live faces first, then the others. */
+const PLANNED = new Set(DEMO_PICKS.map((r) => r.profile.id));
+DEMO_LIVE_ALL.sort((a, b) => Number(PLANNED.has(b.member.userId)) - Number(PLANNED.has(a.member.userId)));
+
+/**
+ * Fictional members shown in Live, following "Je recherche" both ways
+ * (a man seeking women sees women seeking men, a man seeking men sees men
+ * seeking men). Same rule as the database (public.seeks_match).
+ */
+export function demoLiveMembers(): LiveMember[] {
+  const me = meStore.get();
+  return DEMO_LIVE_ALL.filter((x) => seeksMatch(me, x)).map((x) => x.member).slice(0, 12);
+}
+export const isDemoLiveMember = (id: string) => DEMO_LIVE_ALL.some((x) => x.member.userId === id);
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -61,12 +77,12 @@ export class DemoTransport implements LiveTransport {
   async list() {
     await wait(400);
     // The demo shows fictional members even when you are invisible, to explore the screen.
-    return { ok: true as const, members: this.call ? DEMO_LIVE_MEMBERS.filter((m) => m.userId !== this.call?.peer.userId) : DEMO_LIVE_MEMBERS, availableUntil: this.availableUntil };
+    return { ok: true as const, members: this.call ? demoLiveMembers().filter((m) => m.userId !== this.call?.peer.userId) : demoLiveMembers(), availableUntil: this.availableUntil };
   }
 
   async invite(to: string, mode: CallMode = 'audio'): Promise<Ack<{ call: CallSnapshot }>> {
     if (!this.settings.liveEnabled) return { ok: false, error: 'live_disabled' };
-    const peer = DEMO_LIVE_MEMBERS.find((m) => m.userId === to);
+    const peer = demoLiveMembers().find((m) => m.userId === to);
     if (!peer || this.call) return { ok: false, error: 'not_available' };
     this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'outgoing', mode };
     const id = this.call.callId;
@@ -88,8 +104,9 @@ export class DemoTransport implements LiveTransport {
       this.laterSearch(6000 + Math.random() * 4000, () => this.someoneAccepts());
     }
     const taken = new Set(this.pending.map((p) => p.peer.userId));
-    let pool = DEMO_LIVE_MEMBERS.filter((m) => !taken.has(m.userId) && !this.declinedBy.has(m.userId));
-    if (!pool.length) { this.declinedBy.clear(); pool = DEMO_LIVE_MEMBERS.filter((m) => !taken.has(m.userId)); }
+    const all = demoLiveMembers();
+    let pool = all.filter((m) => !taken.has(m.userId) && !this.declinedBy.has(m.userId));
+    if (!pool.length) { this.declinedBy.clear(); pool = all.filter((m) => !taken.has(m.userId)); }
     pool = [...pool].sort(() => Math.random() - 0.5);
     while (this.pending.length < Math.min(Math.max(o.want, 1), 4) && pool.length) {
       const peer = pool.shift()!;
@@ -127,7 +144,9 @@ export class DemoTransport implements LiveTransport {
 
   simulateIncoming() {
     if (this.call) return;
-    const peer = DEMO_LIVE_MEMBERS[1] ?? DEMO_LIVE_MEMBERS[0]!;
+    const list = demoLiveMembers();
+    const peer = list[1] ?? list[0];
+    if (!peer) return;
     // Live is face to face first: the fictional person proposes video (you can still answer in audio).
     this.call = { callId: `demo-${Date.now()}`, state: 'invited', peer, direction: 'incoming', mode: 'video' };
     const id = this.call.callId;

@@ -14,9 +14,9 @@ import { Field } from './Field';
 import { Text } from './Text';
 import { cityOf } from '../me/identity';
 
-type Basics = Required<Pick<ProfileUpdate, 'firstName' | 'birthDate' | 'gender' | 'headline' | 'languages' | 'regionCode'>>;
+type Basics = Required<Pick<ProfileUpdate, 'firstName' | 'birthDate' | 'gender' | 'headline' | 'languages' | 'regionCode'>> & { seeks: Gender[] };
 
-/** First name, birth date, gender, headline, languages. Shared by onboarding and the editor. */
+/** First name, birth date, gender, who they seek, headline, languages. Shared by onboarding and the editor. */
 export function useBasicsForm(me: MyProfile) {
   const [firstName, setFirstName] = useState(me.firstName);
   const [d0, m0, y0] = me.birthDate ? me.birthDate.split('-').reverse() : ['', '', ''];
@@ -24,6 +24,8 @@ export function useBasicsForm(me: MyProfile) {
   const [month, setMonth] = useState(m0 ?? '');
   const [year, setYear] = useState(y0 ?? '');
   const [gender, setGender] = useState<Gender | undefined>(me.gender);
+  // "Je recherche": always asked, never guessed (an earlier default is shown pre-selected only if it was saved).
+  const [seeks, setSeeks] = useState<Gender[]>(me.seeks ?? []);
   const [headline, setHeadline] = useState(me.headline);
   const [languages, setLanguages] = useState(me.languages);
   const [touched, setTouched] = useState(false);
@@ -35,22 +37,24 @@ export function useBasicsForm(me: MyProfile) {
     firstName: firstName.trim() ? undefined : 'required',
     birthDate: !verdict ? 'date' : verdict.ok ? undefined : verdict.reason === 'adults_only' ? 'age' : 'date',
     gender: gender ? undefined : 'required',
+    seeks: seeks.length ? undefined : 'required',
   };
-  const valid = !errors.firstName && !errors.birthDate && !errors.gender;
-  const value: Basics | null = valid ? { firstName: firstName.trim(), birthDate, gender: gender!, headline: headline.trim(), languages, regionCode: meStore.get().regionCode } : null;
+  const valid = !errors.firstName && !errors.birthDate && !errors.gender && !errors.seeks;
+  const value: Basics | null = valid ? { firstName: firstName.trim(), birthDate, gender: gender!, seeks, headline: headline.trim(), languages, regionCode: meStore.get().regionCode } : null;
 
   return {
     valid, value, touch: () => setTouched(true),
     /** The date is a real one, but the person is under 18: the sign-up stops here. */
     underage: errors.birthDate === 'age',
-    render: () => <BasicsFields {...{ firstName, setFirstName, day, setDay, month, setMonth, year, setYear, gender, setGender, headline, setHeadline, languages, setLanguages, errors: touched ? errors : {} }} />,
+    render: () => <BasicsFields {...{ firstName, setFirstName, day, setDay, month, setMonth, year, setYear, gender, setGender, seeks, setSeeks, headline, setHeadline, languages, setLanguages, errors: touched ? errors : {} }} />,
   };
 }
 
 function BasicsFields(p: {
   firstName: string; setFirstName: (v: string) => void; day: string; setDay: (v: string) => void; month: string; setMonth: (v: string) => void;
-  year: string; setYear: (v: string) => void; gender?: Gender; setGender: (g: Gender) => void; headline: string; setHeadline: (v: string) => void;
-  languages: string[]; setLanguages: (v: string[]) => void; errors: Partial<Record<'firstName' | 'birthDate' | 'gender', string>>;
+  year: string; setYear: (v: string) => void; gender?: Gender; setGender: (g: Gender) => void; seeks: Gender[]; setSeeks: (v: Gender[]) => void;
+  headline: string; setHeadline: (v: string) => void;
+  languages: string[]; setLanguages: (v: string[]) => void; errors: Partial<Record<'firstName' | 'birthDate' | 'gender' | 'seeks', string>>;
 }) {
   const { t } = useTranslation();
   const { c } = useTheme();
@@ -77,6 +81,13 @@ function BasicsFields(p: {
         <ChoiceList label={t('basics.gender')} value={p.gender} onChange={(g) => p.setGender(g as Gender)}
           options={Gender.options.map((g) => ({ id: g, label: t(`basics.genders.${g}`) }))} />
         {p.errors.gender ? <Text variant="caption" tone="danger">{t('basics.required')}</Text> : null}
+      </View>
+      <View style={{ gap: space.sm }}>
+        <Text variant="label" tone="textMuted">{t('basics.seeks')}</Text>
+        <Chips label={t('basics.seeks')} values={p.seeks}
+          options={Gender.options.map((g) => ({ id: g, label: t(`basics.seeking.${g}`) }))}
+          onToggle={(id) => p.setSeeks(p.seeks.includes(id as Gender) ? p.seeks.filter((x) => x !== id) : [...p.seeks, id as Gender])} />
+        <Text variant="caption" tone={p.errors.seeks ? 'danger' : 'textSubtle'}>{p.errors.seeks ? t('basics.required') : t('basics.seeksHint')}</Text>
       </View>
       <Field label={t('basics.headline')} value={p.headline} onChangeText={p.setHeadline} maxLength={140} counter hint={t('basics.headlineHint')} placeholder={t('basics.headlinePlaceholder')} />
       <View style={{ gap: space.sm }}>

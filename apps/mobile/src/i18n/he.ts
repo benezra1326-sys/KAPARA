@@ -1161,6 +1161,13 @@ const he: Catalog<typeof fr> = {
       man: 'גבר',
       nonbinary: 'א־בינארי/ת',
     },
+    seeks: 'מחפש/ת',
+    seeksHint: 'אפשר לבחור יותר מאחד. רואים רק מי שמחפשים גם אותך.',
+    seeking: {
+      woman: 'אישה',
+      man: 'גבר',
+      nonbinary: 'אדם א־בינארי',
+    },
     headline: 'משפט עליך',
     headlineHint: 'רשות.',
     headlinePlaceholder: 'אדריכלית, תמיד עם מחברת בתיק',
